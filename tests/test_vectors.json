@@ -1,0 +1,166 @@
+{
+  "version": "1.0.0",
+  "description": "Official RPP test vectors for implementation validation",
+  "license": "CC BY 4.0",
+  "test_vectors": {
+    "encoding": [
+      {
+        "description": "Minimum address (all zeros)",
+        "input": {"shell": 0, "theta": 0, "phi": 0, "harmonic": 0},
+        "expected": {"hex": "0x0000000", "decimal": 0}
+      },
+      {
+        "description": "Maximum address (all max values)",
+        "input": {"shell": 3, "theta": 511, "phi": 511, "harmonic": 255},
+        "expected": {"hex": "0xFFFFFFF", "decimal": 268435455}
+      },
+      {
+        "description": "Shell only (max shell, others zero)",
+        "input": {"shell": 3, "theta": 0, "phi": 0, "harmonic": 0},
+        "expected": {"hex": "0xC000000", "decimal": 201326592}
+      },
+      {
+        "description": "Theta only (max theta, others zero)",
+        "input": {"shell": 0, "theta": 511, "phi": 0, "harmonic": 0},
+        "expected": {"hex": "0x3FE0000", "decimal": 66846720}
+      },
+      {
+        "description": "Phi only (max phi, others zero)",
+        "input": {"shell": 0, "theta": 0, "phi": 511, "harmonic": 0},
+        "expected": {"hex": "0x001FF00", "decimal": 130816}
+      },
+      {
+        "description": "Harmonic only (max harmonic, others zero)",
+        "input": {"shell": 0, "theta": 0, "phi": 0, "harmonic": 255},
+        "expected": {"hex": "0x00000FF", "decimal": 255}
+      },
+      {
+        "description": "Hot cache, identity sector, grounded",
+        "input": {"shell": 0, "theta": 45, "phi": 64, "harmonic": 128},
+        "expected": {"hex": "0x05A4080", "decimal": 5947520}
+      },
+      {
+        "description": "Warm memory, transitional",
+        "input": {"shell": 1, "theta": 100, "phi": 200, "harmonic": 64},
+        "expected": {"hex": "0x44CC840", "decimal": 72493120}
+      },
+      {
+        "description": "Cold storage, abstract",
+        "input": {"shell": 2, "theta": 256, "phi": 300, "harmonic": 192},
+        "expected": {"hex": "0x9012CC0", "decimal": 151203008}
+      },
+      {
+        "description": "Frozen archive, ethereal",
+        "input": {"shell": 3, "theta": 480, "phi": 450, "harmonic": 250},
+        "expected": {"hex": "0xF01C2FA", "decimal": 251855610}
+      }
+    ],
+    "decoding": [
+      {
+        "description": "Zero address",
+        "input": {"hex": "0x0000000", "decimal": 0},
+        "expected": {"shell": 0, "theta": 0, "phi": 0, "harmonic": 0}
+      },
+      {
+        "description": "Maximum address",
+        "input": {"hex": "0xFFFFFFF", "decimal": 268435455},
+        "expected": {"shell": 3, "theta": 511, "phi": 511, "harmonic": 255}
+      },
+      {
+        "description": "Mid-range address",
+        "input": {"hex": "0x8000000", "decimal": 134217728},
+        "expected": {"shell": 2, "theta": 0, "phi": 0, "harmonic": 0}
+      }
+    ],
+    "roundtrip": [
+      {"shell": 0, "theta": 0, "phi": 0, "harmonic": 0},
+      {"shell": 3, "theta": 511, "phi": 511, "harmonic": 255},
+      {"shell": 1, "theta": 256, "phi": 256, "harmonic": 128},
+      {"shell": 2, "theta": 100, "phi": 400, "harmonic": 50},
+      {"shell": 0, "theta": 45, "phi": 120, "harmonic": 200},
+      {"shell": 1, "theta": 350, "phi": 75, "harmonic": 32},
+      {"shell": 2, "theta": 500, "phi": 500, "harmonic": 1},
+      {"shell": 3, "theta": 1, "phi": 1, "harmonic": 254}
+    ],
+    "invalid": [
+      {
+        "description": "Shell out of range",
+        "input": {"shell": 4, "theta": 0, "phi": 0, "harmonic": 0},
+        "expected_error": "Shell must be 0-3"
+      },
+      {
+        "description": "Theta out of range",
+        "input": {"shell": 0, "theta": 512, "phi": 0, "harmonic": 0},
+        "expected_error": "Theta must be 0-511"
+      },
+      {
+        "description": "Phi out of range",
+        "input": {"shell": 0, "theta": 0, "phi": 512, "harmonic": 0},
+        "expected_error": "Phi must be 0-511"
+      },
+      {
+        "description": "Harmonic out of range",
+        "input": {"shell": 0, "theta": 0, "phi": 0, "harmonic": 256},
+        "expected_error": "Harmonic must be 0-255"
+      },
+      {
+        "description": "Address exceeds 28 bits",
+        "input": {"hex": "0x10000000", "decimal": 268435456},
+        "expected_error": "Address out of range"
+      },
+      {
+        "description": "Negative address",
+        "input": {"decimal": -1},
+        "expected_error": "Address out of range"
+      }
+    ],
+    "angular_conversions": [
+      {
+        "description": "0 degrees to theta",
+        "input": {"degrees": 0},
+        "expected_theta": 0
+      },
+      {
+        "description": "180 degrees to theta",
+        "input": {"degrees": 180},
+        "expected_theta": 256
+      },
+      {
+        "description": "359 degrees to theta",
+        "input": {"degrees": 359},
+        "expected_theta": 511
+      },
+      {
+        "description": "-90 latitude to phi",
+        "input": {"latitude": -90},
+        "expected_phi": 0
+      },
+      {
+        "description": "0 latitude to phi",
+        "input": {"latitude": 0},
+        "expected_phi": 255
+      },
+      {
+        "description": "+90 latitude to phi",
+        "input": {"latitude": 90},
+        "expected_phi": 511
+      }
+    ]
+  },
+  "sector_definitions": {
+    "Gene": {"theta_range": [0, 63], "description": "Core identity, immutable traits"},
+    "Memory": {"theta_range": [64, 127], "description": "Experiential storage"},
+    "Witness": {"theta_range": [128, 191], "description": "Observational records"},
+    "Dream": {"theta_range": [192, 255], "description": "Speculative/creative"},
+    "Bridge": {"theta_range": [256, 319], "description": "Integration/translation"},
+    "Guardian": {"theta_range": [320, 383], "description": "Protection/consent"},
+    "Emergence": {"theta_range": [384, 447], "description": "Novel pattern detection"},
+    "Meta": {"theta_range": [448, 511], "description": "Self-reference, reflection"}
+  },
+  "grounding_levels": {
+    "Grounded": {"phi_range": [0, 127], "description": "Physical, verifiable"},
+    "Transitional": {"phi_range": [128, 255], "description": "Contextual, situational"},
+    "Abstract": {"phi_range": [256, 383], "description": "Conceptual, inferential"},
+    "Ethereal": {"phi_range": [384, 511], "description": "Emergent, speculative"}
+  }
+}
