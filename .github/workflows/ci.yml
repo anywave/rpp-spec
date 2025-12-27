@@ -57,25 +57,23 @@ jobs:
       - name: Verify CLI encode-decode roundtrip
         shell: bash
         run: |
-          TMPDIR="${RUNNER_TEMP}"
-
           # Encode an address
-          python -m rpp.cli encode --shell 1 --theta 100 --phi 200 --harmonic 50 --json > "$TMPDIR/encoded.json"
-          cat "$TMPDIR/encoded.json"
+          python -m rpp.cli encode --shell 1 --theta 100 --phi 200 --harmonic 50 --json > encoded.json
+          cat encoded.json
 
           # Extract address
-          ADDRESS=$(python -c "import json; print(json.load(open('$TMPDIR/encoded.json'))['address'])")
+          ADDRESS=$(python -c "import json; print(json.load(open('encoded.json'))['address'])")
           echo "Encoded address: $ADDRESS"
 
           # Decode and verify
-          python -m rpp.cli decode --address "$ADDRESS" --json > "$TMPDIR/decoded.json"
-          cat "$TMPDIR/decoded.json"
+          python -m rpp.cli decode --address "$ADDRESS" --json > decoded.json
+          cat decoded.json
 
           # Verify components match
           python -c "
           import json
-          enc = json.load(open('$TMPDIR/encoded.json'))
-          dec = json.load(open('$TMPDIR/decoded.json'))
+          enc = json.load(open('encoded.json'))
+          dec = json.load(open('decoded.json'))
           assert enc['shell'] == dec['shell'], 'Shell mismatch'
           assert enc['theta'] == dec['theta'], 'Theta mismatch'
           assert enc['phi'] == dec['phi'], 'Phi mismatch'
@@ -86,41 +84,37 @@ jobs:
       - name: Verify three core scenarios
         shell: bash
         run: |
-          TMPDIR="${RUNNER_TEMP}"
-
           echo "=== Scenario 1: Allowed read (low phi) ==="
-          python -m rpp.cli encode --shell 0 --theta 12 --phi 40 --harmonic 1 --json > "$TMPDIR/s1.json"
-          ADDR1=$(python -c "import json; print(json.load(open('$TMPDIR/s1.json'))['address'])")
-          python -m rpp.cli resolve --address "$ADDR1" --json > "$TMPDIR/r1.json"
-          cat "$TMPDIR/r1.json"
-          python -c "import json; assert json.load(open('$TMPDIR/r1.json'))['allowed'] == True, 'Scenario 1 failed'"
+          python -m rpp.cli encode --shell 0 --theta 12 --phi 40 --harmonic 1 --json > s1.json
+          ADDR1=$(python -c "import json; print(json.load(open('s1.json'))['address'])")
+          python -m rpp.cli resolve --address "$ADDR1" --json > r1.json
+          cat r1.json
+          python -c "import json; assert json.load(open('r1.json'))['allowed'] == True, 'Scenario 1 failed'"
 
           echo "=== Scenario 2: Denied write (high phi) ==="
-          python -m rpp.cli encode --shell 0 --theta 100 --phi 450 --harmonic 64 --json > "$TMPDIR/s2.json"
-          ADDR2=$(python -c "import json; print(json.load(open('$TMPDIR/s2.json'))['address'])")
-          python -m rpp.cli resolve --address "$ADDR2" --operation write --json > "$TMPDIR/r2.json" || true
-          cat "$TMPDIR/r2.json"
-          python -c "import json; assert json.load(open('$TMPDIR/r2.json'))['allowed'] == False, 'Scenario 2 failed'"
+          python -m rpp.cli encode --shell 0 --theta 100 --phi 450 --harmonic 64 --json > s2.json
+          ADDR2=$(python -c "import json; print(json.load(open('s2.json'))['address'])")
+          python -m rpp.cli resolve --address "$ADDR2" --operation write --json > r2.json || true
+          cat r2.json
+          python -c "import json; assert json.load(open('r2.json'))['allowed'] == False, 'Scenario 2 failed'"
 
           echo "=== Scenario 3: Routed to archive (cold shell) ==="
-          python -m rpp.cli encode --shell 2 --theta 200 --phi 128 --harmonic 32 --json > "$TMPDIR/s3.json"
-          ADDR3=$(python -c "import json; print(json.load(open('$TMPDIR/s3.json'))['address'])")
-          python -m rpp.cli resolve --address "$ADDR3" --json > "$TMPDIR/r3.json"
-          cat "$TMPDIR/r3.json"
-          python -c "import json; assert 'archive' in json.load(open('$TMPDIR/r3.json'))['route'], 'Scenario 3 failed'"
+          python -m rpp.cli encode --shell 2 --theta 200 --phi 128 --harmonic 32 --json > s3.json
+          ADDR3=$(python -c "import json; print(json.load(open('s3.json'))['address'])")
+          python -m rpp.cli resolve --address "$ADDR3" --json > r3.json
+          cat r3.json
+          python -c "import json; assert 'archive' in json.load(open('r3.json'))['route'], 'Scenario 3 failed'"
 
           echo "All scenarios verified!"
 
       - name: Verify no ANSI codes in output
         shell: bash
         run: |
-          TMPDIR="${RUNNER_TEMP}"
-
           # Run demo and capture output
-          python -m rpp.cli demo > "$TMPDIR/demo.txt"
+          python -m rpp.cli demo > demo.txt
 
           # Check for ANSI escape sequences (0x1B or \033)
-          if grep -P '\x1b' "$TMPDIR/demo.txt"; then
+          if grep -P '\x1b' demo.txt; then
             echo "ERROR: ANSI escape codes detected in output!"
             exit 1
           fi
@@ -130,8 +124,6 @@ jobs:
       - name: Verify exit codes
         shell: bash
         run: |
-          TMPDIR="${RUNNER_TEMP}"
-
           # Success should return 0
           python -m rpp.cli version
           if [ $? -ne 0 ]; then echo "Expected exit 0"; exit 1; fi
@@ -141,8 +133,8 @@ jobs:
           if [ "$CODE" -ne 1 ]; then echo "Expected exit 1 for invalid input, got $CODE"; exit 1; fi
 
           # Denied resolution should return 2
-          python -m rpp.cli encode --shell 0 --theta 100 --phi 490 --harmonic 64 --json > "$TMPDIR/denied.json"
-          ADDR=$(python -c "import json; print(json.load(open('$TMPDIR/denied.json'))['address'])")
+          python -m rpp.cli encode --shell 0 --theta 100 --phi 490 --harmonic 64 --json > denied.json
+          ADDR=$(python -c "import json; print(json.load(open('denied.json'))['address'])")
           python -m rpp.cli resolve --address "$ADDR" --operation write 2>/dev/null || CODE=$?
           if [ "$CODE" -ne 2 ]; then echo "Expected exit 2 for denied, got $CODE"; exit 1; fi
 
