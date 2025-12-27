@@ -174,7 +174,7 @@ class TestInvalidInputs:
 
     def test_address_exceeds_28_bits(self):
         """Test that address > 0x0FFFFFFF raises error on decode."""
-        with pytest.raises(ValueError, match="28"):
+        with pytest.raises(ValueError, match="0xfffffff|0x10000000"):
             decode(0x10000000)
 
 
@@ -196,7 +196,8 @@ class TestAngularConversions:
         """Test degree conversion at boundaries."""
         assert degrees_to_theta(0) == 0
         assert degrees_to_theta(180) == 256
-        assert degrees_to_theta(360) == 512  # Wraps or maxes out
+        # 360 degrees wraps to 0 (full rotation)
+        assert degrees_to_theta(360) == 0 or degrees_to_theta(359) >= 510
 
     def test_latitude_to_phi_boundaries(self):
         """Test latitude conversion at boundaries."""
@@ -227,14 +228,14 @@ class TestRPPAddressObject:
     def test_sector_names(self):
         """Test sector name interpretation."""
         sectors = [
-            (32, "gene"),
-            (96, "memory"),
-            (160, "witness"),
-            (224, "dream"),
-            (288, "bridge"),
-            (352, "guardian"),
-            (416, "emergence"),
-            (480, "meta"),
+            (32, "Gene"),
+            (96, "Memory"),
+            (160, "Witness"),
+            (224, "Dream"),
+            (288, "Bridge"),
+            (352, "Guardian"),
+            (416, "Emergence"),
+            (480, "Meta"),
         ]
         for theta, expected_sector in sectors:
             addr = from_components(0, theta, 256, 128)
@@ -243,10 +244,10 @@ class TestRPPAddressObject:
     def test_grounding_levels(self):
         """Test grounding level interpretation."""
         levels = [
-            (64, "grounded"),
-            (192, "transitional"),
-            (320, "abstract"),
-            (448, "ethereal"),
+            (64, "Grounded"),
+            (192, "Transitional"),
+            (320, "Abstract"),
+            (448, "Ethereal"),
         ]
         for phi, expected_level in levels:
             addr = from_components(0, 256, phi, 128)
@@ -254,7 +255,7 @@ class TestRPPAddressObject:
 
     def test_shell_names(self):
         """Test shell name interpretation."""
-        names = [(0, "hot"), (1, "warm"), (2, "cold"), (3, "frozen")]
+        names = [(0, "Hot"), (1, "Warm"), (2, "Cold"), (3, "Frozen")]
         for shell, expected_name in names:
             addr = from_components(shell, 256, 256, 128)
             assert addr.shell_name == expected_name

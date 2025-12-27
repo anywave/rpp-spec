@@ -22,7 +22,7 @@
       {
         "description": "Theta only (max theta, others zero)",
         "input": {"shell": 0, "theta": 511, "phi": 0, "harmonic": 0},
-        "expected": {"hex": "0x3FE0000", "decimal": 66846720}
+        "expected": {"hex": "0x3FE0000", "decimal": 66977792}
       },
       {
         "description": "Phi only (max phi, others zero)",
@@ -37,22 +37,22 @@
       {
         "description": "Hot cache, identity sector, grounded",
         "input": {"shell": 0, "theta": 45, "phi": 64, "harmonic": 128},
-        "expected": {"hex": "0x05A4080", "decimal": 5947520}
+        "expected": {"hex": "0x05A4080", "decimal": 5914752}
       },
       {
         "description": "Warm memory, transitional",
         "input": {"shell": 1, "theta": 100, "phi": 200, "harmonic": 64},
-        "expected": {"hex": "0x44CC840", "decimal": 72493120}
+        "expected": {"hex": "0x4C8C840", "decimal": 80267328}
       },
       {
         "description": "Cold storage, abstract",
         "input": {"shell": 2, "theta": 256, "phi": 300, "harmonic": 192},
-        "expected": {"hex": "0x9012CC0", "decimal": 151203008}
+        "expected": {"hex": "0xA012CC0", "decimal": 167849152}
       },
       {
         "description": "Frozen archive, ethereal",
         "input": {"shell": 3, "theta": 480, "phi": 450, "harmonic": 250},
-        "expected": {"hex": "0xF01C2FA", "decimal": 251855610}
+        "expected": {"hex": "0xFC1C2FA", "decimal": 264356602}
       }
     ],
     "decoding": [
