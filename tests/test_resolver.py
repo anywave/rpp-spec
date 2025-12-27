@@ -10,7 +10,7 @@ Validates the three core scenarios:
 
 import pytest
 
-from rpp.address import from_components, encode
+from rpp.address import from_components
 from rpp.resolver import (
     RPPResolver,
     ResolveResult,
@@ -285,7 +285,7 @@ class TestDeterminism:
 
     def test_encode_decode_resolve_roundtrip(self):
         """Encode-decode-resolve should be deterministic."""
-        from rpp.address import encode, decode
+        from rpp.address import encode
 
         for shell in range(4):
             for theta in [0, 100, 300, 511]:

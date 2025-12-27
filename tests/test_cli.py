@@ -299,7 +299,7 @@ class TestCLILineOriented:
             "encode", "--shell", "0", "--theta", "100", "--phi", "200", "--harmonic", "50"
         )
 
-        lines = [l for l in stdout.strip().split("\n") if l]
+        lines = [line for line in stdout.strip().split("\n") if line]
         # Should have multiple lines, each with a field
         assert len(lines) >= 4  # at least shell, theta, phi, harmonic
 
@@ -307,7 +307,7 @@ class TestCLILineOriented:
         """Test that resolve output has one field per line."""
         code, stdout, stderr = run_rpp("resolve", "--address", "0x0018281")
 
-        lines = [l for l in stdout.strip().split("\n") if l]
+        lines = [line for line in stdout.strip().split("\n") if line]
         # Should have allowed, route, reason
         assert len(lines) == 3
 

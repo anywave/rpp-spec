@@ -23,18 +23,15 @@ import argparse
 from typing import List, Optional, TextIO
 
 from rpp.address import (
-    encode,
-    decode,
     from_raw,
     from_components,
     parse_address,
-    is_valid_address,
     MAX_SHELL,
     MAX_THETA,
     MAX_PHI,
     MAX_HARMONIC,
 )
-from rpp.resolver import resolve, ResolveResult
+from rpp.resolver import resolve
 
 
 # Exit codes

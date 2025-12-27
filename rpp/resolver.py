@@ -10,7 +10,7 @@ it does not provide storage itself.
 
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Protocol
-from rpp.address import decode, from_raw, RPPAddress, is_valid_address
+from rpp.address import from_raw, RPPAddress, is_valid_address
 
 
 @dataclass(frozen=True)
@@ -102,7 +102,7 @@ class RPPResolver:
             return ResolveResult(
                 allowed=False,
                 route=None,
-                reason=f"Invalid address: must be 0-0x0FFFFFFF",
+                reason="Invalid address: must be 0-0x0FFFFFFF",
             )
 
         # Decode address
