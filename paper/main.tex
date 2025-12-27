@@ -1,0 +1,688 @@
+% Rotational Packet Protocol (RPP): A Semantic Addressing Architecture
+% for Consent-Aware Memory Systems
+%
+% arXiv preprint submission
+% Category: cs.OS (Operating Systems) or cs.DC (Distributed Computing)
+%
+% License: CC BY 4.0
+
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{natbib}
+\usepackage{url}
+
+% Page geometry
+\geometry{
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in
+}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+    pdftitle={Rotational Packet Protocol (RPP): A Semantic Addressing Architecture for Consent-Aware Memory Systems},
+    pdfauthor={Alexander Liam Lennon}
+}
+
+% Code listings style
+\definecolor{codebg}{rgb}{0.95,0.95,0.95}
+\definecolor{codeframe}{rgb}{0.8,0.8,0.8}
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    xleftmargin=15pt,
+    framexleftmargin=15pt
+}
+
+% Python style
+\lstdefinestyle{python}{
+    language=Python,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red},
+    commentstyle=\color{green!60!black},
+    morekeywords={def,return,assert,int,tuple,bool}
+}
+
+% Verilog style
+\lstdefinestyle{verilog}{
+    language=Verilog,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black}
+}
+
+% Title
+\title{Rotational Packet Protocol (RPP):\\
+A Semantic Addressing Architecture for\\
+Consent-Aware Memory Systems}
+
+\author{
+    Alexander Liam Lennon\\
+    Independent Researcher\\
+    \texttt{https://github.com/anywave/rpp-spec}
+}
+
+\date{December 2024\\Version 1.1.0}
+
+\begin{document}
+
+\maketitle
+
+% Abstract
+\begin{abstract}
+We present the Rotational Packet Protocol (RPP), a novel addressing architecture that encodes semantic meaning, access consent, and lifecycle state directly into a fixed-width 28-bit address. Unlike traditional linear memory addressing, RPP uses a spherical coordinate system where address components represent functional sectors, grounding levels, and harmonic modes rather than arbitrary byte offsets. The protocol defines both the address encoding and the minimal packet envelope (address + optional payload) that serves as the atomic unit of semantically-addressed data. This paper describes the complete specification sufficient for implementation, compares the approach to existing architectures (CPU virtual memory, GPU memory, content-addressable memory, object storage), and demonstrates integration patterns with existing storage systems. RPP is explicitly released as open infrastructure with no patent claims.
+
+\medskip
+\noindent\textbf{Keywords:} semantic addressing, consent-aware systems, memory architecture, geometric addressing, bridge architecture, open infrastructure, packet protocol
+\end{abstract}
+
+% Defensive publication notice
+\vspace{1em}
+\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{%
+\textbf{Defensive Publication Notice:} This paper constitutes a defensive disclosure establishing prior art. The authors explicitly claim no patent rights and intend to prevent future patent enclosure of the described architecture. Released under CC BY 4.0.
+}}
+
+\section{Introduction}
+
+\subsection{Problem Statement}
+
+Modern computing architectures treat memory addresses as opaque numerical identifiers:
+\begin{equation}
+\text{address} \rightarrow \text{location} \rightarrow \text{bytes}
+\end{equation}
+
+This model, established in the von Neumann architecture and refined through decades of CPU design, optimizes for sequential access patterns, cache locality, hardware simplicity, and byte-level granularity. However, it provides no intrinsic mechanism for:
+
+\begin{itemize}
+    \item Semantic classification of data
+    \item Consent-based access control beyond binary ACLs
+    \item Lifecycle management at the address level
+    \item Functional routing without lookup tables
+\end{itemize}
+
+As systems increasingly deal with meaning (embeddings, knowledge graphs, AI-generated content) rather than raw bytes, the gap between address semantics and data semantics creates architectural friction.
+
+\subsection{Contribution}
+
+We propose RPP, an addressing model where:
+
+\begin{enumerate}
+    \item \textbf{Address = Classification}: The 28-bit address directly encodes what data means, not just where it resides
+    \item \textbf{Access = State-Dependent}: Consent and coherence are intrinsic to address resolution
+    \item \textbf{Routing = Geometric}: Spherical coordinates enable functional locality instead of physical locality
+    \item \textbf{Bridge Architecture}: RPP overlays existing storage systems without replacement
+\end{enumerate}
+
+\subsection{Explicit Non-Patent Statement}
+
+This publication constitutes a defensive disclosure. The authors explicitly:
+\begin{itemize}
+    \item Claim no patent rights
+    \item Intend to establish prior art preventing future patent claims
+    \item Release this specification under CC BY 4.0
+    \item Encourage independent implementation without licensing obligations
+\end{itemize}
+
+\section{The 28-Bit RPP Address}
+
+\subsection{Bit Layout}
+
+The canonical RPP address format is a 28-bit unsigned integer with fixed field positions:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{2 bits} & \textbf{9 bits} & \textbf{9 bits} & \textbf{8 bits} \\
+\hline
+Shell & Theta & Phi & Harmonic \\
+Depth & (0--511) & (0--511) & (0--255) \\
+\hline
+{[27:26]} & {[25:17]} & {[16:8]} & {[7:0]} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Field Definitions}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccl}
+\toprule
+\textbf{Field} & \textbf{Bits} & \textbf{Range} & \textbf{Semantic Meaning} \\
+\midrule
+Shell & 2 & 0--3 & Radial depth / storage tier \\
+Theta & 9 & 0--511 & Longitude / functional sector \\
+Phi & 9 & 0--511 & Latitude / grounding level \\
+Harmonic & 8 & 0--255 & Frequency / mode / resolution \\
+\bottomrule
+\end{tabular}
+\caption{RPP Address Field Definitions}
+\label{tab:fields}
+\end{table}
+
+\textbf{Total addressable space:} $2^{28} = 268,435,456$ unique addresses ($\approx$256 MB equivalent)
+
+\subsection{Encoding Algorithm}
+
+\begin{lstlisting}[style=python,caption={RPP Address Encoding}]
+def encode_rpp_address(shell: int, theta: int,
+                       phi: int, harmonic: int) -> int:
+    """
+    Encode RPP components into a 28-bit address.
+
+    Args:
+        shell: 0-3 (radial depth)
+        theta: 0-511 (angular longitude)
+        phi: 0-511 (angular latitude)
+        harmonic: 0-255 (frequency/mode index)
+
+    Returns:
+        28-bit unsigned integer
+    """
+    assert 0 <= shell <= 3
+    assert 0 <= theta <= 511
+    assert 0 <= phi <= 511
+    assert 0 <= harmonic <= 255
+
+    return (shell << 26) | (theta << 17) | (phi << 8) | harmonic
+\end{lstlisting}
+
+\subsection{Decoding Algorithm}
+
+\begin{lstlisting}[style=python,caption={RPP Address Decoding}]
+def decode_rpp_address(address: int) -> tuple[int, int, int, int]:
+    """
+    Decode a 28-bit RPP address into components.
+
+    Args:
+        address: 28-bit unsigned integer
+
+    Returns:
+        (shell, theta, phi, harmonic)
+    """
+    shell = (address >> 26) & 0x3
+    theta = (address >> 17) & 0x1FF
+    phi = (address >> 8) & 0x1FF
+    harmonic = address & 0xFF
+
+    return (shell, theta, phi, harmonic)
+\end{lstlisting}
+
+\subsection{Reserved Bits}
+
+When stored in 32-bit containers, bits [31:28] are reserved and MUST be zero. This allows future extension while maintaining backward compatibility.
+
+\section{The Rotational Packet}
+
+\subsection{Packet Structure}
+
+A rotational packet is the minimal envelope combining an RPP address with an optional payload:
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{RPP Address (4 bytes)} & \textbf{Payload (0 to N bytes)} \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent\textbf{The Clean Rule:} A rotational packet is simply a small envelope with a structured address and an optional payload. That's it.
+
+\subsection{Packet Fields}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Field} & \textbf{Size} & \textbf{Required} & \textbf{Description} \\
+\midrule
+Address & 4 bytes & Yes & 28-bit RPP address, bits [31:28] reserved \\
+Payload & 0--N bytes & No & Optional data, pointer, hash, or content \\
+\bottomrule
+\end{tabular}
+\caption{Rotational Packet Fields}
+\end{table}
+
+\subsection{Payload Types}
+
+The payload is opaque to the packet format. Common types include:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Type} & \textbf{Size} & \textbf{Use Case} \\
+\midrule
+Empty & 0 bytes & Address queries, routing probes \\
+Pointer & 4--8 bytes & Reference to external storage \\
+Hash & 32 bytes & Content-addressable reference (SHA-256) \\
+Inline & Variable & Small embedded data \\
+Framed & Variable & Length-prefixed content \\
+\bottomrule
+\end{tabular}
+\caption{Common Payload Types}
+\end{table}
+
+\section{Semantic Interpretation}
+
+\subsection{Shell (Radial Depth)}
+
+The Shell field encodes hierarchical depth or storage tier:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cll}
+\toprule
+\textbf{Shell} & \textbf{Typical Mapping} & \textbf{Temperature} \\
+\midrule
+0 & Immediate / hot cache & Hot \\
+1 & Working memory & Warm \\
+2 & Persistent storage & Cold \\
+3 & Archive / dormant & Frozen \\
+\bottomrule
+\end{tabular}
+\caption{Shell Semantic Mapping}
+\end{table}
+
+\subsection{Theta (Functional Sector)}
+
+Theta divides the address space into functional zones. Example canonical sectors:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Theta Range} & \textbf{Sector Name} & \textbf{Function} \\
+\midrule
+0--63 & Gene & Core identity, immutable traits \\
+64--127 & Memory & Experiential storage \\
+128--191 & Witness & Observational records \\
+192--255 & Dream & Speculative/creative space \\
+256--319 & Bridge & Integration/translation \\
+320--383 & Guardian & Protection/consent enforcement \\
+384--447 & Emergence & Novel pattern detection \\
+448--511 & Meta & Self-reference, reflection \\
+\bottomrule
+\end{tabular}
+\caption{Theta Sector Definitions}
+\end{table}
+
+\subsection{Phi (Grounding Level)}
+
+Phi encodes the axis from concrete/grounded to abstract/ethereal:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Phi Range} & \textbf{Interpretation} \\
+\midrule
+0--127 & Highly grounded (physical, verifiable) \\
+128--255 & Transitional (contextual) \\
+256--383 & Abstract (conceptual, inferential) \\
+384--511 & Ethereal (emergent, speculative) \\
+\bottomrule
+\end{tabular}
+\caption{Phi Grounding Levels}
+\end{table}
+
+\subsection{Harmonic (Mode/Resolution)}
+
+Harmonic encodes the frequency, version, or resolution mode:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Harmonic} & \textbf{Example Usage} \\
+\midrule
+0 & Raw/unprocessed \\
+64 & Compressed/summarized \\
+128 & Standard resolution \\
+192 & High-fidelity \\
+255 & Maximum detail \\
+\bottomrule
+\end{tabular}
+\caption{Harmonic Mode Examples}
+\end{table}
+
+\section{Comparison to Existing Architectures}
+
+\subsection{CPU Virtual Memory (x86/ARM)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{CPU Virtual Memory} & \textbf{RPP} \\
+\midrule
+Address meaning & Arbitrary offset & Semantic coordinate \\
+Protection & Page tables + MMU & Consent + coherence \\
+Translation & Hardware MMU & Software/FPGA resolver \\
+Granularity & 4KB pages & Per-address \\
+Locality & Physical & Functional \\
+\bottomrule
+\end{tabular}
+\caption{CPU Virtual Memory vs RPP}
+\end{table}
+
+\textbf{Key Difference:} CPU memory asks ``Is this address allowed?'' RPP asks ``Should this address exist at all?''
+
+\subsection{GPU Memory (CUDA/Vulkan)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{GPU Memory} & \textbf{RPP} \\
+\midrule
+Addressing & Linear buffers & Spherical coordinates \\
+Optimization & Spatial locality & Functional locality \\
+Parallelism & Thread blocks & Packet traversal patterns \\
+Access & Explicit barriers & Consent-gated \\
+\bottomrule
+\end{tabular}
+\caption{GPU Memory vs RPP}
+\end{table}
+
+\subsection{Content-Addressable Memory (CAM)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{CAM} & \textbf{RPP} \\
+\midrule
+Lookup & By value & By coordinate \\
+Speed & O(1) & O(1) \\
+Hardware cost & Expensive & FPGA-friendly \\
+Semantics & Weak & Strong (intrinsic) \\
+\bottomrule
+\end{tabular}
+\caption{Content-Addressable Memory vs RPP}
+\end{table}
+
+\textbf{Relationship:} RPP behaves as a geometric CAM where address $\equiv$ classification.
+
+\subsection{Object Storage (S3/GCS/ZFS)}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{Object Storage} & \textbf{RPP} \\
+\midrule
+Identifier & Hash/UUID/path & Coordinate \\
+Metadata & External & Embedded in address \\
+Lifecycle & Explicit GC & TTL + coherence \\
+Meaning & None & Intrinsic \\
+\bottomrule
+\end{tabular}
+\caption{Object Storage vs RPP}
+\end{table}
+
+\textbf{Relationship:} RPP provides the semantic control plane that object stores lack.
+
+\section{Resolver Architecture}
+
+\subsection{Bridge Model}
+
+RPP does not replace storage systems. It provides a semantic routing layer:
+
+\begin{verbatim}
+    +----------------------+
+    |  RPP 28-bit Address  |
+    +----------+-----------+
+               |
+               v
+    +----------------------+
+    |  Resolver / Adapter  |
+    +----------+-----------+
+               |
+     +---------+---------+---------+---------+
+     v         v         v         v         v
+   [FS]      [S3]      [DB]   [Vector]  [Archive]
+\end{verbatim}
+
+\subsection{Resolver Interface}
+
+\begin{lstlisting}[style=python,caption={RPP Resolver Interface}]
+class RPPResolver(Protocol):
+    def resolve(self, address: int,
+                consent_state: ConsentState) -> ResolvedLocation:
+        """
+        Resolve an RPP address to a storage backend location.
+
+        Args:
+            address: 28-bit RPP address
+            consent_state: Current consent/coherence state
+
+        Returns:
+            ResolvedLocation containing backend type and path
+
+        Raises:
+            ConsentDenied: If consent_state insufficient
+            AddressInvalid: If address violates invariants
+        """
+        ...
+\end{lstlisting}
+
+\section{Consent and Coherence Gating}
+
+\subsection{Consent States}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{State} & \textbf{Description} & \textbf{Access Level} \\
+\midrule
+FULL\_CONSENT & User fully present and authorized & Full access \\
+DIMINISHED\_CONSENT & Partial presence, reconfirmation needed & Read-only \\
+SUSPENDED\_CONSENT & User revoked or impaired & Emergency only \\
+EMERGENCY\_OVERRIDE & System-detected anomaly & Safety operations \\
+\bottomrule
+\end{tabular}
+\caption{Consent State Definitions}
+\end{table}
+
+\subsection{Address-Level Gating}
+
+\begin{lstlisting}[style=python,caption={Consent-Aware Access Control}]
+def access_permitted(address: int, consent: ConsentState) -> bool:
+    shell, theta, phi, harmonic = decode_rpp_address(address)
+
+    # Guardian sector (320-383) requires FULL_CONSENT
+    if 320 <= theta < 384 and consent != ConsentState.FULL_CONSENT:
+        return False
+
+    # High-grounded data (phi < 128) requires at least DIMINISHED
+    if phi < 128 and consent == ConsentState.SUSPENDED_CONSENT:
+        return False
+
+    return True
+\end{lstlisting}
+
+\section{Hardware Considerations}
+
+\subsection{Why 28 Bits}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Consideration} & \textbf{28-bit Advantage} \\
+\midrule
+FPGA registers & Fits standard 32-bit with parity \\
+SPI transfer & 4 bytes with alignment \\
+MRAM addressing & Matches common cell sizes \\
+Cache efficiency & Avoids 64-bit waste \\
+\bottomrule
+\end{tabular}
+\caption{28-bit Design Rationale}
+\end{table}
+
+\subsection{Historical Precedent}
+
+\begin{itemize}
+    \item Motorola 68000: 24-bit address space
+    \item LISP machines: 28-bit tagged pointers
+    \item Early ARM: 26-bit addressing
+    \item Bitcoin transactions: 28-bit indices
+\end{itemize}
+
+\subsection{FPGA Implementation}
+
+\begin{lstlisting}[style=verilog,caption={Verilog RPP Decoder}]
+module rpp_decoder (
+    input  [27:0] address,
+    output [1:0]  shell,
+    output [8:0]  theta,
+    output [8:0]  phi,
+    output [7:0]  harmonic
+);
+    assign shell    = address[27:26];
+    assign theta    = address[25:17];
+    assign phi      = address[16:8];
+    assign harmonic = address[7:0];
+endmodule
+\end{lstlisting}
+
+\section{Implementation Status}
+
+Reference implementations exist in:
+\begin{itemize}
+    \item Python (canonical reference with full test suite)
+    \item Haskell (pure functional implementation)
+    \item Clash/FPGA (hardware synthesis-ready)
+\end{itemize}
+
+Test vectors (60 comprehensive tests) and validation suites are publicly available at:
+\url{https://github.com/anywave/rpp-spec}
+
+The Python package is available on PyPI: \texttt{pip install rpp-protocol}
+
+\section{Prior Art Differentiation}
+
+\subsection{What RPP Does NOT Claim as Novel}
+
+\begin{itemize}
+    \item Spherical coordinate systems (standard mathematics)
+    \item Content-addressable memory (existing hardware)
+    \item Semantic tagging (metadata systems)
+    \item Access control lists (standard security)
+\end{itemize}
+
+\subsection{What RPP DOES Claim as Novel Synthesis}
+
+The combination of:
+\begin{enumerate}
+    \item Fixed-width geometric addressing (not hashing)
+    \item Intrinsic semantic classification (not external metadata)
+    \item Consent-state as address property (not binary ACL)
+    \item Bridge architecture preserving existing storage
+    \item Minimal packet envelope separating address semantics from payload content
+\end{enumerate}
+
+This specific synthesis has not been previously published or patented.
+
+\section{Conclusion}
+
+RPP provides a semantic addressing layer that sits above existing storage infrastructure, enabling meaning-aware routing without requiring migration or replacement. The 28-bit address format balances expressiveness with hardware efficiency, and the bridge architecture ensures incremental adoption.
+
+By publishing this specification openly, we establish prior art that prevents patent enclosure while enabling plural implementations. The architecture is designed to be calm, boring, and inevitable rather than clever, disruptive, or proprietary.
+
+\section*{Acknowledgments}
+
+This work was developed as open infrastructure for consent-aware computing systems. The author thanks the open-source community for feedback and review.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{hennessy}
+Hennessy, J.L., Patterson, D.A.
+\textit{Computer Architecture: A Quantitative Approach}.
+Morgan Kaufmann.
+
+\bibitem{cheri}
+Seaborn, K., et al.
+\textit{Capability Hardware Enhanced RISC Instructions}.
+ARM Research.
+
+\bibitem{cam}
+Pagiamtzis, K., Sheikholeslami, A.
+\textit{Content-Addressable Memory (CAM) Circuits and Architectures}.
+IEEE Journal of Solid-State Circuits.
+
+\bibitem{asis}
+ASIS International.
+\textit{Code of Ethics}.
+March 2023.
+
+\end{thebibliography}
+
+\appendix
+
+\section{Test Vectors}
+
+\begin{lstlisting}[language=,caption={Official Test Vectors (JSON)}]
+{
+  "test_vectors": [
+    {
+      "input": {"shell": 0, "theta": 45, "phi": 120, "harmonic": 128},
+      "expected_address": "0x05A7880",
+      "expected_decimal": 5961856
+    },
+    {
+      "input": {"shell": 3, "theta": 511, "phi": 511, "harmonic": 255},
+      "expected_address": "0xFFFFFFF",
+      "expected_decimal": 268435455
+    },
+    {
+      "input": {"shell": 0, "theta": 0, "phi": 0, "harmonic": 0},
+      "expected_address": "0x0000000",
+      "expected_decimal": 0
+    }
+  ]
+}
+\end{lstlisting}
+
+\section{Licensing}
+
+\begin{itemize}
+    \item \textbf{Specification:} CC BY 4.0
+    \item \textbf{Reference Code:} Apache 2.0
+    \item \textbf{Diagrams:} CC BY-SA 4.0
+\end{itemize}
+
+\vspace{2em}
+\noindent\textit{This document constitutes a defensive publication establishing prior art for the described architecture. No patent claims are made or intended.}
+
+\end{document}
