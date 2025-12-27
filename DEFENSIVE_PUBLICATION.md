@@ -2,7 +2,7 @@
 
 **Authors:** Alexander Liam Lennon
 **Date:** December 2024
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Classification:** Defensive Publication / Prior Art Disclosure
 **License:** CC BY 4.0
 
@@ -10,9 +10,9 @@
 
 ## Abstract
 
-We present the Rotational Packet Protocol (RPP), a novel addressing architecture that encodes semantic meaning, access consent, and lifecycle state directly into a fixed-width 28-bit address. Unlike traditional linear memory addressing, RPP uses a spherical coordinate system where address components represent functional sectors, grounding levels, and harmonic modes rather than arbitrary byte offsets. This paper describes the complete specification sufficient for implementation, compares the approach to existing architectures (CPU virtual memory, GPU memory, content-addressable memory, object storage), and demonstrates integration patterns with existing storage systems. RPP is explicitly released as open infrastructure with no patent claims.
+We present the Rotational Packet Protocol (RPP), a novel addressing architecture that encodes semantic meaning, access consent, and lifecycle state directly into a fixed-width 28-bit address. Unlike traditional linear memory addressing, RPP uses a spherical coordinate system where address components represent functional sectors, grounding levels, and harmonic modes rather than arbitrary byte offsets. The protocol defines both the address encoding and the minimal packet envelope (address + optional payload) that serves as the atomic unit of semantically-addressed data. This paper describes the complete specification sufficient for implementation, compares the approach to existing architectures (CPU virtual memory, GPU memory, content-addressable memory, object storage), and demonstrates integration patterns with existing storage systems. RPP is explicitly released as open infrastructure with no patent claims.
 
-**Keywords:** semantic addressing, consent-aware systems, memory architecture, geometric addressing, bridge architecture, open infrastructure
+**Keywords:** semantic addressing, consent-aware systems, memory architecture, geometric addressing, bridge architecture, open infrastructure, packet protocol
 
 ---
 
@@ -141,11 +141,91 @@ def decode_rpp_address(address: int) -> tuple[int, int, int, int]:
 | 2 | 0 | 0 | 0 | 0x8000000 | 134,217,728 |
 | 3 | 359 | 180 | 255 | 0xEB3B4FF | 246,695,167 |
 
+### 2.6 Reserved Bits
+
+When stored in 32-bit containers, bits [31:28] are reserved and MUST be zero. This allows future extension while maintaining backward compatibility.
+
 ---
 
-## 3. Semantic Interpretation
+## 3. The Rotational Packet
 
-### 3.1 Shell (Radial Depth)
+### 3.1 Packet Structure
+
+A rotational packet is the minimal envelope combining an RPP address with an optional payload:
+
+```
+┌──────────────────────┬──────────────────────────────────────┐
+│     RPP Address      │           Payload (Optional)          │
+│      (4 bytes)       │           (0 to N bytes)              │
+└──────────────────────┴──────────────────────────────────────┘
+```
+
+> **The Clean Rule:** A rotational packet is simply a small envelope with a structured address and an optional payload. That's it.
+
+### 3.2 Packet Fields
+
+| Field | Size | Required | Description |
+|-------|------|----------|-------------|
+| **Address** | 4 bytes | YES | 28-bit RPP address, bits [31:28] reserved (must be zero) |
+| **Payload** | 0-N bytes | NO | Optional data, pointer, hash, or inline content |
+
+### 3.3 Wire Format
+
+Addresses are stored in big-endian (network byte order):
+
+```
+Byte 0       Byte 1       Byte 2       Byte 3       Bytes 4..N
+┌──────────┬──────────┬──────────┬──────────┬──────────────────┐
+│ Reserved │  Theta   │   Phi    │ Harmonic │  Payload         │
+│ + Shell  │  (cont)  │  (cont)  │          │  (optional)      │
+└──────────┴──────────┴──────────┴──────────┴──────────────────┘
+```
+
+### 3.4 Payload Types
+
+The payload is opaque to the packet format. Common types include:
+
+| Type | Size | Use Case |
+|------|------|----------|
+| Empty | 0 bytes | Address queries, routing probes |
+| Pointer | 4-8 bytes | Reference to external storage |
+| Hash | 32 bytes | Content-addressable reference (SHA-256) |
+| Inline | Variable | Small embedded data |
+| Framed | Variable | Length-prefixed content |
+
+### 3.5 Packet Operations
+
+```python
+def create_packet(address: int, payload: bytes = b"") -> bytes:
+    """Create a rotational packet from address and optional payload."""
+    if not (0 <= address <= 0x0FFFFFFF):
+        raise ValueError("Address must be 28-bit")
+    return address.to_bytes(4, byteorder='big') + payload
+
+def parse_packet(packet: bytes) -> tuple[int, bytes]:
+    """Parse a rotational packet into address and payload."""
+    if len(packet) < 4:
+        raise ValueError("Packet too short")
+    address = int.from_bytes(packet[:4], byteorder='big')
+    if address > 0x0FFFFFFF:
+        raise ValueError("Reserved bits must be zero")
+    return (address, packet[4:])
+```
+
+### 3.6 Design Rationale
+
+The packet format deliberately imposes no relationship between address semantics and payload content. The address describes *how the packet should be treated*, not *what the payload contains*. This separation enables:
+
+- Address-only queries (empty packets)
+- Content-addressable storage (hash payloads)
+- Inline optimization (small data embedded)
+- External references (pointer payloads)
+
+---
+
+## 4. Semantic Interpretation
+
+### 4.1 Shell (Radial Depth)
 
 The Shell field encodes hierarchical depth or storage tier:
 
@@ -156,7 +236,7 @@ The Shell field encodes hierarchical depth or storage tier:
 | 2 | Persistent storage | Cold |
 | 3 | Archive / dormant | Frozen |
 
-### 3.2 Theta (Functional Sector)
+### 4.2 Theta (Functional Sector)
 
 Theta divides the address space into functional zones. Example canonical sectors:
 
@@ -171,7 +251,7 @@ Theta divides the address space into functional zones. Example canonical sectors
 | 384-447 | Emergence | Novel pattern detection |
 | 448-511 | Meta | Self-reference, reflection |
 
-### 3.3 Phi (Grounding Level)
+### 4.3 Phi (Grounding Level)
 
 Phi encodes the axis from concrete/grounded to abstract/ethereal:
 
@@ -182,7 +262,7 @@ Phi encodes the axis from concrete/grounded to abstract/ethereal:
 | 256-383 | Abstract (conceptual, inferential) |
 | 384-511 | Ethereal (emergent, speculative) |
 
-### 3.4 Harmonic (Mode/Resolution)
+### 4.4 Harmonic (Mode/Resolution)
 
 Harmonic encodes the frequency, version, or resolution mode:
 
@@ -196,9 +276,9 @@ Harmonic encodes the frequency, version, or resolution mode:
 
 ---
 
-## 4. Comparison to Existing Architectures
+## 5. Comparison to Existing Architectures
 
-### 4.1 CPU Virtual Memory (x86/ARM)
+### 5.1 CPU Virtual Memory (x86/ARM)
 
 | Aspect | CPU Virtual Memory | RPP |
 |--------|-------------------|-----|
@@ -210,7 +290,7 @@ Harmonic encodes the frequency, version, or resolution mode:
 
 **Key Difference:** CPU memory asks "Is this address allowed?" RPP asks "Should this address exist at all?"
 
-### 4.2 GPU Memory (CUDA/Vulkan)
+### 5.2 GPU Memory (CUDA/Vulkan)
 
 | Aspect | GPU Memory | RPP |
 |--------|-----------|-----|
@@ -222,7 +302,7 @@ Harmonic encodes the frequency, version, or resolution mode:
 **Similarity:** Both optimize for parallel traversal.
 **Difference:** RPP avoids collisions via skip patterns instead of thread synchronization.
 
-### 4.3 Content-Addressable Memory (CAM)
+### 5.3 Content-Addressable Memory (CAM)
 
 | Aspect | CAM | RPP |
 |--------|-----|-----|
@@ -233,7 +313,7 @@ Harmonic encodes the frequency, version, or resolution mode:
 
 **Relationship:** RPP behaves as a geometric CAM where address ≡ classification.
 
-### 4.4 Object Storage (S3/GCS/ZFS)
+### 5.4 Object Storage (S3/GCS/ZFS)
 
 | Aspect | Object Storage | RPP |
 |--------|---------------|-----|
@@ -246,9 +326,9 @@ Harmonic encodes the frequency, version, or resolution mode:
 
 ---
 
-## 5. Resolver Architecture
+## 6. Resolver Architecture
 
-### 5.1 Bridge Model
+### 6.1 Bridge Model
 
 RPP does not replace storage systems. It provides a semantic routing layer:
 
@@ -267,7 +347,7 @@ RPP does not replace storage systems. It provides a semantic routing layer:
    [FS]  [S3]  [DB]   [Vector]  [Archive]
 ```
 
-### 5.2 Resolver Interface
+### 6.2 Resolver Interface
 
 ```python
 class RPPResolver(Protocol):
@@ -289,7 +369,7 @@ class RPPResolver(Protocol):
         ...
 ```
 
-### 5.3 Example Resolution
+### 6.3 Example Resolution
 
 ```python
 # Input
@@ -307,9 +387,9 @@ resolved = "s3://hot-cache/users/identity/profile.json-v1"
 
 ---
 
-## 6. Consent and Coherence Gating
+## 7. Consent and Coherence Gating
 
-### 6.1 Consent States
+### 7.1 Consent States
 
 | State | Description | Access Level |
 |-------|-------------|--------------|
@@ -318,7 +398,7 @@ resolved = "s3://hot-cache/users/identity/profile.json-v1"
 | SUSPENDED_CONSENT | User revoked or impaired | Emergency only |
 | EMERGENCY_OVERRIDE | System-detected anomaly | Safety operations |
 
-### 6.2 Address-Level Gating
+### 7.2 Address-Level Gating
 
 ```python
 def access_permitted(address: int, consent: ConsentState) -> bool:
@@ -337,9 +417,9 @@ def access_permitted(address: int, consent: ConsentState) -> bool:
 
 ---
 
-## 7. Hardware Considerations
+## 8. Hardware Considerations
 
-### 7.1 Why 28 Bits
+### 8.1 Why 28 Bits
 
 | Consideration | 28-bit Advantage |
 |---------------|------------------|
@@ -348,14 +428,14 @@ def access_permitted(address: int, consent: ConsentState) -> bool:
 | MRAM addressing | Matches common cell sizes |
 | Cache efficiency | Avoids 64-bit waste |
 
-### 7.2 Historical Precedent
+### 8.2 Historical Precedent
 
 - Motorola 68000: 24-bit address space
 - LISP machines: 28-bit tagged pointers
 - Early ARM: 26-bit addressing
 - Bitcoin transactions: 28-bit indices
 
-### 7.3 FPGA Implementation Sketch
+### 8.3 FPGA Implementation Sketch
 
 ```verilog
 module rpp_decoder (
@@ -374,39 +454,41 @@ endmodule
 
 ---
 
-## 8. Implementation Status
+## 9. Implementation Status
 
 Reference implementations exist in:
-- Python (primary reference)
-- Verilog (FPGA synthesis)
-- TypeScript (web integration)
+- Python (canonical reference with full test suite)
+- Haskell (pure functional implementation)
+- Clash/FPGA (hardware synthesis-ready)
 
-Test vectors and validation suites are publicly available.
+Test vectors (60 comprehensive tests) and validation suites are publicly available at:
+https://github.com/anywave/rpp-spec
 
 ---
 
-## 9. Prior Art Differentiation
+## 10. Prior Art Differentiation
 
-### 9.1 What RPP Does NOT Claim as Novel
+### 10.1 What RPP Does NOT Claim as Novel
 
 - Spherical coordinate systems (standard mathematics)
 - Content-addressable memory (existing hardware)
 - Semantic tagging (metadata systems)
 - Access control lists (standard security)
 
-### 9.2 What RPP DOES Claim as Novel Synthesis
+### 10.2 What RPP DOES Claim as Novel Synthesis
 
 The combination of:
 1. Fixed-width geometric addressing (not hashing)
 2. Intrinsic semantic classification (not external metadata)
 3. Consent-state as address property (not binary ACL)
 4. Bridge architecture preserving existing storage
+5. Minimal packet envelope separating address semantics from payload content
 
 This specific synthesis has not been previously published or patented.
 
 ---
 
-## 10. Conclusion
+## 11. Conclusion
 
 RPP provides a semantic addressing layer that sits above existing storage infrastructure, enabling meaning-aware routing without requiring migration or replacement. The 28-bit address format balances expressiveness with hardware efficiency, and the bridge architecture ensures incremental adoption.
 
