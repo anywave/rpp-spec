@@ -11,7 +11,7 @@
 {-|
 Module      : RPP
 Description : Rotational Packet Protocol FPGA Implementation
-Copyright   : (c) RPP Contributors, 2024
+Copyright   : (c) Alexander Liam Lennon, 2024
 License     : Apache-2.0
 
 Clash implementation of the Rotational Packet Protocol (RPP) for

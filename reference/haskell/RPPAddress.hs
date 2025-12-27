@@ -1,7 +1,7 @@
 {-|
 Module      : RPPAddress
 Description : RPP Reference Implementation in Haskell
-Copyright   : (c) RPP Contributors, 2024
+Copyright   : (c) Alexander Liam Lennon, 2024
 License     : Apache-2.0
 Maintainer  : rpp-spec@example.org
 Stability   : stable

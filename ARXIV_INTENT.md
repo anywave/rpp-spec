@@ -52,7 +52,7 @@ This specification is published as **defensive prior art** under the following p
 @techreport{rpp2024,
   title     = {Rotational Packet Protocol ({RPP}): A Semantic Addressing
                Architecture for Consent-Aware Memory Systems},
-  author    = {{RPP Contributors}},
+  author    = {Lennon, Alexander Liam},
   year      = {2024},
   month     = {December},
   version   = {1.0.0},
@@ -64,7 +64,7 @@ This specification is published as **defensive prior art** under the following p
 ### Preferred Citation (APA)
 
 ```
-RPP Contributors. (2024). Rotational Packet Protocol (RPP): A semantic
+Lennon, A. L. (2024). Rotational Packet Protocol (RPP): A semantic
 addressing architecture for consent-aware memory systems (Version 1.0.0).
 https://github.com/anywave/rpp-spec
 ```
@@ -72,7 +72,7 @@ https://github.com/anywave/rpp-spec
 ### Preferred Citation (IEEE)
 
 ```
-RPP Contributors, "Rotational Packet Protocol (RPP): A Semantic Addressing
+A. L. Lennon, "Rotational Packet Protocol (RPP): A Semantic Addressing
 Architecture for Consent-Aware Memory Systems," version 1.0.0, Dec. 2024.
 [Online]. Available: https://github.com/anywave/rpp-spec
 ```
@@ -85,7 +85,7 @@ Once a Zenodo DOI is assigned, citations should include:
 @techreport{rpp2024,
   title     = {Rotational Packet Protocol ({RPP}): A Semantic Addressing
                Architecture for Consent-Aware Memory Systems},
-  author    = {{RPP Contributors}},
+  author    = {Lennon, Alexander Liam},
   year      = {2024},
   month     = {December},
   version   = {1.0.0},
@@ -111,7 +111,7 @@ Once a Zenodo DOI is assigned, citations should include:
 For reproducibility, cite the specific version used:
 
 ```
-RPP Contributors. (2024). Rotational Packet Protocol (RPP) (Version 1.0.0).
+Lennon, A. L. (2024). Rotational Packet Protocol (RPP) (Version 1.0.0).
 ```
 
 Git tags and GitHub releases provide permanent references to specific versions.

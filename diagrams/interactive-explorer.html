@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPP Address Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .control-group {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .control-group .value {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .control-group .semantic {
+            font-size: 14px;
+            color: #4ecdc4;
+            margin-top: 5px;
+        }
+        .shell-value { color: #ff6b6b; }
+        .theta-value { color: #4ecdc4; }
+        .phi-value { color: #45b7d1; }
+        .harmonic-value { color: #96ceb4; }
+
+        .output {
+            background: rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        .output h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        .address-display {
+            font-family: monospace;
+            font-size: 36px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .bit-display {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .bit {
+            width: 20px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        .bit-shell { background: rgba(255, 107, 107, 0.8); }
+        .bit-theta { background: rgba(78, 205, 196, 0.8); }
+        .bit-phi { background: rgba(69, 183, 209, 0.8); }
+        .bit-harmonic { background: rgba(150, 206, 180, 0.8); }
+
+        .interpretation {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .interp-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .interp-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .interp-item .value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .sphere-viz {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .sphere-viz svg {
+            max-width: 100%;
+        }
+
+        footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+        footer a {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RPP Address Explorer</h1>
+        <p class="subtitle">Interactive visualization of 28-bit RPP addresses</p>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Shell (Storage Tier)</label>
+                <input type="range" id="shell" min="0" max="3" value="0">
+                <div class="value shell-value" id="shellValue">0</div>
+                <div class="semantic" id="shellSemantic">hot</div>
+            </div>
+
+            <div class="control-group">
+                <label>Theta (Sector)</label>
+                <input type="range" id="theta" min="0" max="511" value="45">
+                <div class="value theta-value" id="thetaValue">45</div>
+                <div class="semantic" id="thetaSemantic">gene</div>
+            </div>
+
+            <div class="control-group">
+                <label>Phi (Grounding)</label>
+                <input type="range" id="phi" min="0" max="511" value="128">
+                <div class="value phi-value" id="phiValue">128</div>
+                <div class="semantic" id="phiSemantic">transitional</div>
+            </div>
+
+            <div class="control-group">
+                <label>Harmonic (Mode)</label>
+                <input type="range" id="harmonic" min="0" max="255" value="64">
+                <div class="value harmonic-value" id="harmonicValue">64</div>
+                <div class="semantic" id="harmonicSemantic">summary</div>
+            </div>
+        </div>
+
+        <div class="output">
+            <h2>Encoded Address</h2>
+            <div class="address-display" id="addressDisplay">0x005A8040</div>
+
+            <div class="bit-display" id="bitDisplay"></div>
+
+            <div class="interpretation">
+                <div class="interp-item">
+                    <div class="label">Decimal</div>
+                    <div class="value" id="decimalValue">5939264</div>
+                </div>
+                <div class="interp-item">
+                    <div class="label">Sector</div>
+                    <div class="value" id="sectorValue">Gene</div>
+                </div>
+                <div class="interp-item">
+                    <div class="label">Grounding Level</div>
+                    <div class="value" id="groundingValue">Transitional</div>
+                </div>
+                <div class="interp-item">
+                    <div class="label">Storage Tier</div>
+                    <div class="value" id="tierValue">Hot (Cache)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sphere-viz">
+            <svg viewBox="0 0 300 300" width="300" height="300">
+                <!-- Sphere outline -->
+                <circle cx="150" cy="150" r="120" fill="none" stroke="#333" stroke-width="2"/>
+
+                <!-- Latitude lines -->
+                <ellipse cx="150" cy="150" rx="120" ry="30" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="5,5"/>
+                <ellipse cx="150" cy="100" rx="100" ry="25" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="5,5"/>
+                <ellipse cx="150" cy="200" rx="100" ry="25" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="5,5"/>
+
+                <!-- Longitude line -->
+                <ellipse cx="150" cy="150" rx="30" ry="120" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="5,5"/>
+
+                <!-- Current position marker -->
+                <circle id="positionMarker" cx="150" cy="150" r="8" fill="#667eea" stroke="#fff" stroke-width="2"/>
+
+                <!-- Labels -->
+                <text x="150" y="20" text-anchor="middle" fill="#888" font-size="10">Ethereal (Phi=511)</text>
+                <text x="150" y="290" text-anchor="middle" fill="#888" font-size="10">Grounded (Phi=0)</text>
+                <text x="280" y="155" text-anchor="start" fill="#888" font-size="10">Theta</text>
+            </svg>
+        </div>
+
+        <footer>
+            <p>RPP Specification v1.0.0 | <a href="https://github.com/anywave/rpp-spec">GitHub</a></p>
+            <p>Author: Alexander Liam Lennon | License: Apache 2.0 / CC BY 4.0</p>
+        </footer>
+    </div>
+
+    <script>
+        // Sector definitions
+        const sectors = [
+            { name: 'gene', range: [0, 63], description: 'Core Identity' },
+            { name: 'memory', range: [64, 127], description: 'Experiences' },
+            { name: 'witness', range: [128, 191], description: 'Observations' },
+            { name: 'dream', range: [192, 255], description: 'Speculation' },
+            { name: 'bridge', range: [256, 319], description: 'Integration' },
+            { name: 'guardian', range: [320, 383], description: 'Protection' },
+            { name: 'emergence', range: [384, 447], description: 'Discovery' },
+            { name: 'meta', range: [448, 511], description: 'Self-Reference' }
+        ];
+
+        const groundingLevels = [
+            { name: 'grounded', range: [0, 127], description: 'Physical/Verified' },
+            { name: 'transitional', range: [128, 255], description: 'Contextual' },
+            { name: 'abstract', range: [256, 383], description: 'Conceptual' },
+            { name: 'ethereal', range: [384, 511], description: 'Emergent' }
+        ];
+
+        const shellNames = ['hot', 'warm', 'cold', 'frozen'];
+        const shellDescriptions = ['Cache', 'Working Memory', 'Persistent', 'Archive'];
+
+        const harmonicModes = [
+            { name: 'minimal', range: [0, 63] },
+            { name: 'summary', range: [64, 127] },
+            { name: 'standard', range: [128, 191] },
+            { name: 'extended', range: [192, 255] }
+        ];
+
+        function getSector(theta) {
+            return sectors.find(s => theta >= s.range[0] && theta <= s.range[1]) || sectors[0];
+        }
+
+        function getGrounding(phi) {
+            return groundingLevels.find(g => phi >= g.range[0] && phi <= g.range[1]) || groundingLevels[0];
+        }
+
+        function getHarmonicMode(harmonic) {
+            return harmonicModes.find(h => harmonic >= h.range[0] && harmonic <= h.range[1]) || harmonicModes[0];
+        }
+
+        function encode(shell, theta, phi, harmonic) {
+            return (shell << 26) | (theta << 17) | (phi << 8) | harmonic;
+        }
+
+        function toBinary(address) {
+            return address.toString(2).padStart(28, '0');
+        }
+
+        function updateDisplay() {
+            const shell = parseInt(document.getElementById('shell').value);
+            const theta = parseInt(document.getElementById('theta').value);
+            const phi = parseInt(document.getElementById('phi').value);
+            const harmonic = parseInt(document.getElementById('harmonic').value);
+
+            // Update value displays
+            document.getElementById('shellValue').textContent = shell;
+            document.getElementById('thetaValue').textContent = theta;
+            document.getElementById('phiValue').textContent = phi;
+            document.getElementById('harmonicValue').textContent = harmonic;
+
+            // Update semantic displays
+            document.getElementById('shellSemantic').textContent = shellNames[shell];
+            document.getElementById('thetaSemantic').textContent = getSector(theta).name;
+            document.getElementById('phiSemantic').textContent = getGrounding(phi).name;
+            document.getElementById('harmonicSemantic').textContent = getHarmonicMode(harmonic).name;
+
+            // Calculate address
+            const address = encode(shell, theta, phi, harmonic);
+            const hex = '0x' + address.toString(16).toUpperCase().padStart(7, '0');
+
+            document.getElementById('addressDisplay').textContent = hex;
+            document.getElementById('decimalValue').textContent = address.toLocaleString();
+
+            // Interpretation
+            const sector = getSector(theta);
+            const grounding = getGrounding(phi);
+            document.getElementById('sectorValue').textContent = sector.name.charAt(0).toUpperCase() + sector.name.slice(1) + ' - ' + sector.description;
+            document.getElementById('groundingValue').textContent = grounding.name.charAt(0).toUpperCase() + grounding.name.slice(1) + ' - ' + grounding.description;
+            document.getElementById('tierValue').textContent = shellNames[shell].charAt(0).toUpperCase() + shellNames[shell].slice(1) + ' (' + shellDescriptions[shell] + ')';
+
+            // Update bit display
+            const binary = toBinary(address);
+            const bitDisplay = document.getElementById('bitDisplay');
+            bitDisplay.innerHTML = '';
+
+            for (let i = 0; i < 28; i++) {
+                const bit = document.createElement('div');
+                bit.className = 'bit';
+                bit.textContent = binary[i];
+
+                if (i < 2) bit.classList.add('bit-shell');
+                else if (i < 11) bit.classList.add('bit-theta');
+                else if (i < 20) bit.classList.add('bit-phi');
+                else bit.classList.add('bit-harmonic');
+
+                bitDisplay.appendChild(bit);
+            }
+
+            // Update sphere position marker
+            const marker = document.getElementById('positionMarker');
+            const angle = (theta / 511) * 2 * Math.PI - Math.PI/2;
+            const elevation = 1 - (phi / 511);
+            const radius = 80 + elevation * 40;
+            const x = 150 + Math.cos(angle) * radius * 0.8;
+            const y = 150 - Math.sin(angle) * radius * 0.3 + (phi / 511 - 0.5) * 100;
+            marker.setAttribute('cx', x);
+            marker.setAttribute('cy', y);
+        }
+
+        // Add event listeners
+        ['shell', 'theta', 'phi', 'harmonic'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateDisplay);
+        });
+
+        // Initial update
+        updateDisplay();
+    </script>
+</body>
+</html>

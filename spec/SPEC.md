@@ -49,6 +49,27 @@ This document defines the canonical 28-bit RPP (Rotational Packet Protocol) addr
 | Phi | 0x0001FF00 | 8 |
 | Harmonic | 0x000000FF | 0 |
 
+### 2.4 Reserved Bits (28-31)
+
+When RPP addresses are stored or transported in wider containers (e.g., 32-bit or 64-bit words):
+
+1. **Bits 28-31 MUST be zero** for any valid canonical RPP address
+2. **Addresses with non-zero bits 28-31 MUST NOT be interpreted** as valid RPP addresses
+3. **These bits are reserved** for potential future extension
+4. **Implementations MUST validate** that bits 28-31 are zero before interpreting an address
+
+**Rationale:** This reservation allows future specification versions to extend the address space if needed, while maintaining backward compatibility with existing implementations that properly validate.
+
+```
+32-bit container:
+┌────────────────┬─────────────────────────────────────────────┐
+│   Reserved     │              28-bit RPP Address              │
+│   (MUST = 0)   │  Shell | Theta | Phi | Harmonic              │
+├────────────────┼────────────────────────────────────────────┤
+│   [31:28]      │               [27:0]                        │
+└────────────────┴────────────────────────────────────────────┘
+```
+
 ---
 
 ## 3. Encoding

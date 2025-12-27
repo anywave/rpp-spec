@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <title>RPP Sector Map (Theta)</title>
+  <desc>Circular diagram showing the 8 sectors defined by theta values</desc>
+
+  <defs>
+    <style>
+      .sector-label { font-family: sans-serif; font-size: 12px; font-weight: bold; }
+      .range-label { font-family: monospace; font-size: 10px; fill: #888; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="600" fill="#0f0f23"/>
+
+  <!-- Title -->
+  <text x="300" y="30" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="18" font-weight="bold">RPP Sector Map (Theta 0-511)</text>
+
+  <!-- Outer circle -->
+  <circle cx="300" cy="320" r="220" fill="none" stroke="#333" stroke-width="2"/>
+
+  <!-- Sector wedges -->
+  <!-- Gene: 0-63 (0-45deg) -->
+  <path d="M300,320 L520,320 A220,220 0 0,0 455.6,164.4 Z" fill="#ff6b6b" opacity="0.8"/>
+  <text x="440" y="250" class="sector-label" fill="#fff">Gene</text>
+  <text x="450" y="265" class="range-label">0-63</text>
+
+  <!-- Memory: 64-127 (45-90deg) -->
+  <path d="M300,320 L455.6,164.4 A220,220 0 0,0 300,100 Z" fill="#4ecdc4" opacity="0.8"/>
+  <text x="370" y="160" class="sector-label" fill="#fff">Memory</text>
+  <text x="370" y="175" class="range-label">64-127</text>
+
+  <!-- Witness: 128-191 (90-135deg) -->
+  <path d="M300,320 L300,100 A220,220 0 0,0 144.4,164.4 Z" fill="#45b7d1" opacity="0.8"/>
+  <text x="210" y="160" class="sector-label" fill="#fff">Witness</text>
+  <text x="210" y="175" class="range-label">128-191</text>
+
+  <!-- Dream: 192-255 (135-180deg) -->
+  <path d="M300,320 L144.4,164.4 A220,220 0 0,0 80,320 Z" fill="#96ceb4" opacity="0.8"/>
+  <text x="120" y="250" class="sector-label" fill="#fff">Dream</text>
+  <text x="110" y="265" class="range-label">192-255</text>
+
+  <!-- Bridge: 256-319 (180-225deg) -->
+  <path d="M300,320 L80,320 A220,220 0 0,0 144.4,475.6 Z" fill="#ffeaa7" opacity="0.8"/>
+  <text x="120" y="400" class="sector-label" fill="#333">Bridge</text>
+  <text x="110" y="415" class="range-label">256-319</text>
+
+  <!-- Guardian: 320-383 (225-270deg) -->
+  <path d="M300,320 L144.4,475.6 A220,220 0 0,0 300,540 Z" fill="#dfe6e9" opacity="0.8"/>
+  <text x="210" y="490" class="sector-label" fill="#333">Guardian</text>
+  <text x="210" y="505" class="range-label">320-383</text>
+
+  <!-- Emergence: 384-447 (270-315deg) -->
+  <path d="M300,320 L300,540 A220,220 0 0,0 455.6,475.6 Z" fill="#a29bfe" opacity="0.8"/>
+  <text x="370" y="490" class="sector-label" fill="#fff">Emergence</text>
+  <text x="370" y="505" class="range-label">384-447</text>
+
+  <!-- Meta: 448-511 (315-360deg) -->
+  <path d="M300,320 L455.6,475.6 A220,220 0 0,0 520,320 Z" fill="#fd79a8" opacity="0.8"/>
+  <text x="440" y="400" class="sector-label" fill="#fff">Meta</text>
+  <text x="450" y="415" class="range-label">448-511</text>
+
+  <!-- Center circle -->
+  <circle cx="300" cy="320" r="40" fill="#1a1a2e" stroke="#667eea" stroke-width="3"/>
+  <text x="300" y="325" text-anchor="middle" fill="#fff" font-family="monospace" font-size="14">RPP</text>
+
+  <!-- Legend -->
+  <g transform="translate(30, 560)">
+    <text x="0" y="0" fill="#888" font-family="sans-serif" font-size="10">Theta values define functional classification (sector)</text>
+    <text x="0" y="15" fill="#888" font-family="sans-serif" font-size="10">Each sector spans 64 theta values (8 sectors total)</text>
+  </g>
+</svg>

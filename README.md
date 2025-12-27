@@ -141,7 +141,15 @@ RPP functions as a **bridge architecture**, providing semantic routing to existi
 | [reference/haskell/](reference/haskell/) | Pure Haskell reference implementation |
 | [hardware/clash/](hardware/clash/) | Clash/FPGA hardware implementation |
 | [examples/](examples/) | Usage examples and demonstrations |
-| [tests/test_vectors.json](tests/test_vectors.json) | Official validation test suite |
+| [tests/](tests/) | Pytest suite and official test vectors |
+
+### Diagrams and Visualizations
+| Document | Description |
+|----------|-------------|
+| [diagrams/address-structure.svg](diagrams/address-structure.svg) | 28-bit address field layout |
+| [diagrams/bridge-architecture.svg](diagrams/bridge-architecture.svg) | Resolver and storage integration |
+| [diagrams/sectors.svg](diagrams/sectors.svg) | Circular sector map (theta) |
+| [diagrams/interactive-explorer.html](diagrams/interactive-explorer.html) | Interactive address explorer (open in browser) |
 
 ---
 
@@ -151,7 +159,7 @@ This specification is published as **defensive prior art** to establish public d
 
 **Preferred Citation:**
 ```
-RPP Contributors. (2024). Rotational Packet Protocol (RPP): A Semantic
+Lennon, A. L. (2024). Rotational Packet Protocol (RPP): A Semantic
 Addressing Architecture for Consent-Aware Memory Systems. Version 1.0.0.
 https://github.com/anywave/rpp-spec
 ```
