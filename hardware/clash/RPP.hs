@@ -77,7 +77,7 @@ data TRBZone
   | Grounding      -- TRB_05: full theta, phi 0-45 (south)
   deriving (Show, Eq, Generic, NFDataX, ShowX)
 
--- | Consent state (maps to ACSP states)
+-- | Consent state for access gating
 data ConsentState
   = FullConsent
   | DiminishedConsent
@@ -154,7 +154,7 @@ phaseTolerance = 15
 -- =============================================================================
 
 -- | Check if point is in TRB zone
--- Maps angular coordinates to TRB zones based on AVACHATTER definitions
+-- Maps angular coordinates to TRB zones based on RPP sector definitions
 detectTRBZone :: Theta -> Phi -> TRBZone
 detectTRBZone theta phi
   -- Grounding zone: full theta, phi 0-45 (south pole)

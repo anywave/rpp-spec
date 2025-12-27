@@ -1,6 +1,6 @@
 # Rotational Packet Protocol (RPP): A Semantic Addressing Architecture for Consent-Aware Memory Systems
 
-**Authors:** AVACHATTER Project Contributors
+**Authors:** Alexander Liam Lennon
 **Date:** December 2024
 **Version:** 1.0.0
 **Classification:** Defensive Publication / Prior Art Disclosure
