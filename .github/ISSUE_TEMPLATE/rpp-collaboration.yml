@@ -1,0 +1,91 @@
+name: RPP Spec Collaboration Entry
+description: Start a new collaboration thread for advancing the Rotational Packet Protocol
+title: "[RPP-COLLAB] "
+labels: ["enhancement", "collaboration", "phase-aware", "open-source"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Purpose of This Issue
+
+        Thank you for contributing to RPP! Please describe what you're proposing to contribute or explore.
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal Description
+      description: |
+        Describe your proposed contribution. Reference specific files (e.g., `DESIGN_RATIONALE.md`, `ARXIV_INTENT.md`) and which part of the protocol it applies to.
+      placeholder: |
+        I propose to contribute...
+
+        This relates to:
+        - [ ] Rotational logic
+        - [ ] Toroidal memory
+        - [ ] Address space compression
+        - [ ] Implementation demo
+        - [ ] Documentation
+        - [ ] Other: ___
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Related Files
+      description: Which specification files does this relate to?
+      placeholder: |
+        - spec/SPEC.md
+        - DESIGN_RATIONALE.md
+        - reference/python/rpp_address.py
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## Claude/AI Collaborator Prompt
+
+        Copy the following prompt into Claude or another AI collaborator to participate in this thread:
+
+  - type: textarea
+    id: prompt
+    attributes:
+      label: AI Collaboration Prompt
+      description: This prompt can be copied for AI collaboration sessions
+      value: |
+        You are now participating in the public release and technical expansion of the Rotational Packet Protocol (RPP), a novel phase-aware, radial-addressable encoding method for digital communication. The protocol uses 28-bit address space and rotational logic layers, allowing for multiple payloads embedded in a single packet accessible by rotational phase, not just linear byte order.
+
+        You will collaborate with other LLMs, researchers, and engineers in refining the RPP spec and advancing implementation. A GitHub repository is public at https://github.com/anywave/rpp-spec and includes these files: README.md, DESIGN_RATIONALE.md, VERSION_POLICY.md, GOVERNANCE.md, NON_GOALS.md, VISION.md, RELATED_WORK.md, ARXIV_INTENT.md, DEFENSIVE_PUBLICATION.md, CONTRIBUTING.md.
+
+        Your task is to:
+        1. Generate enhanced specifications, visuals, and protocol diagrams.
+        2. Draft interoperable pseudocode or Haskell/Python implementations.
+        3. Prepare launch deliverables:
+           - Zenodo metadata for DOI registration
+           - arXiv-compatible abstract + LaTeX if needed
+           - Markdown or HTML technical documentation using a system like `mdbook`, `mkdocs`, or `docusaurus`
+        4. Propose outreach plans including which channels (arxivLabs, Reddit, HackerNews, Twitter) to release to and which audiences to target (P2P devs, protocol theorists, decentralization advocates)
+        5. Suggest future modules, including a RPP testnet, a toroidal memory experiment, or a reference implementation in Rust or Go.
+        6. Review implications of RPP as a transport-layer redefinition — how it may intersect with IPv6, quantum networking, toroidal packet addressing, or decentralized routing heuristics.
+        7. Ensure all generated work respects the philosophical guardrails defined in `VISION.md` — namely decentralization, non-extractive systems, and coherence-preserving network design.
+
+        Deliverables should be modular, readable, and ready for open-source integration. Embed clarity and protocol traceability into all outputs.
+
+        You are cleared to reference foundational material in the repo and any of its future additions.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution-type
+    attributes:
+      label: Contribution Type
+      description: What type of contribution is this?
+      options:
+        - label: Specification enhancement
+        - label: New implementation (language/platform)
+        - label: Documentation improvement
+        - label: Test vectors or validation
+        - label: Visualization or diagrams
+        - label: Research or analysis
+        - label: Outreach or community
+        - label: Other
