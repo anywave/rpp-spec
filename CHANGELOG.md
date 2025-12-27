@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-12-27
+
+### Fixed
+
+- **CI Windows compatibility**: Fixed path handling in GitHub Actions workflow
+  - Changed from `$RUNNER_TEMP` to relative paths (Windows temp path `D:\a\_temp` was corrupted to `D:\x07\_temp` when passed to Python due to backslash escape sequences)
+  - All 12 test matrix jobs now pass (3 OS × 4 Python versions)
+- **Lint issues**: Removed unused imports across codebase
+  - `rpp/cli.py`: Removed unused `encode`, `decode`, `is_valid_address`, `ResolveResult`
+  - `rpp/resolver.py`: Removed unused `decode` import
+  - `tests/test_address.py`: Removed unused `RPPAddress`, `MAX_SHELL`, `MAX_THETA`, `MAX_PHI`, `MAX_HARMONIC`
+  - `tests/test_resolver.py`: Removed unused `encode` at module level, `decode` in local import
+  - `tests/test_cli.py`: Renamed ambiguous variable `l` to `line`
+- **f-string without placeholder**: Fixed in `resolver.py` line 105
+- **CI branch trigger**: Added `master` branch to workflow triggers (was only `main`)
+
+---
+
 ## [0.1.0] - 2024-12-27
 
 ### Added
