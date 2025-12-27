@@ -1,168 +1,194 @@
-# RPP - Rotational Packet Protocol
+# Rotational Packet Protocol (RPP)
 
-**Semantic Addressing for Consent-Aware Systems**
+**A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Spec Version](https://img.shields.io/badge/Spec-v1.0.0-green.svg)](spec/SPEC.md)
+[![arXiv Intent](https://img.shields.io/badge/arXiv-Defensive%20Publication-orange.svg)](ARXIV_INTENT.md)
 
-> **Disambiguation:** This project is unrelated to AMD ROCm Performance Primitives (rocPRIM), REAPER project files (.rpp), or any other technology sharing the "RPP" abbreviation. This is the Rotational Packet Protocol for semantic memory addressing.
-
----
-
-## What is RPP?
-
-RPP (Rotational Packet Protocol) is an open **semantic addressing architecture** that encodes meaning, consent, and lifecycle directly into a 28-bit address.
-
-```
-Traditional: address → location → bytes
-RPP:         address → meaning → behavior
-```
-
-**RPP is not:**
-- A new filesystem (it overlays existing storage)
-- A database (it routes to databases)
-- A blockchain (no consensus mechanism)
-- Patentable (intentionally open)
-
-**RPP is:**
-- A semantic control plane
-- A bridge architecture
-- Hardware-software unified
-- Consent-aware by design
+> **Disambiguation:** This specification is unrelated to AMD ROCm Performance Primitives (rocPRIM), REAPER project files (.rpp), or any other technology sharing the "RPP" abbreviation.
 
 ---
 
-## Quick Start
+## Abstract
 
-```python
-from rpp_address import encode, decode, from_components
+The Rotational Packet Protocol (RPP) defines a semantic addressing architecture wherein meaning, access consent, and lifecycle state are encoded directly into a fixed-width 28-bit address. Unlike conventional linear memory addressing schemes that treat addresses as opaque location identifiers, RPP employs a spherical coordinate system where address components represent functional classification, grounding level, and harmonic mode.
 
-# Create an address
-addr = from_components(
-    shell=0,      # Hot cache
-    theta=45,     # Identity sector
-    phi=128,      # Transitional grounding
-    harmonic=64   # Summary resolution
+This specification establishes RPP as open infrastructure designed for interoperability and auditability. The architecture functions as a semantic control plane that routes to existing storage systems rather than replacing them, enabling adoption without migration.
+
+**Key Properties:**
+- Deterministic encoding and decoding with hardware-software parity
+- Consent-aware access gating intrinsic to address resolution
+- Bridge architecture preserving existing storage investments
+- Intentional openness enabling reproducibility and independent implementation
+
+---
+
+## Technical Overview
+
+### Address Structure
+
+RPP addresses are 28-bit unsigned integers with the following canonical structure:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                     28-BIT RPP ADDRESS                          │
+├────────┬─────────────┬─────────────┬───────────────────────────┤
+│ Shell  │    Theta    │     Phi     │         Harmonic          │
+│ 2 bits │   9 bits    │   9 bits    │          8 bits           │
+├────────┼─────────────┼─────────────┼───────────────────────────┤
+│ [27:26]│   [25:17]   │   [16:8]    │          [7:0]            │
+└────────┴─────────────┴─────────────┴───────────────────────────┘
+```
+
+### Field Definitions
+
+| Field | Width | Range | Semantic Function |
+|-------|-------|-------|-------------------|
+| **Shell** | 2 bits | 0–3 | Radial depth encoding storage tier (hot→frozen) |
+| **Theta** | 9 bits | 0–511 | Angular longitude encoding functional sector |
+| **Phi** | 9 bits | 0–511 | Angular latitude encoding grounding level |
+| **Harmonic** | 8 bits | 0–255 | Frequency index encoding resolution/mode |
+
+**Total Address Space:** 2²⁸ = 268,435,456 unique addresses
+
+### Encoding Function
+
+```
+encode(shell, theta, phi, harmonic) = (shell << 26) | (theta << 17) | (phi << 8) | harmonic
+```
+
+### Decoding Function
+
+```
+decode(address) = (
+    (address >> 26) & 0x3,
+    (address >> 17) & 0x1FF,
+    (address >> 8) & 0x1FF,
+    address & 0xFF
 )
-
-print(addr)
-# RPP(0, 45, 128, 64) = 0x05A8040
-
-print(addr.sector_name)      # "Gene"
-print(addr.grounding_level)  # "Transitional"
-print(addr.shell_name)       # "Hot"
 ```
 
 ---
 
-## 28-Bit Address Format
+## Conformance Criteria
+
+A conforming RPP implementation MUST:
+
+1. **Encode deterministically:** Given identical inputs (shell, theta, phi, harmonic), always produce the identical 28-bit address
+2. **Decode deterministically:** Given an identical address, always produce identical component values
+3. **Satisfy roundtrip identity:** `decode(encode(s, t, p, h)) ≡ (s, t, p, h)` for all valid inputs
+4. **Reject invalid inputs:** Addresses exceeding 0x0FFFFFFF or components exceeding their defined ranges must be rejected
+5. **Preserve bit-level compatibility:** Implementations across languages and platforms must produce byte-identical results
+
+See [spec/SPEC.md](spec/SPEC.md) for complete conformance requirements and test vectors.
+
+---
+
+## Integration Patterns
+
+RPP functions as a **bridge architecture**, providing semantic routing to existing storage systems:
 
 ```
-┌────────┬───────────┬───────────┬────────────┐
-│ Shell  │   Theta   │    Phi    │  Harmonic  │
-│ 2 bits │  9 bits   │  9 bits   │  8 bits    │
-├────────┼───────────┼───────────┼────────────┤
-│ Depth  │ Function  │ Grounding │   Mode     │
-└────────┴───────────┴───────────┴────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    RPP Address Space                         │
+│              (Semantic Classification)                       │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Resolver Layer                          │
+│         (Address → Backend Mapping + Consent Gating)        │
+└───────┬─────────┬─────────┬─────────┬─────────┬────────────┘
+        ▼         ▼         ▼         ▼         ▼
+   [Filesystem] [Object   [Relational [Vector  [Key-Value
+                 Store]    Database]   Database] Store]
 ```
 
-| Field | Meaning | Example |
-|-------|---------|---------|
-| **Shell** | Storage tier (hot→frozen) | 0=cache, 3=archive |
-| **Theta** | Functional sector | Gene, Memory, Guardian... |
-| **Phi** | Grounding level | Physical → Abstract |
-| **Harmonic** | Resolution/version | Raw → Full fidelity |
+**Integration requires no migration.** Existing storage systems continue to provide persistence, durability, and scale. RPP adds semantic routing, consent awareness, and lifecycle management.
 
 ---
 
 ## Documentation
 
+### Core Specification
 | Document | Description |
 |----------|-------------|
-| [VISION.md](VISION.md) | Mission and principles |
-| [NON_GOALS.md](NON_GOALS.md) | What RPP explicitly does NOT do |
-| [DESIGN_RATIONALE.md](DESIGN_RATIONALE.md) | Why every design decision was made |
-| [spec/SPEC.md](spec/SPEC.md) | Canonical 28-bit addressing spec |
-| [spec/SEMANTICS.md](spec/SEMANTICS.md) | Meaning model, sectors, grounding |
-| [spec/RESOLVER.md](spec/RESOLVER.md) | Bridge architecture, adapters |
-| [GOVERNANCE.md](GOVERNANCE.md) | Project governance |
-| [DEFENSIVE_PUBLICATION.md](DEFENSIVE_PUBLICATION.md) | Prior art / arXiv paper |
+| [spec/SPEC.md](spec/SPEC.md) | Canonical 28-bit addressing specification with formal definitions |
+| [spec/SEMANTICS.md](spec/SEMANTICS.md) | Geometric meaning model, sector definitions, grounding interpretation |
+| [spec/RESOLVER.md](spec/RESOLVER.md) | Bridge architecture, adapter interfaces, consent gating |
+
+### Design and Rationale
+| Document | Description |
+|----------|-------------|
+| [VISION.md](VISION.md) | Architectural principles and mission |
+| [DESIGN_RATIONALE.md](DESIGN_RATIONALE.md) | Justification for each design decision |
+| [NON_GOALS.md](NON_GOALS.md) | Explicit exclusions and scope boundaries |
+| [RELATED_WORK.md](RELATED_WORK.md) | Academic context and prior art comparison |
+
+### Governance and Process
+| Document | Description |
+|----------|-------------|
+| [GOVERNANCE.md](GOVERNANCE.md) | Decision-making process and contribution guidelines |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute and cite this work |
+| [VERSION_POLICY.md](VERSION_POLICY.md) | Stability guarantees and compatibility promises |
+| [ARXIV_INTENT.md](ARXIV_INTENT.md) | Academic publication intent and citation format |
+
+### Implementation
+| Document | Description |
+|----------|-------------|
+| [reference/python/rpp_address.py](reference/python/rpp_address.py) | Canonical Python reference implementation |
+| [tests/test_vectors.json](tests/test_vectors.json) | Official validation test suite |
 
 ---
 
-## Why Open Source?
+## Academic Intent
 
-We explicitly reject patents because:
+This specification is published as **defensive prior art** to establish public domain status and prevent patent enclosure. The work is intended for submission to arXiv (cs.OS or cs.DC) and Zenodo for DOI assignment.
 
-1. **Prior art**: Public spec prevents future enclosure
-2. **Adoption**: Open infrastructure spreads faster
-3. **Philosophy**: Consent-based systems can't be coercively owned
-4. **Resilience**: Multiple implementations strengthen the standard
-
----
-
-## Bridge Architecture
-
-RPP doesn't replace storage — it **routes** to existing systems:
-
+**Preferred Citation:**
 ```
-┌─────────────────────────────────────────────┐
-│           RPP Address Space                 │
-└─────────────────────┬───────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────┐
-│              Resolver                       │
-└───────┬─────────┬─────────┬─────────┬───────┘
-        ▼         ▼         ▼         ▼
-    [FileSystem] [S3]    [Database] [Redis]
-```
-
-Zero migration. Semantic routing on top of existing infrastructure.
-
----
-
-## Test Vectors
-
-Validate your implementation:
-
-```json
-{
-  "input": {"shell": 0, "theta": 45, "phi": 120, "harmonic": 128},
-  "expected": {"hex": "0x05B7880", "decimal": 5961856}
-}
+RPP Contributors. (2024). Rotational Packet Protocol (RPP): A Semantic
+Addressing Architecture for Consent-Aware Memory Systems. Version 1.0.0.
+https://github.com/anywave/rpp-spec
 ```
 
-Full test suite: [tests/test_vectors.json](tests/test_vectors.json)
+See [ARXIV_INTENT.md](ARXIV_INTENT.md) for complete citation guidance and academic usage policy.
 
 ---
 
-## Contributing
+## Design Philosophy
 
-1. Read [GOVERNANCE.md](GOVERNANCE.md)
-2. Sign-off commits (DCO)
-3. Follow existing patterns
-4. Include tests for code
+RPP is designed for **openness and interoperability** rather than proprietary advantage:
+
+- **Auditability:** All address semantics are transparent and deterministic
+- **Reproducibility:** Reference implementations and test vectors enable independent verification
+- **Interoperability:** Bridge architecture integrates with existing infrastructure
+- **Non-enclosure:** Defensive publication prevents patent capture by any party
+
+These properties align with academic values of transparency, reproducibility, and open inquiry.
 
 ---
 
 ## License
 
-- **Code**: Apache 2.0
-- **Documentation**: CC BY 4.0
-- **Diagrams**: CC BY-SA 4.0
+| Component | License |
+|-----------|---------|
+| Specification and Documentation | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
+| Reference Implementation | [Apache 2.0](LICENSE) |
+| Diagrams | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 
 ---
 
 ## Status
 
-| Component | Status |
-|-----------|--------|
-| Spec | ✅ v1.0.0 |
-| Python reference | ✅ Complete |
-| Test vectors | ✅ Complete |
-| Defensive publication | ✅ Ready |
+| Component | Status | Version |
+|-----------|--------|---------|
+| Core Specification | Stable | 1.0.0 |
+| Python Reference | Complete | 1.0.0 |
+| Test Vectors | Complete | 1.0.0 |
+| Defensive Publication | Ready for submission | — |
 
 ---
 
-*Open infrastructure for semantic addressing. Not patentable. Not enclosable.*
+*Open infrastructure for semantic addressing. Designed for auditability, interoperability, and non-enclosure.*
