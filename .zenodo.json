@@ -1,0 +1,36 @@
+{
+    "title": "Rotational Packet Protocol (RPP): A Semantic Addressing Architecture for Consent-Aware Memory Systems",
+    "description": "RPP defines a 28-bit semantic addressing system where addresses encode meaning (what kind of data, how accessible, where to route) rather than just memory locations. The resolver returns simple decisions: allow, deny, or route. This specification includes the address format, resolver architecture, and reference implementations in Python, Haskell, and Clash (FPGA).",
+    "creators": [
+        {
+            "name": "Lennon, Alexander Liam",
+            "affiliation": "Independent Researcher"
+        }
+    ],
+    "keywords": [
+        "semantic addressing",
+        "consent-aware systems",
+        "memory architecture",
+        "protocol specification",
+        "access control",
+        "routing",
+        "open source"
+    ],
+    "license": {
+        "id": "Apache-2.0"
+    },
+    "upload_type": "software",
+    "access_right": "open",
+    "related_identifiers": [
+        {
+            "identifier": "https://pypi.org/project/rpp-protocol/",
+            "relation": "isSupplementedBy",
+            "resource_type": "software"
+        },
+        {
+            "identifier": "https://github.com/anywave/rpp-spec",
+            "relation": "isIdenticalTo",
+            "resource_type": "software"
+        }
+    ]
+}
