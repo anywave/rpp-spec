@@ -115,6 +115,7 @@ RPP functions as a **bridge architecture**, providing semantic routing to existi
 | Document | Description |
 |----------|-------------|
 | [spec/SPEC.md](spec/SPEC.md) | Canonical 28-bit addressing specification with formal definitions |
+| [spec/PACKET.md](spec/PACKET.md) | Rotational packet format: address + optional payload envelope |
 | [spec/SEMANTICS.md](spec/SEMANTICS.md) | Geometric meaning model, sector definitions, grounding interpretation |
 | [spec/RESOLVER.md](spec/RESOLVER.md) | Bridge architecture, adapter interfaces, consent gating |
 
