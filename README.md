@@ -127,6 +127,8 @@ RPP functions as a **bridge architecture**, providing semantic routing to existi
 | [RELATED_WORK.md](RELATED_WORK.md) | Academic context and prior art comparison |
 | [ADVERSARIAL_ANALYSIS.md](ADVERSARIAL_ANALYSIS.md) | Counterexamples and comparison to existing standards |
 | [IRREDUCIBILITY.md](IRREDUCIBILITY.md) | Proof that RPP is the minimum viable solution |
+| [BOUNDARIES.md](BOUNDARIES.md) | Hard scope constraints—where RPP must stop |
+| [MVP.md](MVP.md) | Minimum viable product specification |
 
 ### Governance and Process
 | Document | Description |
