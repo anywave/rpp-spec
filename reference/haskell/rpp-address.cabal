@@ -1,0 +1,49 @@
+cabal-version:      2.4
+name:               rpp-address
+version:            1.0.0
+synopsis:           Reference implementation of RPP (Rotational Packet Protocol) addressing
+description:
+    Pure Haskell reference implementation of the RPP 28-bit semantic
+    addressing scheme. This package provides encoding, decoding, and
+    semantic interpretation of RPP addresses.
+    .
+    RPP addresses use a spherical coordinate system with four fields:
+    .
+    * Shell (2 bits): Storage tier (hot/warm/cold/frozen)
+    * Theta (9 bits): Angular position (sectors)
+    * Phi (9 bits): Elevation (grounding level)
+    * Harmonic (8 bits): Resolution/mode
+    .
+    See <https://github.com/anywave/rpp-spec> for the full specification.
+
+homepage:           https://github.com/anywave/rpp-spec
+bug-reports:        https://github.com/anywave/rpp-spec/issues
+license:            Apache-2.0
+license-file:       ../../LICENSE
+author:             RPP Contributors
+maintainer:         rpp-spec@example.org
+copyright:          2024 RPP Contributors
+category:           Data, Protocol
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.2.8, GHC == 9.4.8, GHC == 9.6.3
+
+source-repository head
+    type:     git
+    location: https://github.com/anywave/rpp-spec.git
+
+library
+    exposed-modules:    RPPAddress
+    build-depends:      base >= 4.14 && < 5
+    hs-source-dirs:     .
+    default-language:   Haskell2010
+    ghc-options:        -Wall -Wcompat
+
+test-suite rpp-address-test
+    type:               exitcode-stdio-1.0
+    main-is:            Test.hs
+    hs-source-dirs:     test
+    build-depends:
+        base >= 4.14 && < 5,
+        rpp-address
+    default-language:   Haskell2010

@@ -137,7 +137,10 @@ RPP functions as a **bridge architecture**, providing semantic routing to existi
 ### Implementation
 | Document | Description |
 |----------|-------------|
-| [reference/python/rpp_address.py](reference/python/rpp_address.py) | Canonical Python reference implementation |
+| [reference/python/](reference/python/) | Canonical Python reference implementation |
+| [reference/haskell/](reference/haskell/) | Pure Haskell reference implementation |
+| [hardware/clash/](hardware/clash/) | Clash/FPGA hardware implementation |
+| [examples/](examples/) | Usage examples and demonstrations |
 | [tests/test_vectors.json](tests/test_vectors.json) | Official validation test suite |
 
 ---
@@ -186,6 +189,8 @@ These properties align with academic values of transparency, reproducibility, an
 |-----------|--------|---------|
 | Core Specification | Stable | 1.0.0 |
 | Python Reference | Complete | 1.0.0 |
+| Haskell Reference | Complete | 1.0.0 |
+| Clash/FPGA Hardware | Complete | 1.0.0 |
 | Test Vectors | Complete | 1.0.0 |
 | Defensive Publication | Ready for submission | — |
 
