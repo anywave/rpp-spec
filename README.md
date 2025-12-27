@@ -126,6 +126,7 @@ RPP functions as a **bridge architecture**, providing semantic routing to existi
 | [NON_GOALS.md](NON_GOALS.md) | Explicit exclusions and scope boundaries |
 | [RELATED_WORK.md](RELATED_WORK.md) | Academic context and prior art comparison |
 | [ADVERSARIAL_ANALYSIS.md](ADVERSARIAL_ANALYSIS.md) | Counterexamples and comparison to existing standards |
+| [IRREDUCIBILITY.md](IRREDUCIBILITY.md) | Proof that RPP is the minimum viable solution |
 
 ### Governance and Process
 | Document | Description |
