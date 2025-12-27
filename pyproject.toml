@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rpp"
+name = "rpp-protocol"
 version = "0.1.1"
 description = "Rotational Packet Protocol - 28-bit semantic addressing for consent-aware systems"
 readme = "README.md"

@@ -38,7 +38,7 @@ RPP **IS**:
 ### Option 1: pip install (recommended)
 
 ```bash
-pip install rpp
+pip install rpp-protocol
 ```
 
 ### Option 2: From source
@@ -115,7 +115,7 @@ RPP is designed to work in **any terminal environment**, including:
 ### PuTTY Example Session
 
 ```
-C:\> pip install rpp
+C:\> pip install rpp-protocol
 C:\> rpp version
 rpp 0.1.0
 
