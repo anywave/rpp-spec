@@ -9,8 +9,7 @@ Two modes:
   - Fancy (ANSI): Color and styling for modern terminals (opt-in)
 """
 
-import sys
-from typing import Optional, TextIO
+from typing import Optional
 
 # ANSI color codes (only used when fancy=True)
 ANSI = {
@@ -73,19 +72,31 @@ def bit_layout_diagram(shell: int, theta: int, phi: int, harmonic: int,
     shell_names = {0: "Hot", 1: "Warm", 2: "Cold", 3: "Frozen"}
     shell_name = shell_names[shell]
 
-    if theta < 64: sector = "Gene"
-    elif theta < 128: sector = "Memory"
-    elif theta < 192: sector = "Witness"
-    elif theta < 256: sector = "Dream"
-    elif theta < 320: sector = "Bridge"
-    elif theta < 384: sector = "Guardian"
-    elif theta < 448: sector = "Emergence"
-    else: sector = "Meta"
+    if theta < 64:
+        sector = "Gene"
+    elif theta < 128:
+        sector = "Memory"
+    elif theta < 192:
+        sector = "Witness"
+    elif theta < 256:
+        sector = "Dream"
+    elif theta < 320:
+        sector = "Bridge"
+    elif theta < 384:
+        sector = "Guardian"
+    elif theta < 448:
+        sector = "Emergence"
+    else:
+        sector = "Meta"
 
-    if phi < 128: grounding = "Grounded"
-    elif phi < 256: grounding = "Transit"
-    elif phi < 384: grounding = "Abstract"
-    else: grounding = "Ethereal"
+    if phi < 128:
+        grounding = "Grounded"
+    elif phi < 256:
+        grounding = "Transit"
+    elif phi < 384:
+        grounding = "Abstract"
+    else:
+        grounding = "Ethereal"
 
     # Color the header and key values
     header = _c(f"28-bit RPP Address: 0x{raw:07X}", "cyan", fancy)
@@ -143,16 +154,16 @@ def routing_diagram(shell: int, allowed: bool, route: Optional[str],
 
     lines = [
         "+-----------------------------------------+",
-        f"|           ROUTING DECISION              |",
+        "|           ROUTING DECISION              |",
         "+-----------------------------------------+",
-        f"|   +-----+                               |",
+        "|   +-----+                               |",
         f"|   | REQ | --> [RESOLVER] --> {status_ascii:<10}|",
-        f"|   +-----+         |                     |",
-        f"|                   v                     |",
-        f"|              +---------+                |",
+        "|   +-----+         |                     |",
+        "|                   v                     |",
+        "|              +---------+                |",
         f"|              | {shell_box:^7} |                |",
-        f"|              | STORAGE |                |",
-        f"|              +---------+                |",
+        "|              | STORAGE |                |",
+        "|              +---------+                |",
         "+-----------------------------------------+",
         f"|  Route:  {route_display:<30}|",
         f"|  Reason: {reason:<30}|",
