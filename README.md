@@ -362,6 +362,12 @@ These are external concerns. RPP is the address layer only.
 | [BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/BOUNDARIES.md) | Hard scope constraints |
 | [MVP.md](https://github.com/anywave/rpp-spec/blob/master/MVP.md) | Minimum viable product |
 
+### Extensions
+
+| Extension | Package | Description |
+|-----------|---------|-------------|
+| [RPP Mesh](https://github.com/anywave/rpp-spec/blob/master/spec/extensions/MESH.md) | [rpp-mesh](https://pypi.org/project/rpp-mesh/) | Consent-aware overlay network |
+
 ---
 
 ## License

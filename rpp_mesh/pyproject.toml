@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rpp-mesh"
+version = "0.1.0"
+description = "RPP Mesh - Consent-aware overlay network extension for RPP"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+authors = [
+    { name = "Alexander Liam Lennon" }
+]
+keywords = [
+    "rpp",
+    "mesh",
+    "consent",
+    "overlay-network",
+    "routing",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Typing :: Typed",
+]
+dependencies = [
+    "rpp-protocol>=0.1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+]
+websockets = [
+    "websockets>=11.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/anywave/rpp-spec"
+Documentation = "https://github.com/anywave/rpp-spec/blob/master/spec/extensions/MESH.md"
+Repository = "https://github.com/anywave/rpp-spec"
+Issues = "https://github.com/anywave/rpp-spec/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
