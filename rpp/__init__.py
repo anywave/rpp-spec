@@ -16,7 +16,7 @@ RPP IS NOT:
 - An AI system
 """
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 from rpp.address import (
     RPPAddress,

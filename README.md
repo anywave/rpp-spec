@@ -184,7 +184,7 @@ These commands explain behavior but never change it. The core protocol remains c
 ```
 C:\> pip install rpp-protocol
 C:\> rpp version
-rpp 0.1.7
+rpp 0.1.8
 
 C:\> rpp demo
 +===========================================================+
@@ -359,8 +359,8 @@ These are external concerns. RPP is the address layer only.
 | [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | 28-bit addressing specification |
 | [spec/RESOLVER.md](https://github.com/anywave/rpp-spec/blob/master/spec/RESOLVER.md) | Resolver and adapter interfaces |
 | [spec/PACKET.md](https://github.com/anywave/rpp-spec/blob/master/spec/PACKET.md) | Packet envelope format |
-| [spec/BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/spec/BOUNDARIES.md) | Hard scope constraints |
-| [spec/MVP.md](https://github.com/anywave/rpp-spec/blob/master/spec/MVP.md) | Minimum viable product |
+| [BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/BOUNDARIES.md) | Hard scope constraints |
+| [MVP.md](https://github.com/anywave/rpp-spec/blob/master/MVP.md) | Minimum viable product |
 
 ---
 
