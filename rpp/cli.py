@@ -24,7 +24,13 @@ Exit codes:
 import sys
 import json
 import argparse
+import io
 from typing import List, Optional, TextIO
+
+# Ensure UTF-8 output on Windows
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 from rpp.address import (
     from_raw,
@@ -37,6 +43,7 @@ from rpp.address import (
 )
 from rpp.resolver import resolve
 from rpp import visual
+from rpp.i18n import t, get_supported_languages, DEFAULT_LANG
 
 
 # Exit codes
@@ -65,6 +72,7 @@ def cmd_encode(args: argparse.Namespace) -> int:
     """Handle encode command."""
     fancy = getattr(args, 'fancy', False)
     show_visual = getattr(args, 'visual', False)
+    lang = getattr(args, 'lang', DEFAULT_LANG)
 
     try:
         # Validate ranges
@@ -87,8 +95,13 @@ def cmd_encode(args: argparse.Namespace) -> int:
         if args.json:
             output_json(addr.to_dict())
         else:
+            # Get translated names
+            shell_name = t(f"shell_{addr.shell_name.lower()}", lang)
+            sector_name = t(f"sector_{addr.sector_name.lower()}", lang)
+            grounding = t(f"grounding_{addr.grounding_level.lower()}", lang)
+
             # Show operation status
-            output(visual.operation_status("ENCODE", True, fancy))
+            output(visual.operation_status(t("encode", lang), True, fancy))
             output("")
 
             if show_visual:
@@ -102,19 +115,19 @@ def cmd_encode(args: argparse.Namespace) -> int:
                 output(visual.consent_meter(addr.phi, fancy))
                 output("")
                 # Show shell tier
-                output("Shell Tier:")
+                output(f"{t('shell', lang).title()}:")
                 output(visual.shell_tier_visual(addr.shell, fancy))
             else:
                 # Compact output with mini visual
                 output(visual.address_mini(
-                    addr.to_hex(), addr.shell_name,
-                    addr.sector_name, addr.grounding_level, fancy
+                    addr.to_hex(), shell_name,
+                    sector_name, grounding, fancy
                 ))
                 output("")
-                output(f"  shell: {addr.shell} ({addr.shell_name})")
-                output(f"  theta: {addr.theta} ({addr.sector_name})")
-                output(f"  phi: {addr.phi} ({addr.grounding_level})")
-                output(f"  harmonic: {addr.harmonic}")
+                output(f"  {t('shell', lang)}: {addr.shell} ({shell_name})")
+                output(f"  {t('theta', lang)}: {addr.theta} ({sector_name})")
+                output(f"  {t('phi', lang)}: {addr.phi} ({grounding})")
+                output(f"  {t('harmonic', lang)}: {addr.harmonic}")
 
         return EXIT_SUCCESS
 
@@ -130,6 +143,7 @@ def cmd_decode(args: argparse.Namespace) -> int:
     """Handle decode command."""
     fancy = getattr(args, 'fancy', False)
     show_visual = getattr(args, 'visual', False)
+    lang = getattr(args, 'lang', DEFAULT_LANG)
 
     try:
         # Parse address (handles hex or decimal)
@@ -139,8 +153,13 @@ def cmd_decode(args: argparse.Namespace) -> int:
         if args.json:
             output_json(addr.to_dict())
         else:
+            # Get translated names
+            shell_name = t(f"shell_{addr.shell_name.lower()}", lang)
+            sector_name = t(f"sector_{addr.sector_name.lower()}", lang)
+            grounding = t(f"grounding_{addr.grounding_level.lower()}", lang)
+
             # Show operation status
-            output(visual.operation_status("DECODE", True, fancy))
+            output(visual.operation_status(t("decode", lang), True, fancy))
             output("")
 
             if show_visual:
@@ -158,14 +177,14 @@ def cmd_decode(args: argparse.Namespace) -> int:
             else:
                 # Compact output with mini visual
                 output(visual.address_mini(
-                    addr.to_hex(), addr.shell_name,
-                    addr.sector_name, addr.grounding_level, fancy
+                    addr.to_hex(), shell_name,
+                    sector_name, grounding, fancy
                 ))
                 output("")
-                output(f"  shell: {addr.shell} ({addr.shell_name})")
-                output(f"  theta: {addr.theta} ({addr.sector_name})")
-                output(f"  phi: {addr.phi} ({addr.grounding_level})")
-                output(f"  harmonic: {addr.harmonic}")
+                output(f"  {t('shell', lang)}: {addr.shell} ({shell_name})")
+                output(f"  {t('theta', lang)}: {addr.theta} ({sector_name})")
+                output(f"  {t('phi', lang)}: {addr.phi} ({grounding})")
+                output(f"  {t('harmonic', lang)}: {addr.harmonic}")
 
         return EXIT_SUCCESS
 
@@ -181,6 +200,7 @@ def cmd_resolve(args: argparse.Namespace) -> int:
     """Handle resolve command."""
     fancy = getattr(args, 'fancy', False)
     show_visual = getattr(args, 'visual', False)
+    lang = getattr(args, 'lang', DEFAULT_LANG)
 
     try:
         # Parse address
@@ -201,7 +221,7 @@ def cmd_resolve(args: argparse.Namespace) -> int:
             output_json(result.to_dict())
         else:
             # Show operation status
-            output(visual.operation_status("RESOLVE", result.allowed, fancy))
+            output(visual.operation_status(t("resolve", lang), result.allowed, fancy))
             output("")
 
             if show_visual:
@@ -215,9 +235,9 @@ def cmd_resolve(args: argparse.Namespace) -> int:
                 output(visual.consent_meter(addr.phi, fancy))
             else:
                 # Compact output (ASCII-safe for Windows)
-                output(f"  allowed: {str(result.allowed).lower()}")
-                output(f"    route: {result.route if result.route else 'null'}")
-                output(f"    reason: {result.reason}")
+                output(f"  {t('allowed', lang)}: {str(result.allowed).lower()}")
+                output(f"    {t('route', lang)}: {result.route if result.route else 'null'}")
+                output(f"    {t('reason', lang)}: {result.reason}")
 
         # Exit code based on result
         if result.allowed:
@@ -236,6 +256,7 @@ def cmd_resolve(args: argparse.Namespace) -> int:
 def cmd_demo(args: argparse.Namespace) -> int:
     """Run demonstration of the three core scenarios."""
     fancy = getattr(args, 'fancy', False)
+    lang = getattr(args, 'lang', DEFAULT_LANG)
 
     # Show banner
     output(visual.demo_banner(fancy))
@@ -243,7 +264,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
     # Scenario 1: Allowed read (low phi)
     output("=" * 60)
-    output("  SCENARIO 1: Allowed Read (Grounded Consent)")
+    output(f"  {t('scenario_1_title', lang)}")
     output("=" * 60)
     output("")
     addr1 = from_components(shell=0, theta=12, phi=40, harmonic=1)
@@ -263,7 +284,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
     # Scenario 2: Denied write (high phi)
     output("=" * 60)
-    output("  SCENARIO 2: Denied Write (Ethereal - Consent Required)")
+    output(f"  {t('scenario_2_title', lang)}")
     output("=" * 60)
     output("")
     addr2 = from_components(shell=0, theta=100, phi=450, harmonic=64)
@@ -283,7 +304,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
     # Scenario 3: Routed to archive (cold shell)
     output("=" * 60)
-    output("  SCENARIO 3: Cold Storage Routing")
+    output(f"  {t('scenario_3_title', lang)}")
     output("=" * 60)
     output("")
     addr3 = from_components(shell=2, theta=200, phi=128, harmonic=32)
@@ -304,13 +325,12 @@ def cmd_demo(args: argparse.Namespace) -> int:
 
     # Summary
     output("=" * 60)
-    output(visual.success_box("Demonstration Complete", fancy))
+    output(visual.success_box(t("demonstration_complete", lang), fancy))
     output("")
     output("Key takeaways:")
-    output("  * Low phi (Grounded) = immediate access allowed")
-    output("  * High phi (Ethereal) = explicit consent required")
-    output("  * Cold shell = routed to archive storage")
-    output("  * Semantic meaning encoded in every address")
+    output(f"  * {t('takeaway_grounded', lang)}")
+    output(f"  * {t('takeaway_ethereal', lang)}")
+    output(f"  * {t('takeaway_cold', lang)}")
     output("")
 
     return EXIT_SUCCESS
@@ -326,17 +346,18 @@ def cmd_version(args: argparse.Namespace) -> int:
 def cmd_tutorial(args: argparse.Namespace) -> int:
     """Run interactive tutorial explaining RPP concepts."""
     fancy = getattr(args, 'fancy', False)
+    lang = getattr(args, 'lang', DEFAULT_LANG)
 
     output(visual.demo_banner(fancy))
     output("")
     output("=" * 60)
-    output("  RPP TUTORIAL: Understanding Semantic Addressing")
+    output(f"  {t('tutorial_welcome', lang)}")
     output("=" * 60)
     output("")
 
     # Section 1: What is RPP?
     output("-" * 60)
-    output("  SECTION 1: What is RPP?")
+    output(f"  SECTION 1: {t('tutorial_what_is', lang)}")
     output("-" * 60)
     output("")
     output("RPP (Rotational Packet Protocol) encodes MEANING directly")
@@ -351,7 +372,7 @@ def cmd_tutorial(args: argparse.Namespace) -> int:
 
     # Section 2: The 28-bit Structure
     output("-" * 60)
-    output("  SECTION 2: The 28-bit Address Structure")
+    output(f"  SECTION 2: {t('tutorial_address', lang)}")
     output("-" * 60)
     output("")
     output("Every RPP address is exactly 28 bits:")
@@ -427,7 +448,7 @@ def cmd_tutorial(args: argparse.Namespace) -> int:
 
     # Section 6: Resolution
     output("-" * 60)
-    output("  SECTION 6: How Resolution Works")
+    output(f"  SECTION 6: {t('tutorial_resolver', lang)}")
     output("-" * 60)
     output("")
     output("When you access an address, the RESOLVER checks:")
@@ -458,9 +479,9 @@ def cmd_tutorial(args: argparse.Namespace) -> int:
 
     # Summary
     output("=" * 60)
-    output(visual.success_box("Tutorial Complete!", fancy))
+    output(visual.success_box(t("demonstration_complete", lang), fancy))
     output("")
-    output("Try these commands:")
+    output(f"{t('tutorial_try_it', lang)}:")
     output("  rpp encode --shell 0 --theta 12 --phi 40 --harmonic 1")
     output("  rpp decode --address 0x0182801")
     output("  rpp resolve --address 0x0182801 --operation read")
@@ -496,6 +517,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--visual", "-V",
         action="store_true",
         help="Show detailed ASCII diagrams and visual feedback",
+    )
+
+    parser.add_argument(
+        "--lang", "-l",
+        type=str,
+        default=DEFAULT_LANG,
+        choices=get_supported_languages(),
+        help="Output language (en, ar-gulf, ar-hejaz, es, ru)",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
