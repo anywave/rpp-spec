@@ -43,23 +43,12 @@ class RPPMeshHeader:
         """Serialize header to 16 bytes."""
         # Byte 0: version (4 bits) | flags (4 bits)
         byte0 = ((self.version & 0x0F) << 4) | (self.flags & 0x0F)
-        
-        return struct.pack(
-            ">BBHBBHH",
-            byte0,
-            self.consent_state,
-            self.soul_id,
-            self.hop_count,
-            self.ttl,
-            self.coherence_hash,
-            self.reserved
-        )  # 1+1+2+1+1+2+2 = 10 bytes... need padding
-        
-        # Actually pack to 16 bytes
+
+        # Pack to 16 bytes: 1+1+2+1+1+2+2+4(padding) = 16
         return struct.pack(
             ">BBHBBHHBBBB",
             byte0,                    # 1
-            self.consent_state,       # 1  
+            self.consent_state,       # 1
             self.soul_id,             # 2
             self.hop_count,           # 1
             self.ttl,                 # 1
