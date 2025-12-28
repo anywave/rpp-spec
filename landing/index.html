@@ -397,9 +397,196 @@
             color: white;
         }
 
+        /* Math Section */
+        .math {
+            background: white;
+        }
+
+        .math-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            align-items: start;
+        }
+
+        .math-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+
+        .math-content p {
+            color: var(--gray);
+            margin-bottom: 16px;
+        }
+
+        .formula {
+            background: var(--light);
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .formula .var {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .formula .op {
+            color: var(--secondary);
+        }
+
+        .bit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .bit-table th, .bit-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bit-table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .bit-table td {
+            color: var(--gray);
+        }
+
+        .bit-table code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Spherical Section */
+        .spherical {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+        }
+
+        .spherical h2 {
+            color: white;
+        }
+
+        .spherical .section-subtitle {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .sphere-visual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .sphere-visual {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sphere-diagram {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .sphere-diagram pre {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #c7d2fe;
+        }
+
+        .sphere-explanation h3 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+        }
+
+        .sphere-explanation p {
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .coord-list {
+            list-style: none;
+        }
+
+        .coord-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .coord-list .symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #a5b4fc;
+            min-width: 30px;
+        }
+
+        .coord-list strong {
+            color: #c7d2fe;
+        }
+
+        /* Future Section */
+        .future {
+            background: var(--light);
+        }
+
+        .future-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .future-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--primary);
+        }
+
+        .future-card.purple {
+            border-top-color: var(--secondary);
+        }
+
+        .future-card.green {
+            border-top-color: var(--success);
+        }
+
+        .future-card.orange {
+            border-top-color: var(--warning);
+        }
+
+        .future-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .future-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
         /* Three Scenarios */
         .scenarios {
-            background: var(--light);
+            background: white;
         }
 
         .scenario-grid {
@@ -547,8 +734,9 @@
             <a href="#" class="logo">R<span>PP</span></a>
             <ul class="nav-links">
                 <li><a href="#problem">Why RPP</a></li>
-                <li><a href="#solution">How It Works</a></li>
-                <li><a href="#usecases">Use Cases</a></li>
+                <li><a href="#math">The Math</a></li>
+                <li><a href="#spherical">Geometry</a></li>
+                <li><a href="#future">Future</a></li>
                 <li><a href="#quickstart">Quick Start</a></li>
                 <li><a href="https://github.com/anywave/rpp-spec">GitHub</a></li>
             </ul>
@@ -673,6 +861,214 @@
                     <div class="step-number">3</div>
                     <h3>Route</h3>
                     <p>Follow the route to your storage backend. Memory, filesystem, archive - RPP tells you where.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Math Section -->
+    <section class="math" id="math">
+        <div class="container">
+            <h2>The Math: Bit-Level Encoding</h2>
+            <p class="section-subtitle">
+                Every RPP address is a deterministic bit-packed integer. No hashing, no lookups - pure arithmetic.
+            </p>
+            <div class="math-grid">
+                <div class="math-content">
+                    <h3>Encoding Formula</h3>
+                    <p>Pack four semantic values into a single 28-bit integer:</p>
+                    <div class="formula">
+<span class="var">address</span> <span class="op">=</span> (<span class="var">shell</span> <span class="op">&lt;&lt;</span> 26) <span class="op">|</span> (<span class="var">theta</span> <span class="op">&lt;&lt;</span> 17) <span class="op">|</span> (<span class="var">phi</span> <span class="op">&lt;&lt;</span> 8) <span class="op">|</span> <span class="var">harmonic</span>
+                    </div>
+                    <p>Each field occupies a fixed bit range, allowing instant extraction via bit masking:</p>
+                    <div class="formula">
+<span class="var">shell</span>    <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 26) <span class="op">&amp;</span> 0x3     <span style="color:#64748b;">// bits 27-26</span>
+<span class="var">theta</span>    <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 17) <span class="op">&amp;</span> 0x1FF   <span style="color:#64748b;">// bits 25-17</span>
+<span class="var">phi</span>      <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 8)  <span class="op">&amp;</span> 0x1FF   <span style="color:#64748b;">// bits 16-8</span>
+<span class="var">harmonic</span> <span class="op">=</span> address <span class="op">&amp;</span> 0xFF          <span style="color:#64748b;">// bits 7-0</span>
+                    </div>
+                </div>
+                <div class="math-content">
+                    <h3>Bit Allocation</h3>
+                    <table class="bit-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Bits</th>
+                                <th>Range</th>
+                                <th>Mask</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Shell</td>
+                                <td>2</td>
+                                <td>0-3</td>
+                                <td><code>0x0C000000</code></td>
+                            </tr>
+                            <tr>
+                                <td>Theta</td>
+                                <td>9</td>
+                                <td>0-511</td>
+                                <td><code>0x03FE0000</code></td>
+                            </tr>
+                            <tr>
+                                <td>Phi</td>
+                                <td>9</td>
+                                <td>0-511</td>
+                                <td><code>0x0001FF00</code></td>
+                            </tr>
+                            <tr>
+                                <td>Harmonic</td>
+                                <td>8</td>
+                                <td>0-255</td>
+                                <td><code>0x000000FF</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 16px;"><strong>Total: 28 bits</strong> = 268 million unique addresses, each with intrinsic semantic meaning.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Spherical Coordinate System -->
+    <section class="spherical" id="spherical">
+        <div class="container">
+            <h2>The Geometry: Spherical Coordinates</h2>
+            <p class="section-subtitle">
+                RPP addresses map to points on a conceptual sphere. Theta and Phi aren't arbitrary - they're angular coordinates.
+            </p>
+            <div class="sphere-visual">
+                <div class="sphere-diagram">
+<pre>
+                     North Pole (Phi = 0)
+                          Ethereal
+                            |
+                            |  . - ~ ~ ~ - .
+                        .-~               ~-.
+                       /    Abstract         \
+                      /                       \
+            West ----+-------- O --------+---- East
+           Theta=0   |    Transitional   |   Theta=511
+                      \                 /
+                       \   Grounded    /
+                        ` - . _ _ _ .-'
+                            |
+                            |
+                     South Pole (Phi = 511)
+                         Grounded
+
+
+        Theta (0-511): Rotation around vertical axis
+                       = Semantic sector (Gene, Memory, Dream...)
+
+        Phi (0-511):   Angle from pole to equator
+                       = Grounding/consent level
+</pre>
+                </div>
+                <div class="sphere-explanation">
+                    <h3>Why Spherical Coordinates?</h3>
+                    <p>
+                        Traditional memory addresses are linear - just offsets from zero. RPP uses spherical geometry
+                        because semantic relationships aren't linear. Data has <em>type</em> (where on the sphere)
+                        and <em>accessibility</em> (how far from the pole).
+                    </p>
+                    <ul class="coord-list">
+                        <li>
+                            <span class="symbol">&theta;</span>
+                            <div>
+                                <strong>Theta (Azimuthal Angle)</strong><br>
+                                Rotation around the vertical axis. Divides the sphere into 8 semantic sectors:
+                                Gene, Memory, Witness, Dream, Bridge, Guardian, Emergence, Meta. Each sector
+                                spans ~64 values of the 512 possible.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="symbol">&phi;</span>
+                            <div>
+                                <strong>Phi (Polar Angle)</strong><br>
+                                Distance from the "north pole" of abstraction to the "south pole" of grounding.
+                                Low phi = grounded, accessible. High phi = ethereal, requires explicit consent.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="symbol">r</span>
+                            <div>
+                                <strong>Shell (Radial Distance)</strong><br>
+                                The radius - how far from the center. Shell 0 (Hot) is closest to the core.
+                                Shell 3 (Frozen) is the outer boundary. Data migrates outward as it ages.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Future Potential -->
+    <section class="future" id="future">
+        <div class="container">
+            <h2>Future Potential</h2>
+            <p class="section-subtitle">
+                RPP is infrastructure. Here's what becomes possible when addresses carry meaning.
+            </p>
+            <div class="future-grid">
+                <div class="future-card">
+                    <h3>&#128279; Federated Identity</h3>
+                    <p>
+                        When identity data has semantic addresses, federation becomes trivial. Two systems can
+                        exchange addresses knowing exactly what consent level applies without additional negotiation.
+                    </p>
+                </div>
+                <div class="future-card purple">
+                    <h3>&#129504; AI-Safe Memory</h3>
+                    <p>
+                        AI systems can be given access to specific theta sectors while being blocked from others.
+                        No complex ACLs - just resolve the address and the consent requirement is built in.
+                    </p>
+                </div>
+                <div class="future-card green">
+                    <h3>&#128640; Cross-Platform Coherence</h3>
+                    <p>
+                        Mobile app, web service, embedded device - all can use the same 28-bit addresses.
+                        A single address means the same thing everywhere, enabling true data portability.
+                    </p>
+                </div>
+                <div class="future-card orange">
+                    <h3>&#128274; Consent-Native Applications</h3>
+                    <p>
+                        Instead of bolting consent onto existing systems, build applications where consent
+                        is intrinsic. Every data access automatically respects the phi grounding level.
+                    </p>
+                </div>
+                <div class="future-card">
+                    <h3>&#127760; Semantic Data Markets</h3>
+                    <p>
+                        When data is self-describing, markets can form around data types. Query for all
+                        "Dream sector, transitional grounding" data and get consistent results across providers.
+                    </p>
+                </div>
+                <div class="future-card purple">
+                    <h3>&#128200; Adaptive Storage</h3>
+                    <p>
+                        Storage systems that automatically tier data based on shell values. Hot data stays
+                        in memory, cold data migrates to archive - no manual configuration needed.
+                    </p>
+                </div>
+                <div class="future-card green">
+                    <h3>&#128101; Digital Twin Networks</h3>
+                    <p>
+                        Multiple avatar fragments, each with their own address ranges, all coherent back
+                        to a verified human identity. RPP provides the addressing layer for identity coherence.
+                    </p>
+                </div>
+                <div class="future-card orange">
+                    <h3>&#128218; Academic & Research</h3>
+                    <p>
+                        A formal specification enables academic study of semantic addressing. Proofs about
+                        address space coverage, consent guarantees, and routing correctness become possible.
+                    </p>
                 </div>
             </div>
         </div>
