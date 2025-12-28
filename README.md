@@ -142,6 +142,33 @@ RPP is designed to work in **any terminal environment**, including:
 | `--json` | Machine-readable JSON output |
 | `--visual` | Detailed ASCII diagrams |
 | `--fancy` | ANSI colors (opt-in, for modern terminals) |
+| `--lang` | Output language (en, ar-gulf, ar-hejaz, es, ru) |
+
+### Multi-Language Support
+
+RPP CLI supports 5 languages:
+
+| Code | Language | Region |
+|------|----------|--------|
+| `en` | English | Default |
+| `ar-gulf` | Gulf Arabic | UAE, Qatar, Kuwait, Bahrain |
+| `ar-hejaz` | Hejazi Arabic | Western Saudi Arabia |
+| `es` | Spanish | Global |
+| `ru` | Russian | Russia, CIS |
+
+```bash
+# Spanish
+rpp --lang es encode --shell 0 --theta 12 --phi 40 --harmonic 1
+# Output: [CODIFICAR] [OK] ... capa: 0 (Caliente)
+
+# Gulf Arabic
+rpp --lang ar-gulf demo
+# Output: [ترميز] ... الطبقة: 0 (ساخن)
+
+# Russian
+rpp --lang ru tutorial
+# Output: [КОДИРОВАТЬ] ... оболочка: 0 (Горячий)
+```
 
 ### Interactive Learning
 
@@ -157,7 +184,7 @@ These commands explain behavior but never change it. The core protocol remains c
 ```
 C:\> pip install rpp-protocol
 C:\> rpp version
-rpp 0.1.4
+rpp 0.1.5
 
 C:\> rpp demo
 +===========================================================+
