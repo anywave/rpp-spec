@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(curl:*)",
+      "Bash(tee:*)",
+      "Bash(wc:*)",
+      "Bash(rpp:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\":*)",
+      "Bash(powershell:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:arxiv.org)"
+    ]
+  }
+}
