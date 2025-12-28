@@ -180,6 +180,8 @@ rpp demo       # Visual demonstration of three core scenarios
 
 These commands explain behavior but never change it. The core protocol remains callable without tutorials.
 
+**[Try the Interactive Web Demo →](https://anywavecreations.com/rpp/#demo)** — Explore RPP addresses in real-time with spherical coordinate visualization.
+
 ### PuTTY Example Session
 
 ```
