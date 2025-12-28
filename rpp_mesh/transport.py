@@ -44,9 +44,9 @@ class RPPMeshHeader:
         # Byte 0: version (4 bits) | flags (4 bits)
         byte0 = ((self.version & 0x0F) << 4) | (self.flags & 0x0F)
 
-        # Pack to 16 bytes: 1+1+2+1+1+2+2+4(padding) = 16
+        # Pack to 16 bytes: 1+1+2+1+1+2+2+6(padding) = 16
         return struct.pack(
-            ">BBHBBHHBBBB",
+            ">BBHBBHHBBBBBB",
             byte0,                    # 1
             self.consent_state,       # 1
             self.soul_id,             # 2
@@ -54,7 +54,7 @@ class RPPMeshHeader:
             self.ttl,                 # 1
             self.coherence_hash,      # 2
             self.reserved,            # 2
-            0, 0, 0, 0                # 4 padding to reach 16
+            0, 0, 0, 0, 0, 0          # 6 padding to reach 16
         )
     
     @classmethod
@@ -63,8 +63,8 @@ class RPPMeshHeader:
         if len(data) < 16:
             raise ValueError(f"Header too short: {len(data)} bytes")
         
-        byte0, consent, soul_id, hop, ttl, coherence, reserved, _, _, _, _ = \
-            struct.unpack(">BBHBBHHBBBB", data[:16])
+        byte0, consent, soul_id, hop, ttl, coherence, reserved, _, _, _, _, _, _ = \
+            struct.unpack(">BBHBBHHBBBBBB", data[:16])
         
         return cls(
             version=(byte0 >> 4) & 0x0F,
