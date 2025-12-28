@@ -184,7 +184,7 @@ These commands explain behavior but never change it. The core protocol remains c
 ```
 C:\> pip install rpp-protocol
 C:\> rpp version
-rpp 0.1.8
+rpp 0.1.9
 
 C:\> rpp demo
 +===========================================================+
@@ -376,7 +376,7 @@ These are external concerns. RPP is the address layer only.
 ## Citation
 
 ```
-Lennon, A. L. (2024). Rotational Packet Protocol (RPP): A Semantic
+Lennon, A. L. (2025). Rotational Packet Protocol (RPP): A Semantic
 Addressing Architecture for Consent-Aware Memory Systems. Version 1.0.0.
 https://github.com/anywave/rpp-spec
 ```
