@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPP - Rotational Packet Protocol | Semantic Addressing for Consent-Aware Systems</title>
+    <meta name="description" content="RPP is a 28-bit semantic addressing protocol that encodes meaning directly into addresses. Route data based on what it is, not just where it lives.">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 160px 0 80px;
+            background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            color: var(--dark);
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--gray);
+            margin-bottom: 32px;
+            max-width: 600px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--dark);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 0;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+
+        section .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray);
+            margin-bottom: 48px;
+            max-width: 600px;
+        }
+
+        /* The Problem Section */
+        .problem {
+            background: white;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .problem-card {
+            padding: 32px;
+            background: var(--light);
+            border-radius: 12px;
+            border-left: 4px solid var(--danger);
+        }
+
+        .problem-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .problem-card p {
+            color: var(--gray);
+        }
+
+        /* Solution Section */
+        .solution {
+            background: linear-gradient(135deg, var(--dark) 0%, #334155 100%);
+            color: white;
+        }
+
+        .solution h2, .solution .section-subtitle {
+            color: white;
+        }
+
+        .solution .section-subtitle {
+            opacity: 0.8;
+        }
+
+        .address-diagram {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin-bottom: 48px;
+        }
+
+        .address-diagram pre {
+            color: #e2e8f0;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .address-diagram .shell { color: #22c55e; }
+        .address-diagram .theta { color: #3b82f6; }
+        .address-diagram .phi { color: #a855f7; }
+        .address-diagram .harmonic { color: #f59e0b; }
+
+        .meaning-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+        }
+
+        .meaning-card {
+            background: rgba(255,255,255,0.1);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .meaning-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .meaning-card h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .meaning-card p {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: white;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin: 0 auto 24px;
+        }
+
+        .step h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .step p {
+            color: var(--gray);
+        }
+
+        /* Use Cases */
+        .use-cases {
+            background: var(--light);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .use-case {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .use-case h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .use-case p {
+            color: var(--gray);
+            margin-bottom: 16px;
+        }
+
+        .use-case ul {
+            list-style: none;
+            color: var(--gray);
+        }
+
+        .use-case li {
+            padding: 4px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .use-case li::before {
+            content: "\2713";
+            color: var(--success);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Quick Start */
+        .quickstart {
+            background: white;
+        }
+
+        .code-block {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-block .comment { color: #64748b; }
+        .code-block .command { color: #22c55e; }
+        .code-block .output { color: #94a3b8; }
+        .code-block .highlight { color: #38bdf8; }
+
+        .code-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .code-tab {
+            padding: 8px 16px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .code-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .benefit-card .icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .benefit-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: var(--dark);
+            color: white;
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            color: var(--gray);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table .traditional {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .comparison-table .rpp {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .key-insight {
+            background: white;
+            border-left: 4px solid var(--primary);
+            padding: 24px 32px;
+            margin-top: 48px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .key-insight h3 {
+            font-size: 1.125rem;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+
+        .key-insight .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .key-insight .compare {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .key-insight .compare > div {
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .key-insight .old {
+            background: #fef2f2;
+        }
+
+        .key-insight .new {
+            background: #f0fdf4;
+        }
+
+        .key-insight .label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .key-insight .old .label { color: #991b1b; }
+        .key-insight .new .label { color: #166534; }
+
+        /* Math Section */
+        .math {
+            background: white;
+        }
+
+        .math-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            align-items: start;
+        }
+
+        .math-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+
+        .math-content p {
+            color: var(--gray);
+            margin-bottom: 16px;
+        }
+
+        .formula {
+            background: var(--light);
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .formula .var {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .formula .op {
+            color: var(--secondary);
+        }
+
+        .bit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .bit-table th, .bit-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .bit-table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .bit-table td {
+            color: var(--gray);
+        }
+
+        .bit-table code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Spherical Section */
+        .spherical {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+        }
+
+        .spherical h2 {
+            color: white;
+        }
+
+        .spherical .section-subtitle {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .sphere-visual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .sphere-visual {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sphere-diagram {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .sphere-diagram pre {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #c7d2fe;
+        }
+
+        .sphere-explanation h3 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+        }
+
+        .sphere-explanation p {
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .coord-list {
+            list-style: none;
+        }
+
+        .coord-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .coord-list .symbol {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #a5b4fc;
+            min-width: 30px;
+        }
+
+        .coord-list strong {
+            color: #c7d2fe;
+        }
+
+        /* Future Section */
+        .future {
+            background: var(--light);
+        }
+
+        .future-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .future-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--primary);
+        }
+
+        .future-card.purple {
+            border-top-color: var(--secondary);
+        }
+
+        .future-card.green {
+            border-top-color: var(--success);
+        }
+
+        .future-card.orange {
+            border-top-color: var(--warning);
+        }
+
+        .future-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .future-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        /* Three Scenarios */
+        .scenarios {
+            background: white;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .scenario {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .scenario-header {
+            padding: 20px 24px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .scenario-header.allowed { background: var(--success); }
+        .scenario-header.denied { background: var(--danger); }
+        .scenario-header.routed { background: var(--primary); }
+
+        .scenario-body {
+            padding: 24px;
+        }
+
+        .scenario-body p {
+            color: var(--gray);
+            margin-bottom: 16px;
+        }
+
+        .scenario-body code {
+            display: block;
+            background: var(--light);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--dark);
+        }
+
+        /* Languages */
+        .languages {
+            background: white;
+        }
+
+        .lang-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .lang-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: var(--light);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .lang-badge .flag {
+            font-size: 1.5rem;
+        }
+
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta h2 {
+            color: white;
+        }
+
+        .cta .section-subtitle {
+            color: rgba(255,255,255,0.9);
+            margin: 0 auto 32px;
+        }
+
+        .cta .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: none;
+        }
+
+        .cta .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: #94a3b8;
+            padding: 48px 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            section h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">R<span>PP</span></a>
+            <ul class="nav-links">
+                <li><a href="#problem">Why RPP</a></li>
+                <li><a href="#benefits">Benefits</a></li>
+                <li><a href="#spherical">Geometry</a></li>
+                <li><a href="#future">Future</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="https://github.com/anywave/rpp-spec">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Addresses That <span>Mean Something</span></h1>
+                <p class="subtitle">
+                    RPP is a 28-bit semantic addressing protocol that encodes meaning directly into addresses.
+                    Route data based on what it is and who can access it - not just where it lives.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#quickstart" class="btn btn-primary">Get Started</a>
+                    <a href="https://github.com/anywave/rpp-spec" class="btn btn-secondary">View on GitHub</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem" id="problem">
+        <div class="container">
+            <h2>The Problem with Traditional Addressing</h2>
+            <p class="section-subtitle">
+                Memory addresses are opaque. They tell you where data is, but nothing about what it means.
+            </p>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <h3>No Semantic Context</h3>
+                    <p>Address 0x7F3A2100 tells you nothing. Is it sensitive? Personal? Shareable? You need separate systems to track this metadata.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>Scattered Access Control</h3>
+                    <p>Consent and permission logic gets duplicated across every service. Each system reinvents the wheel for access decisions.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>Routing Requires Lookups</h3>
+                    <p>To route data correctly, you query databases, check permissions, consult policies. The address itself provides no guidance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution" id="solution">
+        <div class="container">
+            <h2>RPP: Meaning Built Into Every Address</h2>
+            <p class="section-subtitle">
+                A 28-bit address that encodes what data is, how accessible it is, and where to route it.
+            </p>
+
+            <div class="address-diagram">
+<pre>
+    +----------------------------------------------------------------+
+    |                      28-BIT RPP ADDRESS                         |
+    +--------+-------------+-------------+---------------------------+
+    | <span class="shell">Shell</span>  |    <span class="theta">Theta</span>    |     <span class="phi">Phi</span>     |         <span class="harmonic">Harmonic</span>          |
+    | <span class="shell">2 bits</span> |   <span class="theta">9 bits</span>    |   <span class="phi">9 bits</span>    |          <span class="harmonic">8 bits</span>           |
+    +--------+-------------+-------------+---------------------------+
+
+    Example: 0x0182801
+
+    <span class="shell">Shell = 0 (Hot)</span>      -> Route to: in-memory storage
+    <span class="theta">Theta = 12 (Gene)</span>    -> Data type: genetic/identity data
+    <span class="phi">Phi = 40 (Grounded)</span>  -> Access: open, no consent needed
+    <span class="harmonic">Harmonic = 1</span>         -> Resolution mode
+</pre>
+            </div>
+
+            <div class="meaning-grid">
+                <div class="meaning-card">
+                    <div class="icon">&#128193;</div>
+                    <h4>Shell (2 bits)</h4>
+                    <p>WHERE it's stored</p>
+                    <small>Hot / Warm / Cold / Frozen</small>
+                </div>
+                <div class="meaning-card">
+                    <div class="icon">&#128300;</div>
+                    <h4>Theta (9 bits)</h4>
+                    <p>WHAT type it is</p>
+                    <small>Gene / Memory / Dream / Bridge...</small>
+                </div>
+                <div class="meaning-card">
+                    <div class="icon">&#128274;</div>
+                    <h4>Phi (9 bits)</h4>
+                    <p>WHO can access it</p>
+                    <small>Grounded / Transitional / Ethereal</small>
+                </div>
+                <div class="meaning-card">
+                    <div class="icon">&#127925;</div>
+                    <h4>Harmonic (8 bits)</h4>
+                    <p>HOW to handle it</p>
+                    <small>Resolution / frequency / mode</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <p class="section-subtitle">
+                Three simple operations. Deterministic results. No AI, no magic.
+            </p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Encode</h3>
+                    <p>Pack semantic meaning into a 28-bit address. Shell, theta, phi, and harmonic become a single value.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Resolve</h3>
+                    <p>Query the address with an operation (read/write). Get back: allowed, denied, or route to storage.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Route</h3>
+                    <p>Follow the route to your storage backend. Memory, filesystem, archive - RPP tells you where.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits" id="benefits">
+        <div class="container">
+            <h2>Why This Design?</h2>
+            <p class="section-subtitle">
+                RPP eliminates entire categories of distributed systems complexity by encoding decisions into addresses.
+            </p>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="icon">&#9889;</div>
+                    <h3>O(1) Everything</h3>
+                    <p>Encode: 4 bit shifts + 3 ORs. Decode: 4 bit shifts + 4 ANDs. No database, no network, no cache lookups. Billions of operations per second.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">&#128230;</div>
+                    <h3>28 Bits = Tiny</h3>
+                    <p>Fits in a single 32-bit integer. Embeddable in URLs, headers, logs, QR codes. Passes through any system that handles integers.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">&#128268;</div>
+                    <h3>Zero Dependencies</h3>
+                    <p>Pure arithmetic. Works on microcontrollers to mainframes. No runtime, no libraries, no external services required.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">&#128269;</div>
+                    <h3>Deterministic = Auditable</h3>
+                    <p>Same input always produces same output. Unit testable, formally provable. No hidden state or side effects to debug.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">&#128203;</div>
+                    <h3>Self-Documenting</h3>
+                    <p>Address reveals intent without documentation lookup. Decode any address to see its semantic meaning instantly.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">&#128737;</div>
+                    <h3>Consent by Design</h3>
+                    <p>GDPR/privacy compliance built into addressing. Phi encodes access level - consent isn't bolted on, it's intrinsic.</p>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Operation</th>
+                            <th>Traditional Approach</th>
+                            <th>RPP Approach</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Routing</strong></td>
+                            <td class="traditional">Query database, check ACLs, consult policies</td>
+                            <td class="rpp">Decode address &rarr; instant decision</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Consent Check</strong></td>
+                            <td class="traditional">Separate permission system, user lookup</td>
+                            <td class="rpp">Read phi field (bits 16-8)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Storage Tier</strong></td>
+                            <td class="traditional">Manual configuration, migration scripts</td>
+                            <td class="rpp">Read shell field (bits 27-26)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data Type</strong></td>
+                            <td class="traditional">Metadata lookup, schema registry</td>
+                            <td class="rpp">Read theta field (bits 25-17)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cross-Service</strong></td>
+                            <td class="traditional">API contracts, translation layers</td>
+                            <td class="rpp">Same 28-bit format everywhere</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="key-insight">
+                <h3>The Key Insight</h3>
+                <div class="compare">
+                    <div class="old">
+                        <div class="label">Traditional</div>
+                        <p>Address tells you <strong>where</strong>. You must ask elsewhere for <strong>what</strong> and <strong>who</strong>.</p>
+                    </div>
+                    <div class="new">
+                        <div class="label">RPP</div>
+                        <p>Address tells you <strong>where</strong>, <strong>what</strong>, and <strong>who</strong> in one 28-bit value.</p>
+                    </div>
+                </div>
+                <p style="margin-top: 16px; color: var(--gray);">
+                    This eliminates an entire class of distributed systems problems - the "what is this and can I access it?"
+                    lookup that every service currently implements independently.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Math Section -->
+    <section class="math" id="math">
+        <div class="container">
+            <h2>The Math: Bit-Level Encoding</h2>
+            <p class="section-subtitle">
+                Every RPP address is a deterministic bit-packed integer. No hashing, no lookups - pure arithmetic.
+            </p>
+            <div class="math-grid">
+                <div class="math-content">
+                    <h3>Encoding Formula</h3>
+                    <p>Pack four semantic values into a single 28-bit integer:</p>
+                    <div class="formula">
+<span class="var">address</span> <span class="op">=</span> (<span class="var">shell</span> <span class="op">&lt;&lt;</span> 26) <span class="op">|</span> (<span class="var">theta</span> <span class="op">&lt;&lt;</span> 17) <span class="op">|</span> (<span class="var">phi</span> <span class="op">&lt;&lt;</span> 8) <span class="op">|</span> <span class="var">harmonic</span>
+                    </div>
+                    <p>Each field occupies a fixed bit range, allowing instant extraction via bit masking:</p>
+                    <div class="formula">
+<span class="var">shell</span>    <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 26) <span class="op">&amp;</span> 0x3     <span style="color:#64748b;">// bits 27-26</span>
+<span class="var">theta</span>    <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 17) <span class="op">&amp;</span> 0x1FF   <span style="color:#64748b;">// bits 25-17</span>
+<span class="var">phi</span>      <span class="op">=</span> (address <span class="op">&gt;&gt;</span> 8)  <span class="op">&amp;</span> 0x1FF   <span style="color:#64748b;">// bits 16-8</span>
+<span class="var">harmonic</span> <span class="op">=</span> address <span class="op">&amp;</span> 0xFF          <span style="color:#64748b;">// bits 7-0</span>
+                    </div>
+                </div>
+                <div class="math-content">
+                    <h3>Bit Allocation</h3>
+                    <table class="bit-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Bits</th>
+                                <th>Range</th>
+                                <th>Mask</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Shell</td>
+                                <td>2</td>
+                                <td>0-3</td>
+                                <td><code>0x0C000000</code></td>
+                            </tr>
+                            <tr>
+                                <td>Theta</td>
+                                <td>9</td>
+                                <td>0-511</td>
+                                <td><code>0x03FE0000</code></td>
+                            </tr>
+                            <tr>
+                                <td>Phi</td>
+                                <td>9</td>
+                                <td>0-511</td>
+                                <td><code>0x0001FF00</code></td>
+                            </tr>
+                            <tr>
+                                <td>Harmonic</td>
+                                <td>8</td>
+                                <td>0-255</td>
+                                <td><code>0x000000FF</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 16px;"><strong>Total: 28 bits</strong> = 268 million unique addresses, each with intrinsic semantic meaning.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Spherical Coordinate System -->
+    <section class="spherical" id="spherical">
+        <div class="container">
+            <h2>The Geometry: Spherical Coordinates</h2>
+            <p class="section-subtitle">
+                RPP addresses map to points on a conceptual sphere. Theta and Phi aren't arbitrary - they're angular coordinates.
+            </p>
+            <div class="sphere-visual">
+                <div class="sphere-diagram">
+<pre>
+                     North Pole (Phi = 0)
+                          Ethereal
+                            |
+                            |  . - ~ ~ ~ - .
+                        .-~               ~-.
+                       /    Abstract         \
+                      /                       \
+            West ----+-------- O --------+---- East
+           Theta=0   |    Transitional   |   Theta=511
+                      \                 /
+                       \   Grounded    /
+                        ` - . _ _ _ .-'
+                            |
+                            |
+                     South Pole (Phi = 511)
+                         Grounded
+
+
+        Theta (0-511): Rotation around vertical axis
+                       = Semantic sector (Gene, Memory, Dream...)
+
+        Phi (0-511):   Angle from pole to equator
+                       = Grounding/consent level
+</pre>
+                </div>
+                <div class="sphere-explanation">
+                    <h3>Why Spherical Coordinates?</h3>
+                    <p>
+                        Traditional memory addresses are linear - just offsets from zero. RPP uses spherical geometry
+                        because semantic relationships aren't linear. Data has <em>type</em> (where on the sphere)
+                        and <em>accessibility</em> (how far from the pole).
+                    </p>
+                    <ul class="coord-list">
+                        <li>
+                            <span class="symbol">&theta;</span>
+                            <div>
+                                <strong>Theta (Azimuthal Angle)</strong><br>
+                                Rotation around the vertical axis. Divides the sphere into 8 semantic sectors:
+                                Gene, Memory, Witness, Dream, Bridge, Guardian, Emergence, Meta. Each sector
+                                spans ~64 values of the 512 possible.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="symbol">&phi;</span>
+                            <div>
+                                <strong>Phi (Polar Angle)</strong><br>
+                                Distance from the "north pole" of abstraction to the "south pole" of grounding.
+                                Low phi = grounded, accessible. High phi = ethereal, requires explicit consent.
+                            </div>
+                        </li>
+                        <li>
+                            <span class="symbol">r</span>
+                            <div>
+                                <strong>Shell (Radial Distance)</strong><br>
+                                The radius - how far from the center. Shell 0 (Hot) is closest to the core.
+                                Shell 3 (Frozen) is the outer boundary. Data migrates outward as it ages.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Future Potential -->
+    <section class="future" id="future">
+        <div class="container">
+            <h2>Future Potential</h2>
+            <p class="section-subtitle">
+                RPP is infrastructure. Here's what becomes possible when addresses carry meaning.
+            </p>
+            <div class="future-grid">
+                <div class="future-card">
+                    <h3>&#128279; Federated Identity</h3>
+                    <p>
+                        When identity data has semantic addresses, federation becomes trivial. Two systems can
+                        exchange addresses knowing exactly what consent level applies without additional negotiation.
+                    </p>
+                </div>
+                <div class="future-card purple">
+                    <h3>&#129504; AI-Safe Memory</h3>
+                    <p>
+                        AI systems can be given access to specific theta sectors while being blocked from others.
+                        No complex ACLs - just resolve the address and the consent requirement is built in.
+                    </p>
+                </div>
+                <div class="future-card green">
+                    <h3>&#128640; Cross-Platform Coherence</h3>
+                    <p>
+                        Mobile app, web service, embedded device - all can use the same 28-bit addresses.
+                        A single address means the same thing everywhere, enabling true data portability.
+                    </p>
+                </div>
+                <div class="future-card orange">
+                    <h3>&#128274; Consent-Native Applications</h3>
+                    <p>
+                        Instead of bolting consent onto existing systems, build applications where consent
+                        is intrinsic. Every data access automatically respects the phi grounding level.
+                    </p>
+                </div>
+                <div class="future-card">
+                    <h3>&#127760; Semantic Data Markets</h3>
+                    <p>
+                        When data is self-describing, markets can form around data types. Query for all
+                        "Dream sector, transitional grounding" data and get consistent results across providers.
+                    </p>
+                </div>
+                <div class="future-card purple">
+                    <h3>&#128200; Adaptive Storage</h3>
+                    <p>
+                        Storage systems that automatically tier data based on shell values. Hot data stays
+                        in memory, cold data migrates to archive - no manual configuration needed.
+                    </p>
+                </div>
+                <div class="future-card green">
+                    <h3>&#128101; Digital Twin Networks</h3>
+                    <p>
+                        Multiple avatar fragments, each with their own address ranges, all coherent back
+                        to a verified human identity. RPP provides the addressing layer for identity coherence.
+                    </p>
+                </div>
+                <div class="future-card orange">
+                    <h3>&#128218; Academic & Research</h3>
+                    <p>
+                        A formal specification enables academic study of semantic addressing. Proofs about
+                        address space coverage, consent guarantees, and routing correctness become possible.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Three Scenarios -->
+    <section class="scenarios">
+        <div class="container">
+            <h2>The Three Core Scenarios</h2>
+            <p class="section-subtitle">
+                RPP behavior is defined by exactly three scenarios. Everything else is implementation detail.
+            </p>
+            <div class="scenario-grid">
+                <div class="scenario">
+                    <div class="scenario-header allowed">Scenario 1: Allowed Read</div>
+                    <div class="scenario-body">
+                        <p><strong>Low phi (grounded)</strong> - Data is accessible without special consent.</p>
+                        <code>
+                            allowed: true<br>
+                            route: memory://gene/grounded/12_40_1<br>
+                            reason: read permitted via memory
+                        </code>
+                    </div>
+                </div>
+                <div class="scenario">
+                    <div class="scenario-header denied">Scenario 2: Denied Write</div>
+                    <div class="scenario-body">
+                        <p><strong>High phi (ethereal)</strong> - Sensitive zone requires explicit consent.</p>
+                        <code>
+                            allowed: false<br>
+                            route: null<br>
+                            reason: Write to ethereal zone requires consent
+                        </code>
+                    </div>
+                </div>
+                <div class="scenario">
+                    <div class="scenario-header routed">Scenario 3: Archive Route</div>
+                    <div class="scenario-body">
+                        <p><strong>Cold shell</strong> - Data routes to archive storage.</p>
+                        <code>
+                            allowed: true<br>
+                            route: archive://dream/transitional/200_128_32<br>
+                            reason: read permitted via archive
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases" id="usecases">
+        <div class="container">
+            <h2>Use Cases</h2>
+            <p class="section-subtitle">
+                Where semantic addressing makes a difference.
+            </p>
+            <div class="use-case-grid">
+                <div class="use-case">
+                    <h3>&#128100; Consent-Aware Systems</h3>
+                    <p>Build systems where data access respects user consent by design, not as an afterthought.</p>
+                    <ul>
+                        <li>Consent level encoded in every address</li>
+                        <li>Automatic routing based on sensitivity</li>
+                        <li>Audit trail built into addressing</li>
+                    </ul>
+                </div>
+                <div class="use-case">
+                    <h3>&#128451; Tiered Storage</h3>
+                    <p>Route data to the right storage tier automatically based on its semantic properties.</p>
+                    <ul>
+                        <li>Hot data stays in memory</li>
+                        <li>Cold data archives automatically</li>
+                        <li>No manual tiering logic needed</li>
+                    </ul>
+                </div>
+                <div class="use-case">
+                    <h3>&#128279; Unified Routing Layer</h3>
+                    <p>Replace scattered routing logic with a single, deterministic addressing layer.</p>
+                    <ul>
+                        <li>One address format across all services</li>
+                        <li>Consistent access decisions</li>
+                        <li>Reduced code duplication</li>
+                    </ul>
+                </div>
+                <div class="use-case">
+                    <h3>&#128209; Digital Twins</h3>
+                    <p>Manage avatar fragments and identity data with built-in coherence and consent.</p>
+                    <ul>
+                        <li>Semantic sectors for identity components</li>
+                        <li>Grounding levels for access control</li>
+                        <li>Shell tiers for lifecycle management</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart" id="quickstart">
+        <div class="container">
+            <h2>Quick Start</h2>
+            <p class="section-subtitle">
+                Get up and running in 60 seconds. Zero dependencies.
+            </p>
+
+            <h3 style="margin-bottom: 16px;">Installation</h3>
+            <div class="code-block">
+<pre><span class="command">pip install rpp-protocol</span></pre>
+            </div>
+
+            <h3 style="margin-bottom: 16px;">CLI Usage</h3>
+            <div class="code-block">
+<pre><span class="comment"># Encode an address</span>
+<span class="command">rpp encode --shell 0 --theta 12 --phi 40 --harmonic 1</span>
+<span class="output">[ENCODE] [OK]
+0x0182801 | Hot | Gene | Grounded</span>
+
+<span class="comment"># Resolve (get routing decision)</span>
+<span class="command">rpp resolve --address 0x0182801</span>
+<span class="output">[RESOLVE] [OK]
+  allowed: true
+  route: memory://gene/grounded/12_40_1</span>
+
+<span class="comment"># Run the interactive demo</span>
+<span class="command">rpp demo</span></pre>
+            </div>
+
+            <h3 style="margin-bottom: 16px;">Python API</h3>
+            <div class="code-block">
+<pre><span class="highlight">from rpp import encode, decode, resolve, from_components</span>
+
+<span class="comment"># Encode an address</span>
+addr = encode(shell=0, theta=12, phi=40, harmonic=1)
+print(hex(addr))  <span class="comment"># 0x182801</span>
+
+<span class="comment"># Decode an address</span>
+shell, theta, phi, harmonic = decode(addr)
+
+<span class="comment"># Resolve with operation</span>
+result = resolve(addr, operation="read")
+print(result.allowed)  <span class="comment"># True</span>
+print(result.route)    <span class="comment"># memory://gene/grounded/12_40_1</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Languages -->
+    <section class="languages">
+        <div class="container" style="text-align: center;">
+            <h2>Multi-Language Support</h2>
+            <p class="section-subtitle" style="margin: 0 auto 32px;">
+                CLI output available in 5 languages.
+            </p>
+            <div class="lang-grid">
+                <div class="lang-badge"><span class="flag">&#127468;&#127463;</span> English</div>
+                <div class="lang-badge"><span class="flag">&#127466;&#127480;</span> Spanish</div>
+                <div class="lang-badge"><span class="flag">&#127479;&#127482;</span> Russian</div>
+                <div class="lang-badge"><span class="flag">&#127462;&#127466;</span> Gulf Arabic</div>
+                <div class="lang-badge"><span class="flag">&#127480;&#127462;</span> Hejazi Arabic</div>
+            </div>
+            <div class="code-block" style="max-width: 600px; margin: 32px auto 0; text-align: left;">
+<pre><span class="command">rpp --lang es encode --shell 0 --theta 12 --phi 40 --harmonic 1</span>
+<span class="output">[CODIFICAR] [OK]
+0x0182801 | Caliente | Gen | Arraigado</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Try RPP?</h2>
+            <p class="section-subtitle">
+                Open source. Zero dependencies. Works on Windows, Linux, and macOS.
+            </p>
+            <div class="hero-buttons" style="justify-content: center;">
+                <a href="https://pypi.org/project/rpp-protocol/" class="btn btn-secondary">Install from PyPI</a>
+                <a href="https://github.com/anywave/rpp-spec" class="btn btn-secondary">View Source</a>
+                <a href="https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md" class="btn btn-secondary">Read the Spec</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <strong style="color: white;">RPP</strong> - Rotational Packet Protocol<br>
+                    <small>Open infrastructure for semantic addressing.</small>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/anywave/rpp-spec">GitHub</a>
+                    <a href="https://pypi.org/project/rpp-protocol/">PyPI</a>
+                    <a href="https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md">Specification</a>
+                    <a href="https://anywavecreations.com">Anywave Creations</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
