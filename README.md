@@ -2,8 +2,8 @@
 
 **A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Spec Version](https://img.shields.io/badge/Spec-v1.0.0-green.svg)](spec/SPEC.md)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
+[![Spec Version](https://img.shields.io/badge/Spec-v1.0.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
 [![CI](https://github.com/anywave/rpp-spec/workflows/CI/badge.svg)](https://github.com/anywave/rpp-spec/actions)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
@@ -184,7 +184,7 @@ These commands explain behavior but never change it. The core protocol remains c
 ```
 C:\> pip install rpp-protocol
 C:\> rpp version
-rpp 0.1.6
+rpp 0.1.7
 
 C:\> rpp demo
 +===========================================================+
@@ -356,11 +356,11 @@ These are external concerns. RPP is the address layer only.
 
 | Document | Description |
 |----------|-------------|
-| [spec/SPEC.md](spec/SPEC.md) | 28-bit addressing specification |
-| [spec/RESOLVER.md](spec/RESOLVER.md) | Resolver and adapter interfaces |
-| [spec/PACKET.md](spec/PACKET.md) | Packet envelope format |
-| [BOUNDARIES.md](BOUNDARIES.md) | Hard scope constraints |
-| [MVP.md](MVP.md) | Minimum viable product |
+| [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | 28-bit addressing specification |
+| [spec/RESOLVER.md](https://github.com/anywave/rpp-spec/blob/master/spec/RESOLVER.md) | Resolver and adapter interfaces |
+| [spec/PACKET.md](https://github.com/anywave/rpp-spec/blob/master/spec/PACKET.md) | Packet envelope format |
+| [spec/BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/spec/BOUNDARIES.md) | Hard scope constraints |
+| [spec/MVP.md](https://github.com/anywave/rpp-spec/blob/master/spec/MVP.md) | Minimum viable product |
 
 ---
 
