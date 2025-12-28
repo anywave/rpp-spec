@@ -10,6 +10,10 @@ Commands:
     rpp decode --address 0xADDRESS
     rpp resolve --address 0xADDRESS [--operation read|write]
 
+Flags:
+    --fancy, -f: Enable ANSI colors for modern terminals
+    --visual, -V: Show ASCII diagrams and visual feedback
+
 Exit codes:
     0: Success
     1: Invalid input
@@ -32,6 +36,7 @@ from rpp.address import (
     MAX_HARMONIC,
 )
 from rpp.resolver import resolve
+from rpp import visual
 
 
 # Exit codes
@@ -58,6 +63,9 @@ def error(text: str) -> None:
 
 def cmd_encode(args: argparse.Namespace) -> int:
     """Handle encode command."""
+    fancy = getattr(args, 'fancy', False)
+    show_visual = getattr(args, 'visual', False)
+
     try:
         # Validate ranges
         if not (0 <= args.shell <= MAX_SHELL):
@@ -79,11 +87,34 @@ def cmd_encode(args: argparse.Namespace) -> int:
         if args.json:
             output_json(addr.to_dict())
         else:
-            output(f"address: {addr.to_hex()}")
-            output(f"shell: {addr.shell} ({addr.shell_name})")
-            output(f"theta: {addr.theta} ({addr.sector_name})")
-            output(f"phi: {addr.phi} ({addr.grounding_level})")
-            output(f"harmonic: {addr.harmonic}")
+            # Show operation status
+            output(visual.operation_status("ENCODE", True, fancy))
+            output("")
+
+            if show_visual:
+                # Show full bit layout diagram
+                output(visual.bit_layout_diagram(
+                    addr.shell, addr.theta, addr.phi, addr.harmonic,
+                    addr.raw, fancy
+                ))
+                output("")
+                # Show consent meter
+                output(visual.consent_meter(addr.phi, fancy))
+                output("")
+                # Show shell tier
+                output("Shell Tier:")
+                output(visual.shell_tier_visual(addr.shell, fancy))
+            else:
+                # Compact output with mini visual
+                output(visual.address_mini(
+                    addr.to_hex(), addr.shell_name,
+                    addr.sector_name, addr.grounding_level, fancy
+                ))
+                output("")
+                output(f"  shell: {addr.shell} ({addr.shell_name})")
+                output(f"  theta: {addr.theta} ({addr.sector_name})")
+                output(f"  phi: {addr.phi} ({addr.grounding_level})")
+                output(f"  harmonic: {addr.harmonic}")
 
         return EXIT_SUCCESS
 
@@ -97,6 +128,9 @@ def cmd_encode(args: argparse.Namespace) -> int:
 
 def cmd_decode(args: argparse.Namespace) -> int:
     """Handle decode command."""
+    fancy = getattr(args, 'fancy', False)
+    show_visual = getattr(args, 'visual', False)
+
     try:
         # Parse address (handles hex or decimal)
         raw = parse_address(args.address)
@@ -105,11 +139,33 @@ def cmd_decode(args: argparse.Namespace) -> int:
         if args.json:
             output_json(addr.to_dict())
         else:
-            output(f"address: {addr.to_hex()}")
-            output(f"shell: {addr.shell} ({addr.shell_name})")
-            output(f"theta: {addr.theta} ({addr.sector_name})")
-            output(f"phi: {addr.phi} ({addr.grounding_level})")
-            output(f"harmonic: {addr.harmonic}")
+            # Show operation status
+            output(visual.operation_status("DECODE", True, fancy))
+            output("")
+
+            if show_visual:
+                # Show full bit layout diagram
+                output(visual.bit_layout_diagram(
+                    addr.shell, addr.theta, addr.phi, addr.harmonic,
+                    addr.raw, fancy
+                ))
+                output("")
+                # Show consent meter
+                output(visual.consent_meter(addr.phi, fancy))
+                output("")
+                # Show theta wheel
+                output(visual.theta_wheel(addr.theta, fancy))
+            else:
+                # Compact output with mini visual
+                output(visual.address_mini(
+                    addr.to_hex(), addr.shell_name,
+                    addr.sector_name, addr.grounding_level, fancy
+                ))
+                output("")
+                output(f"  shell: {addr.shell} ({addr.shell_name})")
+                output(f"  theta: {addr.theta} ({addr.sector_name})")
+                output(f"  phi: {addr.phi} ({addr.grounding_level})")
+                output(f"  harmonic: {addr.harmonic}")
 
         return EXIT_SUCCESS
 
@@ -123,9 +179,13 @@ def cmd_decode(args: argparse.Namespace) -> int:
 
 def cmd_resolve(args: argparse.Namespace) -> int:
     """Handle resolve command."""
+    fancy = getattr(args, 'fancy', False)
+    show_visual = getattr(args, 'visual', False)
+
     try:
         # Parse address
         raw = parse_address(args.address)
+        addr = from_raw(raw)
 
         # Build context
         context = {}
@@ -140,9 +200,24 @@ def cmd_resolve(args: argparse.Namespace) -> int:
         if args.json:
             output_json(result.to_dict())
         else:
-            output(f"allowed: {str(result.allowed).lower()}")
-            output(f"route: {result.route if result.route else 'null'}")
-            output(f"reason: {result.reason}")
+            # Show operation status
+            output(visual.operation_status("RESOLVE", result.allowed, fancy))
+            output("")
+
+            if show_visual:
+                # Show routing diagram
+                output(visual.routing_diagram(
+                    addr.shell, result.allowed, result.route,
+                    result.reason, fancy
+                ))
+                output("")
+                # Show consent meter for context
+                output(visual.consent_meter(addr.phi, fancy))
+            else:
+                # Compact output (ASCII-safe for Windows)
+                output(f"  allowed: {str(result.allowed).lower()}")
+                output(f"    route: {result.route if result.route else 'null'}")
+                output(f"    reason: {result.reason}")
 
         # Exit code based on result
         if result.allowed:
@@ -160,44 +235,84 @@ def cmd_resolve(args: argparse.Namespace) -> int:
 
 def cmd_demo(args: argparse.Namespace) -> int:
     """Run demonstration of the three core scenarios."""
-    output("RPP Demonstration")
-    output("=================")
+    fancy = getattr(args, 'fancy', False)
+
+    # Show banner
+    output(visual.demo_banner(fancy))
     output("")
 
     # Scenario 1: Allowed read (low phi)
-    output("Scenario 1: Allowed read (low phi)")
-    output("-" * 40)
+    output("=" * 60)
+    output("  SCENARIO 1: Allowed Read (Grounded Consent)")
+    output("=" * 60)
+    output("")
     addr1 = from_components(shell=0, theta=12, phi=40, harmonic=1)
-    output(f"Address: {addr1.to_hex()}")
+    output(visual.bit_layout_diagram(
+        addr1.shell, addr1.theta, addr1.phi, addr1.harmonic,
+        addr1.raw, fancy
+    ))
+    output("")
     result1 = resolve(addr1.raw, operation="read")
-    output(f"allowed: {str(result1.allowed).lower()}")
-    output(f"route: {result1.route}")
-    output(f"reason: {result1.reason}")
+    output(visual.routing_diagram(
+        addr1.shell, result1.allowed, result1.route,
+        result1.reason, fancy
+    ))
+    output("")
+    output(visual.consent_meter(addr1.phi, fancy))
     output("")
 
     # Scenario 2: Denied write (high phi)
-    output("Scenario 2: Denied write (high phi)")
-    output("-" * 40)
+    output("=" * 60)
+    output("  SCENARIO 2: Denied Write (Ethereal - Consent Required)")
+    output("=" * 60)
+    output("")
     addr2 = from_components(shell=0, theta=100, phi=450, harmonic=64)
-    output(f"Address: {addr2.to_hex()}")
+    output(visual.bit_layout_diagram(
+        addr2.shell, addr2.theta, addr2.phi, addr2.harmonic,
+        addr2.raw, fancy
+    ))
+    output("")
     result2 = resolve(addr2.raw, operation="write")
-    output(f"allowed: {str(result2.allowed).lower()}")
-    output(f"route: {result2.route if result2.route else 'null'}")
-    output(f"reason: {result2.reason}")
+    output(visual.routing_diagram(
+        addr2.shell, result2.allowed, result2.route,
+        result2.reason, fancy
+    ))
+    output("")
+    output(visual.consent_meter(addr2.phi, fancy))
     output("")
 
     # Scenario 3: Routed to archive (cold shell)
-    output("Scenario 3: Routed to archive (cold shell)")
-    output("-" * 40)
+    output("=" * 60)
+    output("  SCENARIO 3: Cold Storage Routing")
+    output("=" * 60)
+    output("")
     addr3 = from_components(shell=2, theta=200, phi=128, harmonic=32)
-    output(f"Address: {addr3.to_hex()}")
+    output(visual.bit_layout_diagram(
+        addr3.shell, addr3.theta, addr3.phi, addr3.harmonic,
+        addr3.raw, fancy
+    ))
+    output("")
     result3 = resolve(addr3.raw, operation="read")
-    output(f"allowed: {str(result3.allowed).lower()}")
-    output(f"route: {result3.route}")
-    output(f"reason: {result3.reason}")
+    output(visual.routing_diagram(
+        addr3.shell, result3.allowed, result3.route,
+        result3.reason, fancy
+    ))
+    output("")
+    output("Shell Tiers:")
+    output(visual.shell_tier_visual(addr3.shell, fancy))
     output("")
 
-    output("Demonstration complete.")
+    # Summary
+    output("=" * 60)
+    output(visual.success_box("Demonstration Complete", fancy))
+    output("")
+    output("Key takeaways:")
+    output("  * Low phi (Grounded) = immediate access allowed")
+    output("  * High phi (Ethereal) = explicit consent required")
+    output("  * Cold shell = routed to archive storage")
+    output("  * Semantic meaning encoded in every address")
+    output("")
+
     return EXIT_SUCCESS
 
 
@@ -205,6 +320,155 @@ def cmd_version(args: argparse.Namespace) -> int:
     """Show version."""
     from rpp import __version__
     output(f"rpp {__version__}")
+    return EXIT_SUCCESS
+
+
+def cmd_tutorial(args: argparse.Namespace) -> int:
+    """Run interactive tutorial explaining RPP concepts."""
+    fancy = getattr(args, 'fancy', False)
+
+    output(visual.demo_banner(fancy))
+    output("")
+    output("=" * 60)
+    output("  RPP TUTORIAL: Understanding Semantic Addressing")
+    output("=" * 60)
+    output("")
+
+    # Section 1: What is RPP?
+    output("-" * 60)
+    output("  SECTION 1: What is RPP?")
+    output("-" * 60)
+    output("")
+    output("RPP (Rotational Packet Protocol) encodes MEANING directly")
+    output("into addresses. Instead of opaque memory locations, every")
+    output("28-bit address carries semantic information:")
+    output("")
+    output("  * WHERE data lives (Shell: storage tier)")
+    output("  * WHAT type it is (Theta: semantic sector)")
+    output("  * WHO can access it (Phi: consent/grounding level)")
+    output("  * HOW it behaves (Harmonic: frequency/mode)")
+    output("")
+
+    # Section 2: The 28-bit Structure
+    output("-" * 60)
+    output("  SECTION 2: The 28-bit Address Structure")
+    output("-" * 60)
+    output("")
+    output("Every RPP address is exactly 28 bits:")
+    output("")
+    output("  +--------+-------+---------+---------+----------+")
+    output("  | Reserved| Shell |  Theta  |   Phi   | Harmonic |")
+    output("  |  4 bits | 2 bits|  9 bits |  9 bits |  8 bits  |")
+    output("  +--------+-------+---------+---------+----------+")
+    output("")
+
+    # Show example
+    example_addr = from_components(shell=1, theta=150, phi=200, harmonic=42)
+    output("Example: Encoding shell=1, theta=150, phi=200, harmonic=42")
+    output("")
+    output(visual.bit_layout_diagram(
+        example_addr.shell, example_addr.theta, example_addr.phi,
+        example_addr.harmonic, example_addr.raw, fancy
+    ))
+    output("")
+
+    # Section 3: Shell Tiers
+    output("-" * 60)
+    output("  SECTION 3: Shell Tiers (Storage Routing)")
+    output("-" * 60)
+    output("")
+    output("The SHELL (2 bits) determines storage tier routing:")
+    output("")
+    output("  Shell 0 (Hot):    In-memory, immediate access")
+    output("  Shell 1 (Warm):   Fast storage, quick retrieval")
+    output("  Shell 2 (Cold):   Archive storage, slower access")
+    output("  Shell 3 (Frozen): Deep archive, explicit consent required")
+    output("")
+    output(visual.shell_tier_visual(1, fancy))
+    output("")
+
+    # Section 4: Theta Sectors
+    output("-" * 60)
+    output("  SECTION 4: Theta Sectors (Semantic Classification)")
+    output("-" * 60)
+    output("")
+    output("The THETA (9 bits, 0-511) classifies data semantically:")
+    output("")
+    output("  0-63:     Gene       - Core identity, genetic data")
+    output("  64-127:   Memory     - Experiential records")
+    output("  128-191:  Witness    - Observational data")
+    output("  192-255:  Dream      - Aspirational/creative content")
+    output("  256-319:  Bridge     - Connective/relational data")
+    output("  320-383:  Guardian   - Protective/security data")
+    output("  384-447:  Emergence  - Evolving/transforming content")
+    output("  448-511:  Meta       - Self-referential/meta data")
+    output("")
+    output(visual.theta_wheel(150, fancy))
+    output("")
+
+    # Section 5: Phi Grounding
+    output("-" * 60)
+    output("  SECTION 5: Phi Grounding (Consent Levels)")
+    output("-" * 60)
+    output("")
+    output("The PHI (9 bits, 0-511) determines consent requirements:")
+    output("")
+    output("  0-127:    Grounded     - Open access, no consent needed")
+    output("  128-255:  Transitional - Basic consent for modifications")
+    output("  256-383:  Abstract     - Elevated consent required")
+    output("  384-511:  Ethereal     - Explicit consent for all ops")
+    output("")
+    output("Low phi (grounded):")
+    output(visual.consent_meter(50, fancy))
+    output("")
+    output("High phi (ethereal):")
+    output(visual.consent_meter(450, fancy))
+    output("")
+
+    # Section 6: Resolution
+    output("-" * 60)
+    output("  SECTION 6: How Resolution Works")
+    output("-" * 60)
+    output("")
+    output("When you access an address, the RESOLVER checks:")
+    output("")
+    output("  1. Is the operation (read/write/delete) allowed?")
+    output("  2. Does the phi level require consent?")
+    output("  3. Which storage backend should handle it?")
+    output("")
+
+    # Show allowed vs denied
+    allowed_addr = from_components(shell=0, theta=12, phi=40, harmonic=1)
+    result_ok = resolve(allowed_addr.raw, operation="read")
+    output("Example: Reading from grounded zone (phi=40)")
+    output(visual.routing_diagram(
+        allowed_addr.shell, result_ok.allowed, result_ok.route,
+        result_ok.reason, fancy
+    ))
+    output("")
+
+    denied_addr = from_components(shell=0, theta=100, phi=450, harmonic=64)
+    result_denied = resolve(denied_addr.raw, operation="write")
+    output("Example: Writing to ethereal zone (phi=450)")
+    output(visual.routing_diagram(
+        denied_addr.shell, result_denied.allowed, result_denied.route,
+        result_denied.reason, fancy
+    ))
+    output("")
+
+    # Summary
+    output("=" * 60)
+    output(visual.success_box("Tutorial Complete!", fancy))
+    output("")
+    output("Try these commands:")
+    output("  rpp encode --shell 0 --theta 12 --phi 40 --harmonic 1")
+    output("  rpp decode --address 0x0182801")
+    output("  rpp resolve --address 0x0182801 --operation read")
+    output("  rpp demo")
+    output("")
+    output("Add --visual for detailed diagrams, --fancy for colors!")
+    output("")
+
     return EXIT_SUCCESS
 
 
@@ -220,6 +484,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--version", "-v",
         action="store_true",
         help="Show version and exit",
+    )
+
+    parser.add_argument(
+        "--fancy", "-f",
+        action="store_true",
+        help="Enable ANSI colors for modern terminals",
+    )
+
+    parser.add_argument(
+        "--visual", "-V",
+        action="store_true",
+        help="Show detailed ASCII diagrams and visual feedback",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -270,6 +546,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show version",
     )
     version_parser.set_defaults(func=cmd_version)
+
+    # Tutorial command
+    tutorial_parser = subparsers.add_parser(
+        "tutorial",
+        help="Interactive tutorial explaining RPP concepts",
+    )
+    tutorial_parser.set_defaults(func=cmd_tutorial)
 
     return parser
 
