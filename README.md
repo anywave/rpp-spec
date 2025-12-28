@@ -157,7 +157,7 @@ These commands explain behavior but never change it. The core protocol remains c
 ```
 C:\> pip install rpp-protocol
 C:\> rpp version
-rpp 0.1.3
+rpp 0.1.4
 
 C:\> rpp demo
 +===========================================================+
