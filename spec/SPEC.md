@@ -380,4 +380,15 @@ An implementation is conforming if it:
 
 ---
 
+## 12. Extended Addressing
+
+For holographic operations requiring higher precision than the 28-bit core format, see [SPEC-EXTENDED.md](SPEC-EXTENDED.md).
+
+The extended format provides:
+- 64-bit addressing with 20-bit theta/phi resolution
+- Phase angle support for wave interference calculations
+- Backward-compatible truncation to 28-bit core addresses
+
+---
+
 *This specification is released under CC BY 4.0. Attribution required.*

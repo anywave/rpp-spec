@@ -336,6 +336,15 @@ pytest -v
 
 # Run specific test file
 pytest tests/test_cli.py -v
+
+# Run only extended spec tests
+pytest tests/test_rpp_extended_spec.py -v
+
+# Run by compliance level
+pytest tests/test_rpp_extended_spec.py -v -k "Level1"  # Core only
+pytest tests/test_rpp_extended_spec.py -v -k "Level2"  # Extended
+pytest tests/test_rpp_extended_spec.py -v -k "Level3"  # Holographic
+pytest tests/test_rpp_extended_spec.py -v -k "Level4"  # Hardware
 ```
 
 All tests are subprocess-based and verify exact text output.
@@ -360,6 +369,7 @@ These are external concerns. RPP is the address layer only.
 | Document | Description |
 |----------|-------------|
 | [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | 28-bit addressing specification |
+| [spec/SPEC-EXTENDED.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC-EXTENDED.md) | Extended 64-bit format for holographic operations |
 | [spec/RESOLVER.md](https://github.com/anywave/rpp-spec/blob/master/spec/RESOLVER.md) | Resolver and adapter interfaces |
 | [spec/PACKET.md](https://github.com/anywave/rpp-spec/blob/master/spec/PACKET.md) | Packet envelope format |
 | [BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/BOUNDARIES.md) | Hard scope constraints |
