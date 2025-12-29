@@ -342,36 +342,71 @@ Aligned with `virtual_hardware.py` emulation:
 
 ---
 
-## 8. Holographic File Formation
+## 8. Symbolic Coherence Overlay (SCO)
 
-### 8.1 Intersection Requirements
+> **Historical Note:** The original "Holographic Files" architecture (wave interference,
+> phase angles, extended precision) was deprecated December 2025 in favor of Symbolic
+> Coherence Overlay. See `docs/architecture-decisions/SCO_ANALYSIS_SUMMARY.md` for
+> rationale. Legacy components preserved in `legacy/` namespace.
 
-From `intersection_engine.py`:
+### 8.1 Purpose
 
-```python
-def is_viable(self) -> bool:
-    return (
-        len(packets_involved) >= 2 and
-        overlap_size >= 10.0 and      # Minimum 10° theta overlap
-        phi_proximity >= 0.5           # Within 50% phi range
-    )
+SCO serves as the **emergence arbiter** for AVACHATTER, unifying:
+- **ACSP** (biometric consent and coherence)
+- **RPP** (semantic addressing: θ sectors, φ sensitivity)
+- **Fragment Storage** (content-addressed data packets)
+
+SCO determines *how* and *whether* memory constructs emerge:
+
+```
+FULL → PARTIAL → WITHHELD
 ```
 
-### 8.2 Emergence Conditions
+based on harmonic alignment between user-state and fragment-state.
 
-A holographic file emerges when:
+### 8.2 Inputs
 
-1. **Spatial overlap**: Two or more packets share θ range
-2. **Consent alignment**: Phi values are compatible
-3. **Phase coherence**: Phase angles produce constructive interference
-4. **Stability threshold**: Combined coherence > 0.5
+All inputs are modeled as `FieldVector`:
 
-### 8.3 File Binding
+```python
+@dataclass
+class FieldVector:
+    source: str              # acsp | rpp | attestation | intent
+    theta: int               # semantic sector (9-bit, ~0.7° granularity)
+    phi: int                 # access sensitivity (9-bit)
+    coherence_score: float   # 0.0–1.0
+    timestamp: datetime
+    content_hash: Optional[str]  # for fragment references
+```
 
-The emergent file is bound to:
-- **θ range**: Intersection overlap
-- **φ range**: Consent intersection
-- **Stability**: Decays over time without reinforcement
+| Source | Input Type | Example |
+|--------|-----------|---------|
+| ACSP | coherence score, consent state | 0.62, `DIMINISHED_CONSENT` |
+| RPP | semantic location (θ), sensitivity (φ) | θ=44, φ=160 |
+| Attestations | trust-weighted confirmations | verified claims |
+| Intent | semantic targeting & request scope | "recall event from Aug 14" |
+
+### 8.3 Decision Thresholds
+
+| State | Alignment Range | Result |
+|-------|----------------|--------|
+| FULL EMERGENCE | ≥ 0.70 | Assemble and return full memory construct |
+| PARTIAL EMERGENCE | 0.40–0.69 | Modal or symbolic access |
+| WITHHELD | < 0.40 | Stability warning; no reveal |
+
+**Consent state from ACSP can override:**
+- `SUSPENDED` or `EMERGENCY` → Auto-withhold regardless of score
+
+### 8.4 Emergence States
+
+**FULL**: All required fragments align → assemble complete memory
+
+**PARTIAL**: Insufficient alignment → SCO selects safe subsets:
+- Modal Reduction (audio only, text summary)
+- Symbolic Rendering (metaphor card)
+- Stability Preview (UX cue)
+
+**WITHHELD**: No synthesis. The system reflects state without exposing content.
 
 ---
 
