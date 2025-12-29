@@ -206,12 +206,20 @@ class RPPMeshTransport:
         
         # Build mesh header
         flags = 0
-        if self.config.encrypt_payload:
-            flags |= MeshFlags.ENCRYPTED
-            # TODO: Actually encrypt payload
+        processed_payload = payload
+
+        # Compress first (if enabled)
         if self.config.compress_payload:
+            from .crypto import compress_payload
+            processed_payload = compress_payload(processed_payload)
             flags |= MeshFlags.COMPRESSED
-            # TODO: Actually compress payload
+
+        # Then encrypt (if enabled)
+        if self.config.encrypt_payload:
+            from .crypto import derive_key, encrypt_payload
+            key = derive_key(self.soul_key)
+            processed_payload = encrypt_payload(processed_payload, key)
+            flags |= MeshFlags.ENCRYPTED
         
         header = RPPMeshHeader(
             version=1,
@@ -220,13 +228,13 @@ class RPPMeshTransport:
             soul_id=self.soul_id_truncated,
             hop_count=0,
             ttl=self.config.sector_ttl,
-            coherence_hash=self._compute_coherence_hash(payload),
+            coherence_hash=self._compute_coherence_hash(payload),  # Hash original payload
         )
-        
+
         packet = RPPMeshPacket(
             header=header,
             rpp_address=rpp_address,
-            payload=payload
+            payload=processed_payload  # Send processed (encrypted/compressed) payload
         )
         
         # Send through mesh
@@ -244,15 +252,30 @@ class RPPMeshTransport:
             response_data = await reader.readexactly(response_length)
             
             response_packet = RPPMeshPacket.unpack(response_data)
-            
+
             # Log routing decision if enabled
             if self.config.log_routing_decisions:
                 logger.debug(
                     f"Mesh response: hops={response_packet.header.hop_count}, "
                     f"consent={response_packet.header.consent_state.name}"
                 )
-            
-            return response_packet.payload
+
+            # Process response payload (decrypt/decompress if needed)
+            response_payload = response_packet.payload
+            response_flags = response_packet.header.flags
+
+            # Decrypt first (if encrypted)
+            if response_flags & MeshFlags.ENCRYPTED:
+                from .crypto import derive_key, decrypt_payload
+                key = derive_key(self.soul_key)
+                response_payload = decrypt_payload(response_payload, key)
+
+            # Then decompress (if compressed)
+            if response_flags & MeshFlags.COMPRESSED:
+                from .crypto import decompress_payload
+                response_payload = decompress_payload(response_payload)
+
+            return response_payload
             
         except asyncio.TimeoutError:
             logger.warning("Mesh response timeout, attempting fallback")

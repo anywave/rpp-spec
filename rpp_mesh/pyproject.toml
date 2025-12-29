@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rpp-mesh"
-version = "0.1.0"
+version = "0.2.0"
 description = "RPP Mesh - Consent-aware overlay network extension for RPP"
 readme = "README.md"
 license = "Apache-2.0"
@@ -46,6 +46,9 @@ dev = [
 websockets = [
     "websockets>=11.0",
 ]
+
+[project.scripts]
+rpp-mesh = "rpp_mesh.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/anywave/rpp-spec"

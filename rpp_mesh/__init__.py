@@ -22,7 +22,7 @@ RPP Mesh IS NOT:
 - A standalone networking solution
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from rpp_mesh.transport import (
     ConsentState,
@@ -31,6 +31,19 @@ from rpp_mesh.transport import (
     RPPMeshPacket,
     RPPMeshTransport,
     ConsentGate,
+)
+
+from rpp_mesh.direct_transport import DirectTransport
+from rpp_mesh.vpn_transport import VPNTransport
+
+from rpp_mesh.crypto import (
+    derive_key,
+    encrypt_payload,
+    decrypt_payload,
+    compress_payload,
+    decompress_payload,
+    compute_hmac,
+    verify_hmac,
 )
 
 from rpp_mesh.config import (
@@ -55,6 +68,17 @@ __all__ = [
     "RPPMeshPacket",
     "RPPMeshTransport",
     "ConsentGate",
+    # Fallback transports
+    "DirectTransport",
+    "VPNTransport",
+    # Crypto
+    "derive_key",
+    "encrypt_payload",
+    "decrypt_payload",
+    "compress_payload",
+    "decompress_payload",
+    "compute_hmac",
+    "verify_hmac",
     # Config
     "DeploymentMode",
     "DirectConfig",
