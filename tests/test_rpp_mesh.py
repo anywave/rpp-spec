@@ -8,7 +8,7 @@ Tests for the RPP Mesh consent-aware overlay network.
 import pytest
 import struct
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, AsyncMock
 
 from rpp_mesh import (
     RPPMeshHeader,
@@ -17,7 +17,6 @@ from rpp_mesh import (
     ConsentState,
     MeshFlags,
     ConsentGate,
-    RPPMeshConfig,
     DirectTransport,
     VPNTransport,
     derive_key,
