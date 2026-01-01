@@ -16,7 +16,7 @@ RPP IS NOT:
 - An AI system
 """
 
-__version__ = "0.1.9"
+__version__ = "0.2.0"
 
 from rpp.address import (
     RPPAddress,
@@ -25,6 +25,7 @@ from rpp.address import (
     from_components,
     from_raw,
     is_valid_address,
+    parse_address,
     MAX_ADDRESS,
     MAX_SHELL,
     MAX_THETA,
@@ -38,16 +39,47 @@ from rpp.resolver import (
     resolve,
 )
 
+from rpp.packet import (
+    RPPPacket,
+    PayloadType,
+    create_packet,
+    parse_packet,
+    parse_framed_packet,
+    is_valid_packet,
+    create_hash_packet,
+    create_pointer_packet,
+    create_framed_packet,
+    extract_framed_content,
+)
+
+from rpp.extended import (
+    RPPExtendedAddress,
+    encode_extended,
+    decode_extended,
+    from_extended_components,
+    from_extended_raw,
+    from_core_address,
+    degrees_to_theta,
+    degrees_to_phi,
+    degrees_to_phase,
+    phase_interference,
+    MAX_THETA_FINE,
+    MAX_PHI_FINE,
+    MAX_HARMONIC_EXT,
+    MAX_PHASE,
+)
+
 __all__ = [
     # Version
     "__version__",
-    # Address
+    # Core Address (28-bit)
     "RPPAddress",
     "encode",
     "decode",
     "from_components",
     "from_raw",
     "is_valid_address",
+    "parse_address",
     "MAX_ADDRESS",
     "MAX_SHELL",
     "MAX_THETA",
@@ -57,4 +89,30 @@ __all__ = [
     "RPPResolver",
     "ResolveResult",
     "resolve",
+    # Packet
+    "RPPPacket",
+    "PayloadType",
+    "create_packet",
+    "parse_packet",
+    "parse_framed_packet",
+    "is_valid_packet",
+    "create_hash_packet",
+    "create_pointer_packet",
+    "create_framed_packet",
+    "extract_framed_content",
+    # Extended Address (64-bit)
+    "RPPExtendedAddress",
+    "encode_extended",
+    "decode_extended",
+    "from_extended_components",
+    "from_extended_raw",
+    "from_core_address",
+    "degrees_to_theta",
+    "degrees_to_phi",
+    "degrees_to_phase",
+    "phase_interference",
+    "MAX_THETA_FINE",
+    "MAX_PHI_FINE",
+    "MAX_HARMONIC_EXT",
+    "MAX_PHASE",
 ]
