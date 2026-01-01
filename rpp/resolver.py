@@ -6,11 +6,25 @@ It returns exactly: allowed (bool), route (str or null), reason (str).
 
 This is the core of RPP's bridge architecture - it routes TO storage,
 it does not provide storage itself.
+
+Consent integration:
+- Uses ACSP (Avatar Consent State Protocol) states
+- Checks sector sensitivity and grounding zone
+- Requires verified identity for high-sensitivity operations
 """
 
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Protocol
 from rpp.address import from_raw, RPPAddress, is_valid_address
+from rpp.consent import (
+    ConsentState,
+    ConsentContext,
+    ConsentCheck,
+    Sector,
+    GroundingZone,
+    check_consent,
+    create_consent_context,
+)
 
 
 @dataclass(frozen=True)
@@ -138,34 +152,55 @@ class RPPResolver:
         context: Dict[str, Any],
     ) -> Optional[ResolveResult]:
         """
-        Check consent requirements based on phi (grounding level).
+        Check consent requirements using ACSP consent state protocol.
 
-        Low phi (0-127): Grounded - more accessible
-        High phi (384-511): Ethereal - restricted
+        Uses the consent module for comprehensive checks:
+        - Consent state (full, diminished, suspended, emergency)
+        - Sector sensitivity (gene, guardian, meta = high)
+        - Grounding zone (grounded, transitional, ethereal)
+        - Identity verification for high-sensitivity operations
 
         Returns None if consent is sufficient, ResolveResult if denied.
         """
-        # Emergency override bypasses all consent checks
-        if context.get("emergency_override") is True:
-            return None
+        # Build consent context from raw context dict
+        if "consent_state" in context and isinstance(context["consent_state"], ConsentState):
+            # Already have a ConsentState object
+            consent_ctx = ConsentContext(
+                state=context["consent_state"],
+                soul_id=context.get("soul_id"),
+                coherence_score=context.get("coherence_score", 0.0),
+                session_id=context.get("session_id"),
+                emergency_justification=context.get("emergency_justification"),
+            )
+        else:
+            # Parse from string consent value
+            consent_str = context.get("consent", "full")
+            consent_ctx = create_consent_context(
+                state=consent_str,
+                soul_id=context.get("soul_id"),
+                coherence=context.get("coherence_score", 0.0),
+                session_id=context.get("session_id"),
+                emergency_justification=context.get("emergency_justification"),
+            )
 
-        # Very high phi blocks all writes except with emergency override (checked above)
-        if addr.phi >= 480 and operation == "write":
+        # Legacy emergency override handling
+        if context.get("emergency_override") is True:
+            consent_ctx = ConsentContext(
+                state=ConsentState.EMERGENCY_OVERRIDE,
+                soul_id=consent_ctx.soul_id,
+                coherence_score=consent_ctx.coherence_score,
+                emergency_justification=context.get("emergency_justification", "Legacy override"),
+            )
+
+        # Perform consent check
+        check = check_consent(addr.theta, addr.phi, operation, consent_ctx)
+
+        if not check.allowed:
             return ResolveResult(
                 allowed=False,
                 route=None,
-                reason=f"Write to high ethereal (phi={addr.phi}) blocked without emergency override",
+                reason=check.reason,
             )
-
-        # High phi requires explicit consent for writes
-        if addr.phi >= 384 and operation == "write":
-            consent = context.get("consent", "none")
-            if consent not in ("full", "explicit"):
-                return ResolveResult(
-                    allowed=False,
-                    route=None,
-                    reason=f"Write to ethereal zone (phi={addr.phi}) requires explicit consent",
-                )
 
         return None
 

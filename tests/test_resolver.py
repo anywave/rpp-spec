@@ -140,10 +140,15 @@ class TestCoreScenarios:
     def test_scenario_2_allowed_write_high_phi_with_consent(self):
         """
         Scenario 2b: Allowed write with high phi when consent provided.
+        Now requires coherence >= 0.4 for ethereal zone writes.
         """
         addr = from_components(shell=0, theta=100, phi=450, harmonic=64)
 
-        result = resolve(addr.raw, operation="write", context={"consent": "explicit"})
+        # Ethereal zone writes need full consent + coherence >= 0.4
+        result = resolve(addr.raw, operation="write", context={
+            "consent": "full",
+            "coherence_score": 0.5,
+        })
 
         assert result.allowed is True
         assert result.route is not None

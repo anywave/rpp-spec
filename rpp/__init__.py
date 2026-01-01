@@ -69,6 +69,16 @@ from rpp.extended import (
     MAX_PHASE,
 )
 
+from rpp.consent import (
+    ConsentState,
+    ConsentContext,
+    ConsentCheck,
+    Sector,
+    GroundingZone,
+    check_consent,
+    create_consent_context,
+)
+
 __all__ = [
     # Version
     "__version__",
@@ -115,4 +125,12 @@ __all__ = [
     "MAX_PHI_FINE",
     "MAX_HARMONIC_EXT",
     "MAX_PHASE",
+    # Consent
+    "ConsentState",
+    "ConsentContext",
+    "ConsentCheck",
+    "Sector",
+    "GroundingZone",
+    "check_consent",
+    "create_consent_context",
 ]
