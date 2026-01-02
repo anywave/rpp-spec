@@ -204,7 +204,7 @@ class OmegaTier(IntEnum):
 # Address Class
 # =============================================================================
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)  # Note: slots=True requires Python 3.10+
 class RPPAddress:
     """
     RPP Canonical Address (Ra-Derived).

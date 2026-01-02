@@ -49,6 +49,9 @@ from rpp.pma import (
     PMA_RECORD_SIZE,
 )
 
+from rpp.address import encode, decode, from_components
+from rpp.resolver import resolve, ResolveResult
+
 __version__ = "1.1.0-RaCanonical"
 __author__ = "Anywave Creations"
 
@@ -85,4 +88,11 @@ __all__ = [
     "encode_timestamp",
     "decode_timestamp",
     "PMA_RECORD_SIZE",
+    # Address (legacy API)
+    "encode",
+    "decode",
+    "from_components",
+    # Resolver
+    "resolve",
+    "ResolveResult",
 ]
