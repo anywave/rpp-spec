@@ -1,5 +1,5 @@
 """
-SPIRAL Consent Packet Header v1.0
+SPIRAL Consent Packet Header v2.0
 
 System-layer envelope that wraps an RPP Canonical Address with
 consent state, integrity markers, and Phase Memory Anchor linkage.
@@ -7,7 +7,10 @@ consent state, integrity markers, and Phase Memory Anchor linkage.
 This is NOT part of the address—it is governance metadata that
 rides on top of the Ra-derived routing vector.
 
-Reference: CONSENT-HEADER-v1.md
+v2.0: Updated to 5-state ACSP with ATTENTIVE intermediate state,
+      φ-based thresholds, and multi-bit verbal signal strength.
+
+Reference: CONSENT-HEADER-v1.md, SPIRAL-Architecture.md v2.2.0
 """
 
 from __future__ import annotations
@@ -19,6 +22,11 @@ import struct
 import time
 
 from rpp.address_canonical import RPPAddress
+from rpp.ra_constants import (
+    PHI_THRESHOLD_4BIT,
+    ATTENTIVE_THRESHOLD_4BIT,
+    DIMINISHED_THRESHOLD_4BIT,
+)
 
 
 # =============================================================================
@@ -46,11 +54,21 @@ OFF_CRC: Final[int] = 17            # 1 byte
 # =============================================================================
 
 class ConsentState(IntEnum):
-    """ACSP Consent States derived from header fields."""
-    FULL_CONSENT = 0       # Normal operation
-    DIMINISHED_CONSENT = 1 # Delayed/reconfirmed
-    SUSPENDED_CONSENT = 2  # Blocked
-    EMERGENCY_OVERRIDE = 3 # Frozen (ETF)
+    """
+    5-state ACSP (Avatar Consent State Protocol).
+
+    φ-based thresholds on 4-bit somatic consent (0-15):
+        FULL_CONSENT: ≥ 10 (φ × 16 ≈ 9.89, rounded to 10)
+        ATTENTIVE: 7-9 (early engagement zone)
+        DIMINISHED_CONSENT: 6 ((1-φ) × 16 ≈ 6.11, rounded to 6)
+        SUSPENDED_CONSENT: 0-5 (below 1-φ threshold)
+        EMERGENCY_OVERRIDE: External trigger (ETF)
+    """
+    FULL_CONSENT = 0       # Full operation, all sectors accessible
+    ATTENTIVE = 1          # Early engagement, preliminary routing
+    DIMINISHED_CONSENT = 2 # Delayed/reconfirm required
+    SUSPENDED_CONSENT = 3  # Blocked, minimal sectors
+    EMERGENCY_OVERRIDE = 4 # Frozen (ETF), GUARDIAN lockdown
 
 
 class AncestralConsent(IntEnum):
@@ -101,6 +119,44 @@ def compute_crc8(data: bytes) -> int:
 
 
 # =============================================================================
+# Standalone Consent Derivation
+# =============================================================================
+
+def derive_consent_state(
+    consent_somatic_4bit: int,
+    verbal_signal_strength: int = 0,
+) -> ConsentState:
+    """
+    Derive 5-state ACSP consent state from raw signal values.
+
+    This is a standalone function for use outside of ConsentPacketHeader.
+
+    Args:
+        consent_somatic_4bit: 4-bit somatic consent (0-15)
+        verbal_signal_strength: Verbal signal strength (0-3)
+
+    Returns:
+        ConsentState enum value
+
+    φ-based thresholds:
+        - ≥ 10 (PHI_THRESHOLD): FULL_CONSENT
+        - 7-9 (ATTENTIVE zone): ATTENTIVE
+        - 6 (DIMINISHED boundary): verbal≥2 boosts to ATTENTIVE
+        - 0-5 (below threshold): SUSPENDED_CONSENT
+    """
+    if consent_somatic_4bit >= PHI_THRESHOLD_4BIT:  # ≥ 10
+        return ConsentState.FULL_CONSENT
+    elif consent_somatic_4bit >= ATTENTIVE_THRESHOLD_4BIT:  # 7-9
+        return ConsentState.ATTENTIVE
+    elif consent_somatic_4bit >= DIMINISHED_THRESHOLD_4BIT:  # 6
+        if verbal_signal_strength >= 2:
+            return ConsentState.ATTENTIVE
+        return ConsentState.DIMINISHED_CONSENT
+    else:  # 0-5
+        return ConsentState.SUSPENDED_CONSENT
+
+
+# =============================================================================
 # Consent Packet Header
 # =============================================================================
 
@@ -132,10 +188,11 @@ class ConsentPacketHeader:
     origin_ref: int = 0         # 16-bit avatar reference
     
     # Consent fields (Byte 10)
-    consent_verbal: bool = True         # 1 bit
-    consent_somatic: float = 1.0        # 4 bits (0.0-1.0)
+    # v2.0: consent_somatic is now 4-bit int (0-15), verbal_signal_strength is 2-bit int (0-3)
+    verbal_signal_strength: int = 3     # 2 bits (0-3): 0=none, 1=weak, 2=moderate, 3=strong
+    consent_somatic_4bit: int = 15      # 4 bits (0-15): φ-scaled somatic consent
     consent_ancestral: AncestralConsent = AncestralConsent.NONE  # 2 bits
-    temporal_lock: bool = False         # 1 bit
+    temporal_lock: bool = False         # 1 bit (reserved)
     
     # Entropy fields (Byte 11)
     phase_entropy_index: int = 0        # 5 bits (0-31)
@@ -158,30 +215,36 @@ class ConsentPacketHeader:
     
     def validate(self) -> tuple[bool, list[str]]:
         """
-        Validate header against SPIRAL rules.
-        
+        Validate header against SPIRAL rules (v2.0).
+
         Returns: (valid, list of error messages)
         """
         errors = []
-        
+
         # V3: RPP address must be valid
         if not self.rpp_address.is_valid():
             errors.append("V3: RPP address is invalid")
-        
-        # C1: Low somatic consent requires complecount
-        if self.consent_somatic < 0.3 and self.complecount_trace == 0:
-            errors.append("C1: consent_somatic < 0.3 requires complecount_trace > 0")
-        
+
+        # C1: Low somatic consent (< 6) requires complecount > 0
+        if self.consent_somatic_4bit < DIMINISHED_THRESHOLD_4BIT and self.complecount_trace == 0:
+            errors.append(f"C1: consent_somatic_4bit < {DIMINISHED_THRESHOLD_4BIT} requires complecount_trace > 0")
+
         # Range checks
+        if not 0 <= self.consent_somatic_4bit <= 15:
+            errors.append(f"consent_somatic_4bit must be 0-15, got {self.consent_somatic_4bit}")
+
+        if not 0 <= self.verbal_signal_strength <= 3:
+            errors.append(f"verbal_signal_strength must be 0-3, got {self.verbal_signal_strength}")
+
         if not 0 <= self.phase_entropy_index <= 31:
             errors.append(f"phase_entropy_index must be 0-31, got {self.phase_entropy_index}")
-        
+
         if not 0 <= self.complecount_trace <= 7:
             errors.append(f"complecount_trace must be 0-7, got {self.complecount_trace}")
-        
+
         if not 0 <= self.fallback_vector <= 255:
             errors.append(f"fallback_vector must be 0-255, got {self.fallback_vector}")
-        
+
         return len(errors) == 0, errors
     
     # -------------------------------------------------------------------------
@@ -190,19 +253,31 @@ class ConsentPacketHeader:
     
     def derive_consent_state(self) -> ConsentState:
         """
-        Derive ACSP consent state from header fields.
-        
-        Logic:
-            - somatic < 0.2 → SUSPENDED
-            - somatic < 0.5 and no verbal → DIMINISHED
-            - otherwise → FULL
+        Derive 5-state ACSP consent state from header fields.
+
+        φ-based thresholds on 4-bit somatic consent:
+            - ≥ 10 (PHI_THRESHOLD): FULL_CONSENT
+            - 7-9 (ATTENTIVE zone): ATTENTIVE
+            - 6 (DIMINISHED boundary): verbal can boost to ATTENTIVE
+            - 0-5 (below threshold): SUSPENDED_CONSENT
+
+        Verbal signal strength (0-3) can boost consent:
+            - At somatic=6, verbal≥2 boosts to ATTENTIVE
         """
-        if self.consent_somatic < 0.2:
-            return ConsentState.SUSPENDED_CONSENT
-        elif self.consent_somatic < 0.5 and not self.consent_verbal:
-            return ConsentState.DIMINISHED_CONSENT
-        else:
+        somatic = self.consent_somatic_4bit
+        verbal = self.verbal_signal_strength
+
+        if somatic >= PHI_THRESHOLD_4BIT:  # ≥ 10
             return ConsentState.FULL_CONSENT
+        elif somatic >= ATTENTIVE_THRESHOLD_4BIT:  # 7-9
+            return ConsentState.ATTENTIVE
+        elif somatic >= DIMINISHED_THRESHOLD_4BIT:  # 6
+            # Verbal boost: strong verbal signal can elevate to ATTENTIVE
+            if verbal >= 2:
+                return ConsentState.ATTENTIVE
+            return ConsentState.DIMINISHED_CONSENT
+        else:  # 0-5
+            return ConsentState.SUSPENDED_CONSENT
     
     @property
     def consent_state(self) -> ConsentState:
@@ -226,19 +301,19 @@ class ConsentPacketHeader:
     def _encode_consent_byte(self) -> int:
         """
         Encode consent fields to Byte 10.
-        
-        Layout:
-            [7]   consent_verbal
-            [6:3] consent_somatic (4 bits, 0-15)
-            [2:1] consent_ancestral (2 bits)
-            [0]   temporal_lock
+
+        v2.0 Layout:
+            [7:6] verbal_signal_strength (2 bits, 0-3)
+            [5:2] consent_somatic_4bit (4 bits, 0-15)
+            [1:0] consent_ancestral (2 bits)
+
+        Note: temporal_lock moved to reserved bits in temporal byte.
         """
-        verbal_bit = (1 if self.consent_verbal else 0) << 7
-        somatic_bits = (min(15, max(0, round(self.consent_somatic * 15)))) << 3
-        ancestral_bits = (self.consent_ancestral.value & 0x03) << 1
-        temporal_bit = 1 if self.temporal_lock else 0
-        
-        return verbal_bit | somatic_bits | ancestral_bits | temporal_bit
+        verbal_bits = (min(3, max(0, self.verbal_signal_strength)) & 0x03) << 6
+        somatic_bits = (min(15, max(0, self.consent_somatic_4bit)) & 0x0F) << 2
+        ancestral_bits = (self.consent_ancestral.value & 0x03)
+
+        return verbal_bits | somatic_bits | ancestral_bits
     
     def _encode_entropy_byte(self) -> int:
         """
@@ -256,12 +331,14 @@ class ConsentPacketHeader:
     def _encode_temporal_byte(self) -> int:
         """
         Encode temporal/payload fields to Byte 12.
-        
-        Layout:
-            [7:4] reserved
+
+        v2.0 Layout:
+            [7]   temporal_lock
+            [6:4] reserved
             [3:0] payload_type
         """
-        return self.payload_type.value & 0x0F
+        temporal_bit = (1 if self.temporal_lock else 0) << 7
+        return temporal_bit | (self.payload_type.value & 0x0F)
     
     def to_bytes(self) -> bytes:
         """
@@ -309,14 +386,18 @@ class ConsentPacketHeader:
     # -------------------------------------------------------------------------
     
     @classmethod
-    def _decode_consent_byte(cls, byte: int) -> tuple[bool, float, AncestralConsent, bool]:
-        """Decode Byte 10 consent fields."""
-        consent_verbal = bool((byte >> 7) & 0x01)
-        consent_somatic = ((byte >> 3) & 0x0F) / 15.0
-        consent_ancestral = AncestralConsent((byte >> 1) & 0x03)
-        temporal_lock = bool(byte & 0x01)
-        
-        return consent_verbal, consent_somatic, consent_ancestral, temporal_lock
+    def _decode_consent_byte(cls, byte: int) -> tuple[int, int, AncestralConsent]:
+        """
+        Decode Byte 10 consent fields (v2.0 layout).
+
+        Returns:
+            (verbal_signal_strength, consent_somatic_4bit, consent_ancestral)
+        """
+        verbal_signal_strength = (byte >> 6) & 0x03
+        consent_somatic_4bit = (byte >> 2) & 0x0F
+        consent_ancestral = AncestralConsent(byte & 0x03)
+
+        return verbal_signal_strength, consent_somatic_4bit, consent_ancestral
     
     @classmethod
     def _decode_entropy_byte(cls, byte: int) -> tuple[int, int]:
@@ -347,23 +428,27 @@ class ConsentPacketHeader:
         packet_id = struct.unpack_from('>I', data, OFF_PACKET_ID)[0]
         origin_ref = struct.unpack_from('>H', data, OFF_ORIGIN_REF)[0]
         
-        consent_verbal, consent_somatic, consent_ancestral, temporal_lock = \
+        verbal_signal_strength, consent_somatic_4bit, consent_ancestral = \
             cls._decode_consent_byte(data[OFF_CONSENT])
-        
+
         phase_entropy_index, complecount_trace = \
             cls._decode_entropy_byte(data[OFF_ENTROPY])
-        
-        payload_type = PayloadType(data[OFF_TEMPORAL] & 0x0F)
+
+        # Decode temporal byte (v2.0: includes temporal_lock)
+        temporal_byte = data[OFF_TEMPORAL]
+        temporal_lock = bool((temporal_byte >> 7) & 0x01)
+        payload_type = PayloadType(temporal_byte & 0x0F)
+
         fallback_vector = data[OFF_FALLBACK]
         coherence_window_id = struct.unpack_from('>H', data, OFF_WINDOW_ID)[0]
         target_phase_ref = data[OFF_PHASE_REF]
-        
+
         return cls(
             rpp_address=rpp_address,
             packet_id=packet_id,
             origin_ref=origin_ref,
-            consent_verbal=consent_verbal,
-            consent_somatic=consent_somatic,
+            verbal_signal_strength=verbal_signal_strength,
+            consent_somatic_4bit=consent_somatic_4bit,
             consent_ancestral=consent_ancestral,
             temporal_lock=temporal_lock,
             phase_entropy_index=phase_entropy_index,
@@ -396,22 +481,22 @@ class ConsentPacketHeader:
         rpp_address: RPPAddress,
         *,
         origin_ref: int = 0,
-        consent_somatic: float = 1.0,
-        consent_verbal: bool = True,
+        consent_somatic_4bit: int = 15,
+        verbal_signal_strength: int = 3,
         payload_type: PayloadType = PayloadType.HUMAN,
         coherence_window_id: int = 0,
     ) -> ConsentPacketHeader:
         """
         Create a header with auto-generated packet ID.
-        
+
         Args:
             rpp_address: The Ra-derived routing address
             origin_ref: Avatar reference (0 = self)
-            consent_somatic: Body-aligned score (0.0-1.0)
-            consent_verbal: Explicit verbal consent
+            consent_somatic_4bit: 4-bit somatic consent (0-15)
+            verbal_signal_strength: Verbal signal strength (0-3)
             payload_type: Type of payload
             coherence_window_id: PMA link (0 = none)
-        
+
         Returns:
             ConsentPacketHeader with generated packet_id
         """
@@ -419,13 +504,13 @@ class ConsentPacketHeader:
         timestamp_hash = int(time.time() * 1000) & 0xFFFF0000
         sequence = cls._get_next_sequence() & 0xFFFF
         packet_id = timestamp_hash | sequence
-        
+
         return cls(
             rpp_address=rpp_address,
             packet_id=packet_id,
             origin_ref=origin_ref,
-            consent_verbal=consent_verbal,
-            consent_somatic=consent_somatic,
+            verbal_signal_strength=verbal_signal_strength,
+            consent_somatic_4bit=consent_somatic_4bit,
             payload_type=payload_type,
             coherence_window_id=coherence_window_id,
         )
@@ -460,10 +545,11 @@ class ConsentPacketHeader:
         state = self.consent_state.name
         return (
             f"ConsentHeader(addr={self.rpp_address.to_hex()}, "
-            f"state={state}, somatic={self.consent_somatic:.2f}, "
+            f"state={state}, somatic={self.consent_somatic_4bit}/15, "
+            f"verbal={self.verbal_signal_strength}/3, "
             f"window={self.coherence_window_id:04X})"
         )
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for logging/serialization."""
         return {
@@ -471,8 +557,8 @@ class ConsentPacketHeader:
             'packet_id': f"0x{self.packet_id:08X}",
             'origin_ref': f"0x{self.origin_ref:04X}",
             'consent_state': self.consent_state.name,
-            'consent_verbal': self.consent_verbal,
-            'consent_somatic': round(self.consent_somatic, 2),
+            'verbal_signal_strength': self.verbal_signal_strength,
+            'consent_somatic_4bit': self.consent_somatic_4bit,
             'consent_ancestral': self.consent_ancestral.name,
             'temporal_lock': self.temporal_lock,
             'phase_entropy_index': self.phase_entropy_index,
@@ -536,20 +622,20 @@ class SpiralPacket:
 
 if __name__ == "__main__":
     from rpp.address_canonical import ThetaSector, create_from_sector
-    
-    print("SPIRAL Consent Packet Header v1.0")
+
+    print("SPIRAL Consent Packet Header v2.0 (5-State ACSP)")
     print("=" * 60)
-    
+
     # Create a test address
     addr = create_from_sector(ThetaSector.MEMORY, phi=3, omega=2, radius=0.75)
     print(f"\nRPP Address: {addr}")
-    
-    # Create consent header
+
+    # Create consent header with 5-state ACSP
     header = ConsentPacketHeader.create(
         rpp_address=addr,
         origin_ref=0x0042,
-        consent_somatic=0.85,
-        consent_verbal=True,
+        consent_somatic_4bit=13,  # High consent (above φ threshold of 10)
+        verbal_signal_strength=3,  # Strong verbal
         payload_type=PayloadType.HUMAN,
         coherence_window_id=0x1A2B,
     )
