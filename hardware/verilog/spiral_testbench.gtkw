@@ -1,0 +1,115 @@
+[*]
+[*] SPIRAL Protocol HDL Testbench - GTKWave Configuration
+[*] Ra-Derived Coherence Evaluation Waveform Viewer
+[*]
+
+[dumpfile] "spiral_testbench.vcd"
+[dumpfile_mtime] "Thu Jan 02 00:00:00 2026"
+[savefile] "spiral_testbench.gtkw"
+
+[timestart] 0
+[size] 1920 1080
+[pos] 0 0
+
+*-29.000000 600 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+
+[treeopen] spiral_testbench.
+[treeopen] spiral_testbench.uut_coherence.
+[treeopen] spiral_testbench.uut_scalar.
+[treeopen] spiral_testbench.uut_fallback.
+[treeopen] spiral_testbench.uut_integration.
+
+[sst_width] 250
+[signals_width] 300
+[sst_expanded] 1
+[sst_vpaned_height] 400
+
+@28
+spiral_testbench.clk
+spiral_testbench.rst_n
+spiral_testbench.enable
+
+@200
+----- COHERENCE EVALUATOR (Ra-Derived) -----
+@22
+spiral_testbench.eval_phase_entropy[4:0]
+@23
+spiral_testbench.eval_complecount[2:0]
+@22
+spiral_testbench.eval_threshold[9:0]
+@22
+spiral_testbench.eval_score[9:0]
+@28
+spiral_testbench.eval_valid
+@22
+spiral_testbench.eval_entropy_contrib[7:0]
+@23
+spiral_testbench.eval_comple_contrib[8:0]
+
+@200
+----- SCALAR TRIGGER -----
+@22
+spiral_testbench.scalar_score[9:0]
+spiral_testbench.scalar_threshold[9:0]
+@23
+spiral_testbench.scalar_duration[3:0]
+spiral_testbench.scalar_counter[3:0]
+@28
+spiral_testbench.scalar_triggered
+
+@200
+----- FALLBACK RESOLVER -----
+@28
+spiral_testbench.fallback_trigger
+@22
+spiral_testbench.fallback_base_addr[31:0]
+@23
+spiral_testbench.fallback_vector[7:0]
+@22
+spiral_testbench.fallback_addr_out[31:0]
+
+@200
+----- INTEGRATION (Routing Decision) -----
+@22
+spiral_testbench.integ_entropy[4:0]
+@23
+spiral_testbench.integ_complecount[2:0]
+spiral_testbench.integ_consent_state[1:0]
+@22
+spiral_testbench.integ_coh_score[9:0]
+@28
+spiral_testbench.integ_coh_valid
+spiral_testbench.integ_scalar_trig
+spiral_testbench.integ_routing_allowed
+@23
+spiral_testbench.integ_routing_decision[1:0]
+@22
+spiral_testbench.integ_fallback_addr[31:0]
+
+@200
+----- MARKERS -----
+@c00200
+----- PHASE LOCK EVENT -----
+@28
+spiral_testbench.eval_valid
+spiral_testbench.integ_coh_valid
+@1401200
+----- PHASE LOCK EVENT -----
+
+@c00200
+----- SCALAR ACTIVATION -----
+@28
+spiral_testbench.scalar_triggered
+spiral_testbench.integ_scalar_trig
+@1401200
+----- SCALAR ACTIVATION -----
+
+@c00200
+----- FALLBACK ASSERTION -----
+@28
+spiral_testbench.fallback_trigger
+@1401200
+----- FALLBACK ASSERTION -----
+
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,12 @@
+# Compiled Verilog
+*.vvp
+
+# Waveform dumps
+*.vcd
+
+# Trace logs
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
