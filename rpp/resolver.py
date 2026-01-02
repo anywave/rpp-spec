@@ -19,9 +19,6 @@ from rpp.address import from_raw, RPPAddress, is_valid_address
 from rpp.consent import (
     ConsentState,
     ConsentContext,
-    ConsentCheck,
-    Sector,
-    GroundingZone,
     check_consent,
     create_consent_context,
 )

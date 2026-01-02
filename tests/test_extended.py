@@ -3,7 +3,6 @@
 import pytest
 import math
 from rpp.extended import (
-    RPPExtendedAddress,
     encode_extended,
     decode_extended,
     from_extended_components,

@@ -2,7 +2,6 @@
 
 import pytest
 from rpp.packet import (
-    RPPPacket,
     PayloadType,
     create_packet,
     parse_packet,

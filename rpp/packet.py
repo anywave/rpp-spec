@@ -14,7 +14,7 @@ Packet types:
 """
 
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional
 from enum import IntEnum
 import hashlib
 

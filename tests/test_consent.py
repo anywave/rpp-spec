@@ -1,10 +1,8 @@
 """Tests for RPP consent module."""
 
-import pytest
 from rpp.consent import (
     ConsentState,
     ConsentContext,
-    ConsentCheck,
     Sector,
     GroundingZone,
     check_consent,

@@ -18,7 +18,7 @@ Sector Requirements:
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 
 class ConsentState(Enum):
