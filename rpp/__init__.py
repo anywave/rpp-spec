@@ -1,136 +1,88 @@
 """
-RPP - Rotational Packet Protocol
+RPP - Recursive Packet Protocol
 
-A 28-bit semantic addressing system for consent-aware routing.
+Ra-derived address and routing implementation for SPIRAL systems.
 
-RPP IS:
-- A deterministic 28-bit semantic address
-- A resolver that returns allow / deny / route
-- A bridge to existing storage backends
+Modules:
+    address_canonical: RPP Canonical Address v1.0-RaCanonical
+    consent_header: SPIRAL Consent Packet Header v1.0
+    pma: Phase Memory Anchor v1.1 (18-byte compact format)
 
-RPP IS NOT:
-- A storage system
-- A database
-- An identity provider
-- A policy DSL
-- An AI system
+Version: 1.1.0-RaCanonical
 """
 
-__version__ = "0.2.0"
-
-from rpp.address import (
+from rpp.address_canonical import (
     RPPAddress,
-    encode,
-    decode,
-    from_components,
-    from_raw,
-    is_valid_address,
-    parse_address,
-    MAX_ADDRESS,
-    MAX_SHELL,
-    MAX_THETA,
-    MAX_PHI,
-    MAX_HARMONIC,
+    ThetaSector,
+    RACBand,
+    OmegaTier,
+    create_address,
+    create_from_sector,
+    address_distance,
+    coherence,
+    same_sector,
+    adjacent_sectors,
+    compute_fallback,
+    verify_roundtrip,
+    verify_ra_alignment,
 )
 
-from rpp.resolver import (
-    RPPResolver,
-    ResolveResult,
-    resolve,
-)
-
-from rpp.packet import (
-    RPPPacket,
-    PayloadType,
-    create_packet,
-    parse_packet,
-    parse_framed_packet,
-    is_valid_packet,
-    create_hash_packet,
-    create_pointer_packet,
-    create_framed_packet,
-    extract_framed_content,
-)
-
-from rpp.extended import (
-    RPPExtendedAddress,
-    encode_extended,
-    decode_extended,
-    from_extended_components,
-    from_extended_raw,
-    from_core_address,
-    degrees_to_theta,
-    degrees_to_phi,
-    degrees_to_phase,
-    phase_interference,
-    MAX_THETA_FINE,
-    MAX_PHI_FINE,
-    MAX_HARMONIC_EXT,
-    MAX_PHASE,
-)
-
-from rpp.consent import (
+from rpp.consent_header import (
+    ConsentPacketHeader,
     ConsentState,
-    ConsentContext,
-    ConsentCheck,
-    Sector,
-    GroundingZone,
-    check_consent,
-    create_consent_context,
+    AncestralConsent,
+    PayloadType,
+    SpiralPacket,
+    HEADER_SIZE,
 )
+
+from rpp.pma import (
+    PMARecord,
+    PMABuffer,
+    PMAStore,
+    ConsentState as PMAConsentState,  # Re-exported from pma
+    PayloadType as PMAPayloadType,    # Re-exported from pma
+    encode_coherence,
+    decode_coherence,
+    encode_timestamp,
+    decode_timestamp,
+    PMA_RECORD_SIZE,
+)
+
+__version__ = "1.1.0-RaCanonical"
+__author__ = "Anywave Creations"
 
 __all__ = [
-    # Version
-    "__version__",
-    # Core Address (28-bit)
+    # Address
     "RPPAddress",
-    "encode",
-    "decode",
-    "from_components",
-    "from_raw",
-    "is_valid_address",
-    "parse_address",
-    "MAX_ADDRESS",
-    "MAX_SHELL",
-    "MAX_THETA",
-    "MAX_PHI",
-    "MAX_HARMONIC",
-    # Resolver
-    "RPPResolver",
-    "ResolveResult",
-    "resolve",
-    # Packet
-    "RPPPacket",
-    "PayloadType",
-    "create_packet",
-    "parse_packet",
-    "parse_framed_packet",
-    "is_valid_packet",
-    "create_hash_packet",
-    "create_pointer_packet",
-    "create_framed_packet",
-    "extract_framed_content",
-    # Extended Address (64-bit)
-    "RPPExtendedAddress",
-    "encode_extended",
-    "decode_extended",
-    "from_extended_components",
-    "from_extended_raw",
-    "from_core_address",
-    "degrees_to_theta",
-    "degrees_to_phi",
-    "degrees_to_phase",
-    "phase_interference",
-    "MAX_THETA_FINE",
-    "MAX_PHI_FINE",
-    "MAX_HARMONIC_EXT",
-    "MAX_PHASE",
-    # Consent
+    "ThetaSector",
+    "RACBand",
+    "OmegaTier",
+    "create_address",
+    "create_from_sector",
+    "address_distance",
+    "coherence",
+    "same_sector",
+    "adjacent_sectors",
+    "compute_fallback",
+    "verify_roundtrip",
+    "verify_ra_alignment",
+    # Consent Header
+    "ConsentPacketHeader",
     "ConsentState",
-    "ConsentContext",
-    "ConsentCheck",
-    "Sector",
-    "GroundingZone",
-    "check_consent",
-    "create_consent_context",
+    "AncestralConsent",
+    "PayloadType",
+    "SpiralPacket",
+    "HEADER_SIZE",
+    # PMA
+    "PMARecord",
+    "PMABuffer",
+    "PMAStore",
+    "PMAConsentState",
+    "PMAPayloadType",
+    "encode_coherence",
+    "decode_coherence",
+    "encode_timestamp",
+    "decode_timestamp",
+    "PMA_RECORD_SIZE",
 ]
