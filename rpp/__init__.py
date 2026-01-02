@@ -52,7 +52,7 @@ from rpp.pma import (
 from rpp.address import encode, decode, from_components
 from rpp.resolver import resolve, ResolveResult
 
-__version__ = "1.1.0-RaCanonical"
+__version__ = "1.2.0"
 __author__ = "Anywave Creations"
 
 __all__ = [
