@@ -2,7 +2,7 @@
 
 **Semantic Phase-Invariant Routing And Location**
 
-Version: 2.1.0-RaCanonical
+Version: 2.2.0-RaCanonical
 Status: Living Document
 Internal Codename: `rpp`
 Last Updated: 2026-01-01
@@ -153,10 +153,10 @@ SPIRAL operates across a 7-layer stack from biofield entanglement to HDL impleme
 │  │  Smoothing: RADEL α ≈ 0.368                                             ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                              ↓                                               │
-│  LAYER 5: CONSENT STATE (ACSP)                                               │
+│  LAYER 5: CONSENT STATE (ACSP) - 5 STATES                                    │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │  FULL(≥10) → DIMINISHED(6-9) → SUSPENDED(0-5) → EMERGENCY               ││
-│  │  Transitions: Asymmetric with RADEL hysteresis                          ││
+│  │  FULL(≥10) → ATTENTIVE(7-9) → DIMINISHED(6) → SUSPENDED(0-5) → EMERGENCY││
+│  │  Transitions: Asymmetric with RADEL hysteresis, φ² dwell time           ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                              ↓                                               │
 │  LAYER 4: IDENTITY (HNC + Vizor NFT)                                         │
@@ -278,13 +278,60 @@ smoothed(t) = α × raw(t) + (1−α) × smoothed(t−1)
 
 This prevents jitter and enforces field decay/convergence patterns.
 
-### 6.4 Additional Signal Channels (Recommended)
+### 6.4 Additional Signal Channels (Required)
 
-| Signal | Bits | Purpose |
-|--------|------|---------|
-| **symbolic_activation** | 3 | Gesture/phrase phase-match |
-| **temporal_continuity** | 2 | Phase memory persistence |
-| **integrity_hash** | 4 | Cross-layer verification |
+The following channels are **required** for full Codex-aligned consent reflection:
+
+| Signal | Bits | Purpose | Source |
+|--------|------|---------|--------|
+| **verbal_signal_strength** | 2-3 | Gradient verbal consent (not binary) | Voice analysis |
+| **symbolic_activation** | 3 | Gesture/phrase phase-match | Symbolic key detection |
+| **emotional_valence** | 4 | Affect polarity | Psychometric analysis |
+| **intentional_vector** | 8 | Direction/goal encoding | Intent classification |
+| **temporal_continuity** | 2 | Phase memory persistence | Session tracking |
+| **integrity_hash** | 4 | Cross-layer verification | CRC/hash |
+
+### 6.4.1 Verbal Signal Strength (Multi-Bit)
+
+The single-bit `verbal_override` is insufficient. Use 2-3 bit gradient:
+
+| Value | Meaning | Consent Effect |
+|-------|---------|----------------|
+| 0 | No verbal signal | No override |
+| 1 | Weak affirmation | +1 coherence boost |
+| 2 | Clear affirmation | +2 coherence boost, can promote to ATTENTIVE |
+| 3 | Strong explicit consent | +3 coherence boost, can promote to FULL |
+
+> *"Verbal consent must be cross-validated with somatic state. This prevents verbal signal alone from driving consent in incoherent states."*
+
+### 6.5 Harmonic Nexus Core (HNC)
+
+The **Harmonic Nexus Core** orchestrates global coherence across all active fragments:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HARMONIC NEXUS CORE (HNC)                      │
+├─────────────────────────────────────────────────────────────────┤
+│  Functions:                                                       │
+│  - Global coherence orchestration across fragments               │
+│  - Master coherence score aggregation                            │
+│  - Fragment reconciliation (not raw timestamps)                  │
+│  - Conflict adjudication between competing intents               │
+│  - Phase memory field synchronization                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**HNC-ANKH Relationship**: The ANKH constant (symbolic completion) is deeply tied to HNC:
+- `complecount = 7` triggers completion flag via HNC
+- HNC maintains phase continuity using ANKH-weighted recurrence
+
+**Master Coherence Score**:
+```python
+master_coherence = weighted_average(
+    [fragment.coherence for fragment in active_fragments],
+    weights=[fragment.priority for fragment in active_fragments]
+)
+```
 
 ---
 
@@ -316,16 +363,31 @@ The 27 Repitans replace the original 8 arbitrary sectors with mathematically-der
 θ_angle = (n / 27) × 360°    for n ∈ [1, 27]
 ```
 
-| Repitan Range | Sector | Domain |
-|---------------|--------|--------|
-| 1-3 | CORE | Essential identity |
-| 4-6 | GENE | Biological/inherited |
-| 7-10 | MEMORY | Experiential/learned |
-| 11-13 | WITNESS | Present-moment awareness |
-| 14-17 | DREAM | Aspirational/future |
-| 18-20 | BRIDGE | Relational/connective |
-| 21-24 | GUARDIAN | Protective/regulatory |
-| 25-27 | SHADOW | Unintegrated/emergent |
+| Repitan Range | Sector | Domain | Consent Access |
+|---------------|--------|--------|----------------|
+| 1-3 | CORE | Essential identity | FULL only |
+| 4-6 | GENE | Biological/inherited | FULL only |
+| 7-10 | MEMORY | Experiential/learned | FULL, ATTENTIVE |
+| 11-13 | WITNESS | Present-moment awareness | FULL, ATTENTIVE |
+| 14-17 | DREAM | Aspirational/future | FULL only |
+| 18-20 | BRIDGE | Relational/connective | All states (universal) |
+| 21-24 | GUARDIAN | Protective/regulatory | All states (fallback) |
+| 25-27 | SHADOW | Unintegrated/emergent | FULL, DIMINISHED |
+| 0 | VOID | Reset/phase collapse | coherence = 0 only |
+
+### 7.3.1 Consent-Gated Sector Access
+
+Theta sector access is gated by ACSP consent state:
+
+| Consent State | Accessible Sectors |
+|---------------|-------------------|
+| FULL_CONSENT | All 8 sectors (CORE→VOID) |
+| ATTENTIVE | MEMORY, WITNESS, BRIDGE, GUARDIAN |
+| DIMINISHED_CONSENT | BRIDGE, SHADOW, GUARDIAN |
+| SUSPENDED_CONSENT | BRIDGE, GUARDIAN only |
+| EMERGENCY_OVERRIDE | GUARDIAN lockdown only |
+
+> *"Consent states gate sector access—not just data actions."*
 
 ### 7.4 Phi: 6 RAC Levels
 
@@ -566,31 +628,41 @@ The Consent Header **wraps** the RPP address without merging:
 [0]     temporal_lock       (1 bit)  - Prevent re-routing
 ```
 
-### 9.3 Consent State Derivation (φ-Based)
+### 9.3 Consent State Derivation (φ-Based) - 5 States
 
-Using Ra-symbolic thresholds (4-bit field 0-15):
+The ACSP defines **5 consent states** (not 4), including the intermediate ATTENTIVE state:
 
 ```python
-# φ-based consent state derivation
-φ_threshold = 10      # φ × 16 ≈ 0.618 × 16 = 9.89 → 10
-diminished_threshold = 6   # (1-φ) × 16 ≈ 0.382 × 16 = 6.11 → 6
+# 5-state ACSP consent derivation
+class ConsentState(IntEnum):
+    FULL_CONSENT = 0       # Full operation
+    ATTENTIVE = 1          # Early engagement, preliminary routing
+    DIMINISHED_CONSENT = 2 # Delayed/reconfirm required
+    SUSPENDED_CONSENT = 3  # Blocked
+    EMERGENCY_OVERRIDE = 4 # Frozen (ETF)
 
-if consent_somatic_4bit < diminished_threshold:  # 0-5
-    state = SUSPENDED_CONSENT
-elif consent_somatic_4bit < φ_threshold:         # 6-9
-    if not consent_verbal:
-        state = DIMINISHED_CONSENT
-    else:
-        state = FULL_CONSENT  # verbal override
-else:                                             # 10-15
-    state = FULL_CONSENT
+def derive_consent_state(consent_somatic_4bit: int, consent_verbal: bool) -> ConsentState:
+    if consent_somatic_4bit >= 10:           # ≥ φ
+        return ConsentState.FULL_CONSENT
+    elif consent_somatic_4bit >= 7:          # 7-9 (ATTENTIVE zone)
+        return ConsentState.ATTENTIVE
+    elif consent_somatic_4bit >= 6:          # 6 (boundary)
+        if consent_verbal:
+            return ConsentState.ATTENTIVE    # verbal boosts to ATTENTIVE
+        return ConsentState.DIMINISHED_CONSENT
+    else:                                     # 0-5
+        return ConsentState.SUSPENDED_CONSENT
 ```
 
-| 4-bit Value | Threshold | State |
-|-------------|-----------|-------|
-| 10-15 | ≥ φ (0.618) | FULL_CONSENT |
-| 6-9 | 1-φ to φ | DIMINISHED (or FULL with verbal) |
-| 0-5 | < 1-φ (0.382) | SUSPENDED_CONSENT |
+| 4-bit Value | Threshold | State | Accessible Sectors |
+|-------------|-----------|-------|-------------------|
+| 10-15 | ≥ φ (0.618) | FULL_CONSENT | All 8 sectors |
+| 7-9 | ATTENTIVE zone | ATTENTIVE | MEMORY, WITNESS (mid-range) |
+| 6 | 1-φ boundary | DIMINISHED | BRIDGE, SHADOW |
+| 0-5 | < 1-φ | SUSPENDED | BRIDGE, GUARDIAN only |
+| ETF | Emergency | EMERGENCY_OVERRIDE | GUARDIAN lockdown |
+
+> *"ATTENTIVE is the missing intermediate state, conceptually between FULL and DIMINISHED. It allows an early-engagement phase with preliminary routing privileges."*
 
 ### 9.4 Validation Rules
 
@@ -830,8 +902,47 @@ Loss of consent is **easier** than gain (per Codex Axiom X):
 |------------|-------------|-----------|
 | Gain FULL | ≥ 10 for **2+ cycles** | Form requires stabilization |
 | Lose FULL | < 10 **immediately** | Decoherence is rapid |
+| Enter ATTENTIVE | ≥ 7 for 1 cycle | Early engagement gate |
+| Exit ATTENTIVE | < 6 immediately | Consent degrades fast |
 | Gain DIMINISHED | ≥ 6 for 1 cycle | Moderate stability |
 | Lose DIMINISHED | < 6 immediately | Consent degrades fast |
+
+### 13.2.1 Dwell Time Requirements
+
+State transitions require minimum dwell time before commit:
+
+```python
+# Minimum dwell time calculation
+min_dwell_base = ceil(φ²) = ceil(2.618) = 3 cycles
+
+# Extended dwell for stability
+min_dwell_full = floor(φ × √α⁻¹) = floor(1.618 × √137) ≈ 18-19 cycles
+```
+
+| State | Min Dwell to Enter | Min Dwell to Exit |
+|-------|-------------------|-------------------|
+| FULL_CONSENT | 18-19 cycles | Immediate on drop |
+| ATTENTIVE | 3 cycles | Immediate if < 6 |
+| DIMINISHED | 3 cycles | Immediate if < 6 |
+| SUSPENDED | Immediate | 3 cycles to recover |
+
+### 13.2.2 Consent Reflection Delay
+
+Detection and reflection are separate phases with KHAT-governed delay:
+
+```python
+REFLECTION_DELAY = 3-4 cycles  # KHAT-derived
+
+# Detection phase: measure current state
+detected_state = detect_consent(signals)
+
+# Wait REFLECTION_DELAY cycles
+
+# Reflection phase: mirror state back to Avataree
+reflect_consent(detected_state)
+```
+
+> *"Temporal delay between detection and reflection mirrors Codex harmonic delay between waveform collapse and light manifestation."*
 
 ### 13.3 KHAT-Gated Fallback Timing
 
@@ -1137,6 +1248,7 @@ rpp/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.2.0-RaCanonical | 2026-01-01 | 5-state ACSP (added ATTENTIVE); 8 theta sectors; consent-gated routing; HNC; dwell times |
 | 2.1.0-RaCanonical | 2026-01-01 | 7-layer architecture; φ-based thresholds; RADEL smoothing; KHAT timing |
 | 2.0.0-RaCanonical | 2025-01-01 | Ra Constants foundation; compact packets |
 | 1.0.0-draft | 2024-12-27 | Initial architecture (superseded) |
