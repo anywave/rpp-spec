@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-02
+
+### Added
+
+- **RPP Canonical Address v1.0-RaCanonical** (`rpp/address_canonical.py`)
+  - Ra-derived addressing with ThetaSector (27 sectors), RACBand (6 bands), OmegaTier (5 tiers)
+  - Coherence and distance computations using Ra constants
+  - Wire format encoding/decoding (4-byte compact format)
+  - Full roundtrip verification and Ra alignment checks
+
+- **SPIRAL Consent Packet Header v1.0** (`rpp/consent_header.py`)
+  - ConsentState protocol (FULL/DIMINISHED/SUSPENDED/EMERGENCY_OVERRIDE)
+  - AncestralConsent tracking for consent chain verification
+  - SpiralPacket with 32-byte header + payload
+
+- **Phase Memory Anchor v1.1** (`rpp/pma.py`)
+  - 18-byte compact binary record format
+  - PMABuffer ring buffer for windowed storage
+  - PMAStore high-level interface with allocate/record/get
+
+- **HDL Implementation** (`hardware/verilog/`)
+  - CoherenceEvaluatorRa with Ra-derived formula: `(φ × E) + (𝔄 × C)`
+  - ConsentStateDeriver with Golden Ratio thresholds (10/6/5)
+  - ScalarTriggerRa_Khat with KHAT duration (12 cycles)
+  - ETFController with 9-cycle freeze, 559 release threshold
+  - SpiralCoherenceIntegration top module with completion flag
+  - 97/97 Verilog tests passing (Icarus Verilog)
+
+- **Module exports** in `rpp/__init__.py`
+  - Added `encode`, `decode`, `from_components` from address module
+  - Added `resolve`, `ResolveResult` from resolver module
+  - Added PMA and consent header exports
+
+### Fixed
+
+- **Python 3.9 compatibility**: Removed `slots=True` from dataclass (requires 3.10+)
+- **Test compatibility**: Fixed assertions for hex format with `0x` prefix
+
+### Changed
+
+- Version synced across pyproject.toml, __init__.py, and git tag
+
+---
+
 ## [0.1.1] - 2025-12-27
 
 ### Fixed

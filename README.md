@@ -3,9 +3,9 @@
 **A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
-[![Spec Version](https://img.shields.io/badge/Spec-v1.0.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
-[![CI](https://github.com/anywave/rpp-spec/workflows/CI/badge.svg)](https://github.com/anywave/rpp-spec/actions)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Spec Version](https://img.shields.io/badge/Spec-v1.2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
+[![CI](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/pypi/pyversions/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18078640.svg)](https://doi.org/10.5281/zenodo.18078640)
 
