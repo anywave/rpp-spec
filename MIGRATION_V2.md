@@ -50,19 +50,19 @@ Total: 32 bits
 ### rpp-spec (~50 files)
 - [x] README.md
 - [x] DESIGN_RATIONALE.md
-- [ ] DEFENSIVE_PUBLICATION.md
+- [x] DEFENSIVE_PUBLICATION.md (v2.0 notice added)
 - [x] MVP.md
 - [x] VISION.md
 - [x] VERSION_POLICY.md
 - [x] CONTRIBUTING.md
 - [x] ARXIV_INTENT.md
-- [ ] pyproject.toml
+- [x] pyproject.toml (version 2.0.0)
 - [x] spec/SPEC.md (marked deprecated)
 - [x] spec/PACKET.md
 - [x] spec/RPP-CANONICAL-v2.md (marked canonical)
 - [x] spec/RESOLVER.md
 - [x] spec/SPEC-EXTENDED.md
-- [ ] spec/extensions/MESH.md
+- [x] spec/extensions/MESH.md (v2.0 notice added)
 - [x] rpp/address.py (deprecation warning added)
 - [x] rpp/cli.py (deprecation notice added)
 - [x] rpp/packet.py (deprecation warning added)
@@ -75,7 +75,7 @@ Total: 32 bits
 - [ ] reference/haskell/README.md
 - [x] hardware/clash/RPP.hs (marked deprecated)
 - [x] hardware/clash/RPP_Canonical.hs (NEW - Ra-Canonical v2.0)
-- [ ] hardware/clash/README.md
+- [x] hardware/clash/README.md (v2.0 notice, points to RPP_Canonical.hs)
 - [ ] examples/*.py
 - [ ] tests/*.py
 - [ ] landing/index.html
@@ -90,9 +90,9 @@ Total: 32 bits
 - [ ] README.md
 - [x] docs/ROTATIONAL_PACKET_PROTOCOL.md (Ra-Canonical notice added)
 - [x] docs/RPP_HARDWARE_ARCHITECTURE.md (Ra-Canonical notice added)
-- [ ] docs/RPP_LIFECYCLE_GUIDE.md
-- [ ] docs/END_TO_END_TUTORIAL.md
-- [ ] docs/DEMO_GUIDE.md
+- [x] docs/RPP_LIFECYCLE_GUIDE.md (v2.0 notice added)
+- [x] docs/END_TO_END_TUTORIAL.md (v2.0 notice added)
+- [x] docs/DEMO_GUIDE.md (v2.0 notice added)
 - [ ] docs/E2E_TEST_FIXES.md
 - [ ] docs/whitepapers/WHITEPAPER_06_FPGA_CONSENT_GATE.md
 - [ ] hardware/phase_slot_register.v

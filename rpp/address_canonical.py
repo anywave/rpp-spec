@@ -1,11 +1,14 @@
 """
-RPP Canonical Address v1.0-RaCanonical
+RPP Canonical Address v2.0 (Ra-Canonical)
 
 Ra-derived address implementation for SPIRAL routing.
 This module integrates with ra_system constants and provides
 the foundational routing vector for all SPIRAL-based systems.
 
-Reference: RPP v1.0-RaCanonical Specification
+Format: 32-bit Ra-Canonical
+    [θ:5][φ:3][h:3][r:8][reserved:13]
+
+Reference: spec/RPP-CANONICAL-v2.md (authoritative)
 """
 
 from __future__ import annotations
@@ -669,7 +672,7 @@ def verify_all() -> dict[str, bool]:
 # =============================================================================
 
 if __name__ == "__main__":
-    print("RPP Canonical Address v1.0-RaCanonical")
+    print("RPP Canonical Address v2.0 (Ra-Canonical)")
     print("=" * 60)
     
     # Verification

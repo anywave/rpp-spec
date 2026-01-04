@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rpp-protocol"
-version = "1.2.0"
-description = "Rotational Packet Protocol - 28-bit and 64-bit semantic addressing for consent-aware systems"
+version = "2.0.0"
+description = "Rotational Packet Protocol - 32-bit Ra-Canonical semantic addressing for consent-aware systems"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"

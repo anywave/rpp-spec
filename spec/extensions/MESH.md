@@ -1,5 +1,7 @@
 # RPP Mesh: Consent-Aware Overlay Network
 
+> **⚠️ NOTICE:** This document uses legacy 28-bit addressing examples. The current canonical format is **Ra-Canonical v2.0 (32-bit)**: `[θ:5][φ:3][h:3][r:8][reserved:13]`. See `spec/RPP-CANONICAL-v2.md` for authoritative format. Mesh header structure remains valid; RPP address section should use 32-bit Ra-Canonical format.
+
 ## Overview
 
 RPP Mesh is an optional deployment mode for AVACHATTER that provides consent-aware routing at the network level. Fragments carry RPP headers that mesh nodes inspect, enabling:

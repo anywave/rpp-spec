@@ -1,5 +1,7 @@
 # RPP Clash/FPGA Implementation
 
+> **⚠️ LEGACY:** This implementation uses the deprecated 28-bit format. See `RPP_Canonical.hs` for the **Ra-Canonical v2.0 (32-bit)** hardware implementation: `[θ:5][φ:3][h:3][r:8][reserved:13]`. Reference: `spec/RPP-CANONICAL-v2.md`
+
 Hardware implementation of RPP using [Clash](https://clash-lang.org/), a functional hardware description language that compiles Haskell to synthesizable Verilog/VHDL.
 
 ## Overview

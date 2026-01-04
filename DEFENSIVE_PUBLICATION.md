@@ -2,9 +2,17 @@
 
 **Authors:** Alexander Liam Lennon
 **Date:** December 2024
-**Version:** 1.1.0
+**Version:** 2.0.0
 **Classification:** Defensive Publication / Prior Art Disclosure
 **License:** CC BY 4.0
+
+---
+
+> **⚠️ FORMAT UPDATE (January 2025):** This document describes the legacy 28-bit format for historical prior art purposes. The current canonical format is **Ra-Canonical v2.0 (32-bit)**:
+> ```
+> [θ:5][φ:3][h:3][r:8][reserved:13]
+> ```
+> See `spec/RPP-CANONICAL-v2.md` for the authoritative specification.
 
 ---
 
