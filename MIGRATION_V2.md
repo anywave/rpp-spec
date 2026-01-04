@@ -67,9 +67,9 @@ Total: 32 bits
 - [x] rpp/cli.py (deprecation notice added)
 - [x] rpp/packet.py (deprecation warning added)
 - [x] rpp/resolver.py (deprecation warning added)
-- [ ] rpp/visual.py
-- [ ] rpp/i18n.py
-- [ ] rpp/extended.py
+- [x] rpp/visual.py (deprecation notice added)
+- [x] rpp/i18n.py (deprecation notice added)
+- [x] rpp/extended.py (deprecation notice added)
 - [x] reference/python/rpp_address.py (deprecation warning added)
 - [x] reference/haskell/RPPAddress.hs (deprecation notice added)
 - [ ] reference/haskell/README.md
@@ -94,14 +94,14 @@ Total: 32 bits
 - [x] docs/END_TO_END_TUTORIAL.md (v2.0 notice added)
 - [x] docs/DEMO_GUIDE.md (v2.0 notice added)
 - [ ] docs/E2E_TEST_FIXES.md
-- [ ] docs/whitepapers/WHITEPAPER_06_FPGA_CONSENT_GATE.md
+- [x] docs/whitepapers/WHITEPAPER_06_FPGA_CONSENT_GATE.md (v2.0 notice added)
 - [ ] hardware/phase_slot_register.v
 - [ ] hardware/hdl/DEPRECATED.md
 - [x] fpga/clash/RPP.hs (marked deprecated)
 - [ ] fpga/simulations/rpp_hardware_sim.py
 - [ ] fpga/constraints/arty_a7.xdc
-- [ ] holographic/virtual_hardware.py
-- [ ] holographic/rpp_integration_proof.py
+- [x] holographic/virtual_hardware.py (deprecation notice added)
+- [x] holographic/rpp_integration_proof.py (deprecation notice added)
 - [ ] crypto/keys.py
 - [ ] tests/test_virtual_hardware.py
 - [ ] tests/test_rpp_api.py

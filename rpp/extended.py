@@ -1,5 +1,5 @@
 """
-RPP Extended Addressing (64-bit)
+RPP Extended Addressing (64-bit) - LEGACY
 
 Implements the extended address format from SPEC-EXTENDED.md:
 - 2-bit shell (same as core)
@@ -9,6 +9,13 @@ Implements the extended address format from SPEC-EXTENDED.md:
 - 12-bit phase angle
 
 Provides 2048x higher angular resolution than core addressing.
+
+DEPRECATION NOTICE (v2.0):
+  This module implements a legacy 64-bit extended format.
+  The current canonical format is Ra-Canonical v2.0 (32-bit):
+      [θ:5][φ:3][h:3][r:8][reserved:13]
+  See spec/RPP-CANONICAL-v2.md for authoritative format.
+  Use rpp.address_canonical for new implementations.
 """
 
 from dataclasses import dataclass

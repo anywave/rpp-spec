@@ -1,5 +1,5 @@
 """
-RPP Visual Output Module
+RPP Visual Output Module (Legacy 28-bit)
 
 ASCII art and optional ANSI visualizations for RPP operations.
 Designed for terminal-based feedback that works in any environment.
@@ -7,6 +7,13 @@ Designed for terminal-based feedback that works in any environment.
 Two modes:
   - Default (ASCII): Works everywhere (SSH, PuTTY, serial, emulators)
   - Fancy (ANSI): Color and styling for modern terminals (opt-in)
+
+DEPRECATION NOTICE (v2.0):
+  This module displays the legacy 28-bit format: [shell:2][theta:9][phi:9][harmonic:8].
+  The current canonical format is Ra-Canonical v2.0 (32-bit):
+      [θ:5][φ:3][h:3][r:8][reserved:13]
+  See spec/RPP-CANONICAL-v2.md for authoritative format.
+  Use rpp.address_canonical for new implementations.
 """
 
 from typing import Optional

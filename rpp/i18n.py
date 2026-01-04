@@ -1,5 +1,5 @@
 """
-RPP Internationalization Module
+RPP Internationalization Module (Legacy 28-bit)
 
 Provides translations for CLI output in multiple languages.
 Zero dependencies - uses simple dictionary-based approach.
@@ -10,6 +10,12 @@ Supported languages:
   - ar-hejaz: Hejazi Arabic (Western Saudi Arabia)
   - es: Spanish
   - ru: Russian
+
+DEPRECATION NOTICE (v2.0):
+  This module contains translations for the legacy 28-bit format.
+  The current canonical format is Ra-Canonical v2.0 (32-bit):
+      [θ:5][φ:3][h:3][r:8][reserved:13]
+  See spec/RPP-CANONICAL-v2.md for authoritative format.
 """
 
 from typing import Dict
