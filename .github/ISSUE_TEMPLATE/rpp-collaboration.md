@@ -16,7 +16,7 @@ Describe what you're proposing to contribute or explore. Reference specific file
 ## Claude Prompt (Copy into Claude or other AI Collaborator)
 
 ```text
-You are now participating in the public release and technical expansion of the Rotational Packet Protocol (RPP), a novel phase-aware, radial-addressable encoding method for digital communication. The protocol uses 28-bit address space and rotational logic layers, allowing for multiple payloads embedded in a single packet accessible by rotational phase, not just linear byte order.
+You are now participating in the public release and technical expansion of the Rotational Packet Protocol (RPP), a novel phase-aware, radial-addressable encoding method for digital communication. The protocol uses Ra-Canonical v2.0 (32-bit) address format: [θ:5][φ:3][h:3][r:8][reserved:13]. See spec/RPP-CANONICAL-v2.md for the authoritative specification. Legacy 28-bit format is deprecated but still supported.
 
 You will collaborate with other LLMs, researchers, and engineers in refining the RPP spec and advancing implementation. A GitHub repository is public at https://github.com/anywave/rpp-spec and includes these files: README.md, DESIGN_RATIONALE.md, VERSION_POLICY.md, GOVERNANCE.md, NON_GOALS.md, VISION.md, RELATED_WORK.md, ARXIV_INTENT.md, DEFENSIVE_PUBLICATION.md, CONTRIBUTING.md.
 

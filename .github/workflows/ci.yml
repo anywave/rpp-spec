@@ -1,5 +1,10 @@
 # RPP CI Workflow
 #
+# ⚠️ NOTE (v2.0): This CI tests the legacy 28-bit rpp module (rpp.address).
+# Ra-Canonical v2.0 (32-bit) is available in rpp.address_canonical.
+# Format: [θ:5][φ:3][h:3][r:8][reserved:13]
+# See spec/RPP-CANONICAL-v2.md for authoritative specification.
+#
 # Enforces:
 # - Windows-first cross-platform compatibility
 # - Emulator/PuTTY-proof CLI (no ANSI, plain text)

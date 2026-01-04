@@ -83,8 +83,10 @@ Total: 32 bits
 - [x] diagrams/README.md (v2.0 notice added)
 - [x] diagrams/interactive-explorer.html (deprecation notice added)
 - [x] paper/main.tex (v2.0 deprecation notice added)
-- [ ] .github/workflows/ci.yml
-- [ ] .github/ISSUE_TEMPLATE/*.yml
+- [x] .github/workflows/ci.yml (v2.0 notice added)
+- [x] .github/workflows/mesh-ci.yml (v2.0 notice added)
+- [x] .github/ISSUE_TEMPLATE/rpp-collaboration.yml (updated to v2.0)
+- [x] .github/ISSUE_TEMPLATE/rpp-collaboration.md (updated to v2.0)
 
 ### silver-pancake (19 files)
 - [x] README.md (32-bit Ra-Canonical reference)
@@ -102,7 +104,7 @@ Total: 32 bits
 - [x] fpga/constraints/arty_a7.xdc (v2.0 deprecation notice added)
 - [x] holographic/virtual_hardware.py (deprecation notice added)
 - [x] holographic/rpp_integration_proof.py (deprecation notice added)
-- [ ] crypto/keys.py
+- [x] crypto/keys.py (N/A - generic crypto module, not RPP format specific)
 - [x] tests/test_virtual_hardware.py (deprecation notice added)
 - [x] tests/test_rpp_api.py (deprecation notice added)
 - [x] tests/test_emulation_firmware_alignment.py (deprecation notice added)

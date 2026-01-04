@@ -1,5 +1,8 @@
 # RPP Mesh CI Workflow
 #
+# ⚠️ NOTE (v2.0): See spec/RPP-CANONICAL-v2.md for Ra-Canonical v2.0 (32-bit).
+# The mesh extension will be updated to support v2.0 format in a future release.
+#
 # Builds and publishes the rpp-mesh extension package
 
 name: Mesh CI
