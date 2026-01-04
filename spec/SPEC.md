@@ -1,15 +1,22 @@
-# RPP Addressing Specification
+# RPP Addressing Specification (Legacy v1.0)
 
 **Version:** 1.0.0
-**Status:** Canonical
+**Status:** DEPRECATED - See [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) for current specification
 **Last Updated:** 2024-12-27
 **License:** CC BY 4.0
 
 ---
 
+> **DEPRECATION NOTICE:** This document describes the legacy 28-bit address format (v1.0).
+> For new implementations, use the **Ra-Canonical v2.0** 32-bit format defined in
+> [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md). See [MIGRATION_V2.md](../MIGRATION_V2.md) for
+> migration guidance.
+
+---
+
 ## 1. Overview
 
-This document defines the canonical 28-bit RPP (Rotational Packet Protocol) addressing format. All conforming implementations MUST adhere to this specification.
+This document defines the legacy 28-bit RPP (Rotational Packet Protocol) addressing format. For new implementations, refer to [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md).
 
 ---
 

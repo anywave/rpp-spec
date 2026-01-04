@@ -3,11 +3,13 @@
 **A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
-[![Spec Version](https://img.shields.io/badge/Spec-v1.2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
+[![Spec Version](https://img.shields.io/badge/Spec-v2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md)
 [![CI](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/pypi/pyversions/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18078640.svg)](https://doi.org/10.5281/zenodo.18078640)
+
+> **Ra-Canonical v2.0:** RPP now uses a 32-bit Ra-derived address format. See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for the authoritative specification. Legacy 28-bit format documented in [spec/SPEC.md](spec/SPEC.md).
 
 > **Disambiguation:** This specification is unrelated to AMD ROCm Performance Primitives (rocPRIM), REAPER project files (.rpp), or any other technology sharing the "RPP" abbreviation.
 
@@ -29,7 +31,7 @@ RPP is **NOT**:
 - An AI system (deterministic bit operations only)
 
 RPP **IS**:
-- A deterministic 28-bit semantic address
+- A deterministic 32-bit Ra-Canonical semantic address (v2.0)
 - A resolver returning allow/deny/route decisions
 - A bridge to existing storage backends
 
@@ -194,7 +196,7 @@ C:\> rpp demo
 |                                                           |
 |   RRRR   PPPP   PPPP                                      |
 |   R   R  P   P  P   P   Rotational Packet Protocol        |
-|   RRRR   PPPP   PPPP    28-bit Semantic Addressing        |
+|   RRRR   PPPP   PPPP    Ra-Canonical v2.0 Addressing      |
 |   R  R   P      P                                         |
 |   R   R  P      P       Consent-Aware Routing             |
 |                                                           |
@@ -303,25 +305,28 @@ These three scenarios prove RPP works. Everything else is implementation detail.
 
 ---
 
-## Address Structure
+## Address Structure (Ra-Canonical v2.0)
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                     28-BIT RPP ADDRESS                          │
-├────────┬─────────────┬─────────────┬───────────────────────────┤
-│ Shell  │    Theta    │     Phi     │         Harmonic          │
-│ 2 bits │   9 bits    │   9 bits    │          8 bits           │
-├────────┼─────────────┼─────────────┼───────────────────────────┤
-│ [27:26]│   [25:17]   │   [16:8]    │          [7:0]            │
-└────────┴─────────────┴─────────────┴───────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│               RPP CANONICAL ADDRESS (32 bits)                │
+├─────────┬─────────┬─────────┬──────────┬───────────────────┤
+│    θ    │    φ    │    h    │    r     │   Reserved/CRC    │
+│ (5 bits)│ (3 bits)│ (3 bits)│ (8 bits) │    (13 bits)      │
+├─────────┼─────────┼─────────┼──────────┼───────────────────┤
+│ [31:27] │ [26:24] │ [23:21] │ [20:13]  │      [12:0]       │
+└─────────┴─────────┴─────────┴──────────┴───────────────────┘
 ```
 
 | Field | Width | Range | Meaning |
 |-------|-------|-------|---------|
-| Shell | 2 bits | 0-3 | Storage tier (hot → frozen) |
-| Theta | 9 bits | 0-511 | Functional sector |
-| Phi | 9 bits | 0-511 | Grounding level (access control) |
-| Harmonic | 8 bits | 0-255 | Resolution/mode |
+| θ (Theta) | 5 bits | 1-27 | Semantic sector (27 Repitans) |
+| φ (Phi) | 3 bits | 1-6 | Access sensitivity (6 RAC levels) |
+| h (Harmonic) | 3 bits | 0-4 | Coherence tier (5 Omega formats) |
+| r (Radius) | 8 bits | 0-255 | Intensity scalar |
+| Reserved | 13 bits | 0-8191 | CRC or future use |
+
+> **Legacy Format:** For 28-bit v1.0 format compatibility, see [spec/SPEC.md](spec/SPEC.md).
 
 ---
 
@@ -368,12 +373,15 @@ These are external concerns. RPP is the address layer only.
 
 | Document | Description |
 |----------|-------------|
-| [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | 28-bit addressing specification |
+| [spec/RPP-CANONICAL-v2.md](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md) | **Ra-Canonical v2.0 (32-bit) specification** |
+| [spec/CONSENT-HEADER-v1.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONSENT-HEADER-v1.md) | 18-byte consent header specification |
+| [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | Legacy 28-bit addressing (v1.0) |
 | [spec/SPEC-EXTENDED.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC-EXTENDED.md) | Extended 64-bit format for holographic operations |
 | [spec/RESOLVER.md](https://github.com/anywave/rpp-spec/blob/master/spec/RESOLVER.md) | Resolver and adapter interfaces |
 | [spec/PACKET.md](https://github.com/anywave/rpp-spec/blob/master/spec/PACKET.md) | Packet envelope format |
 | [BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/BOUNDARIES.md) | Hard scope constraints |
 | [MVP.md](https://github.com/anywave/rpp-spec/blob/master/MVP.md) | Minimum viable product |
+| [MIGRATION_V2.md](https://github.com/anywave/rpp-spec/blob/master/MIGRATION_V2.md) | Migration guide v1.0 → v2.0 |
 
 ### Extensions
 

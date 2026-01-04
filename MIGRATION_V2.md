@@ -48,7 +48,7 @@ Total: 32 bits
 ## 3. Files to Update
 
 ### rpp-spec (~50 files)
-- [ ] README.md
+- [x] README.md
 - [ ] DESIGN_RATIONALE.md
 - [ ] DEFENSIVE_PUBLICATION.md
 - [ ] MVP.md
@@ -57,8 +57,9 @@ Total: 32 bits
 - [ ] CONTRIBUTING.md
 - [ ] ARXIV_INTENT.md
 - [ ] pyproject.toml
-- [ ] spec/SPEC.md
-- [ ] spec/PACKET.md
+- [x] spec/SPEC.md (marked deprecated)
+- [x] spec/PACKET.md
+- [x] spec/RPP-CANONICAL-v2.md (marked canonical)
 - [ ] spec/RESOLVER.md
 - [ ] spec/SPEC-EXTENDED.md
 - [ ] spec/extensions/MESH.md
@@ -72,7 +73,8 @@ Total: 32 bits
 - [ ] reference/python/rpp_address.py
 - [ ] reference/haskell/RPPAddress.hs
 - [ ] reference/haskell/README.md
-- [ ] hardware/clash/RPP.hs
+- [x] hardware/clash/RPP.hs (marked deprecated)
+- [x] hardware/clash/RPP_Canonical.hs (NEW - Ra-Canonical v2.0)
 - [ ] hardware/clash/README.md
 - [ ] examples/*.py
 - [ ] tests/*.py
@@ -95,7 +97,7 @@ Total: 32 bits
 - [ ] docs/whitepapers/WHITEPAPER_06_FPGA_CONSENT_GATE.md
 - [ ] hardware/phase_slot_register.v
 - [ ] hardware/hdl/DEPRECATED.md
-- [ ] fpga/clash/RPP.hs
+- [x] fpga/clash/RPP.hs (marked deprecated)
 - [ ] fpga/simulations/rpp_hardware_sim.py
 - [ ] fpga/constraints/arty_a7.xdc
 - [ ] holographic/virtual_hardware.py

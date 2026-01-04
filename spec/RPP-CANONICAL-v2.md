@@ -1,8 +1,8 @@
 # RPP Canonical Address Specification v2.0
 
-**Status:** Draft  
-**Derived From:** Ra Constants (Wesley H. Bateman, 1992-1997)  
-**Last Updated:** 2025-01-01  
+**Status:** Canonical
+**Derived From:** Ra Constants (Wesley H. Bateman, 1992-1997)
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
 
 ---

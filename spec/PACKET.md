@@ -1,9 +1,15 @@
 # Rotational Packet Specification
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Canonical
-**Last Updated:** 2024-12-27
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
+
+---
+
+> **Ra-Canonical v2.0:** This specification now uses the 32-bit Ra-Canonical address format.
+> See [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) for address format details.
+> For consent-aware routing with 18-byte headers, see [CONSENT-HEADER-v1.md](CONSENT-HEADER-v1.md).
 
 ---
 
@@ -34,7 +40,7 @@ This document defines the **Rotational Packet** — the minimal envelope that co
 
 | Field | Size | Required | Description |
 |-------|------|----------|-------------|
-| **Address** | 4 bytes | YES | 28-bit RPP address in bits [27:0], bits [31:28] reserved (must be zero) |
+| **Address** | 4 bytes | YES | 32-bit Ra-Canonical address (θ:5 + φ:3 + h:3 + r:8 + reserved:13) |
 | **Payload** | 0-N bytes | NO | Optional data, pointer, hash, or content |
 
 ### 2.3 Minimum Packet Size

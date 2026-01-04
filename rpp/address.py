@@ -1,7 +1,13 @@
 """
-RPP Address Encoding/Decoding
+RPP Address Encoding/Decoding (Legacy v1.0)
 
-Implements the 28-bit RPP address format:
+DEPRECATED: This module implements the legacy 28-bit address format.
+For new implementations, use address_canonical.py which implements
+the Ra-Canonical v2.0 (32-bit) format.
+
+See: rpp/address_canonical.py for the current format.
+
+Legacy 28-bit format:
   [31:28] Reserved (must be 0)
   [27:26] Shell (2 bits, 0-3)
   [25:17] Theta (9 bits, 0-511)
@@ -10,6 +16,14 @@ Implements the 28-bit RPP address format:
 
 This module is pure Python with no external dependencies.
 """
+
+import warnings
+
+warnings.warn(
+    "rpp.address is deprecated. Use rpp.address_canonical for Ra-Canonical v2.0 format.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from dataclasses import dataclass
 from typing import Tuple
