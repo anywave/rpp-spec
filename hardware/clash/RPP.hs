@@ -14,6 +14,21 @@ Description : Rotational Packet Protocol FPGA Implementation
 Copyright   : (c) Alexander Liam Lennon, 2024
 License     : Apache-2.0
 
+=======================================================================
+DEPRECATED: This module uses the legacy 28-bit address format.
+
+For new implementations, use RPP_Canonical.hs which implements the
+Ra-Canonical v2.0 (32-bit) address format:
+
+  - θ (theta): 5 bits - 27 Repitans (1-27)
+  - φ (phi): 3 bits - 6 RAC access levels (1-6)
+  - h (omega): 3 bits - 5 Omega tiers (0-4)
+  - r (radius): 8 bits - Intensity scalar (0-255)
+  - reserved: 13 bits - CRC/future use
+
+See MIGRATION_V2.md for migration guidance.
+=======================================================================
+
 Clash implementation of the Rotational Packet Protocol (RPP) for
 angular memory access and TRB zone detection.
 
@@ -21,7 +36,7 @@ This module is part of the RPP open specification.
 Repository: https://github.com/anywave/rpp-spec
 
 Key Features:
-- Phase-encoded memory addressing (9-bit theta, 8-bit phi)
+- Phase-encoded memory addressing (9-bit theta, 8-bit phi) [LEGACY]
 - TRB zone detection with configurable thresholds
 - Fibonacci skip pattern generator
 - Coherence monitoring and consent gating
@@ -50,13 +65,20 @@ import Clash.Explicit.Testbench
 import GHC.Generics (Generic)
 
 -- =============================================================================
--- TYPE DEFINITIONS
+-- TYPE DEFINITIONS [LEGACY 28-BIT FORMAT]
+-- =============================================================================
+-- NOTE: These types use the legacy 28-bit format.
+-- For Ra-Canonical v2.0, see RPP_Canonical.hs which uses:
+--   Theta = Unsigned 5  (1-27 Repitans)
+--   Phi = Unsigned 3    (1-6 RAC levels)
+--   Omega = Unsigned 3  (0-4 Omega tiers)
+--   Radius = Unsigned 8 (0-255 intensity)
 -- =============================================================================
 
--- | Angular position with 1-degree resolution
+-- | Angular position with 1-degree resolution [LEGACY]
 -- Theta: 0-359 (9 bits), Phi: -90 to +90 mapped to 0-180 (8 bits)
-type Theta = Unsigned 9  -- 0-511, but we use 0-359
-type Phi = Unsigned 8    -- 0-255, we use 0-180
+type Theta = Unsigned 9  -- 0-511, but we use 0-359 [LEGACY]
+type Phi = Unsigned 8    -- 0-255, we use 0-180 [LEGACY]
 
 -- | Coherence level (0-255, mapped to 0.0-1.0)
 type Coherence = Unsigned 8

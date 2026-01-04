@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rpp-spec.anywave.io/parl/router_config.schema.json",
+  "title": "PARL Router Configuration",
+  "description": "Configuration for Phase-Aware Routing Layer nodes",
+
+  "node": {
+    "id": "node-001",
+    "name": "Primary Router",
+    "version": "0.9-beta",
+    "public_key": null
+  },
+
+  "network": {
+    "listen_host": "0.0.0.0",
+    "listen_port": 7331,
+    "protocol": "tcp",
+    "max_connections": 50,
+    "socket_timeout": 30
+  },
+
+  "neighbors": [
+    {
+      "id": "node-002",
+      "host": "192.168.1.102",
+      "port": 7331,
+      "priority": 1,
+      "shared_secret": null
+    },
+    {
+      "id": "node-003",
+      "host": "192.168.1.103",
+      "port": 7331,
+      "priority": 2,
+      "shared_secret": null
+    }
+  ],
+
+  "field": {
+    "max_capacity": 100,
+    "theta_saturation_threshold": 0.85,
+    "phi_saturation_threshold": 0.80,
+    "coherence_minimum": 0.30,
+    "emergence_threshold": 0.95,
+    "decay_rate": 0.01,
+    "sample_interval_ms": 100
+  },
+
+  "routing": {
+    "max_hops": 10,
+    "hop_timeout_ms": 2000,
+    "retry_count": 3,
+    "drop_policy": "log_and_skip",
+    "forward_mode": "best_match",
+    "phase_tolerance": 0.15
+  },
+
+  "coherence_filters": [
+    {
+      "name": "high_coherence_fast_path",
+      "condition": "coherence >= 0.90",
+      "action": "forward_immediate",
+      "priority": 1
+    },
+    {
+      "name": "low_coherence_delay",
+      "condition": "coherence < 0.50",
+      "action": "delay_100ms",
+      "priority": 2
+    },
+    {
+      "name": "saturated_field_drop",
+      "condition": "field_saturation >= 0.95",
+      "action": "drop_with_log",
+      "priority": 3
+    }
+  ],
+
+  "emergence": {
+    "enabled": true,
+    "global_threshold": 0.97,
+    "local_buffer_size": 20,
+    "trigger_cooldown_ms": 5000,
+    "broadcast_on_trigger": true
+  },
+
+  "security": {
+    "encryption_algorithm": "chacha20-poly1305",
+    "require_authentication": true,
+    "allow_anonymous_observe": false,
+    "key_rotation_interval_hours": 24
+  },
+
+  "logging": {
+    "level": "INFO",
+    "file": "/var/log/parl/router.log",
+    "max_size_mb": 100,
+    "rotation_count": 5,
+    "include_token_hashes": true
+  },
+
+  "metrics": {
+    "enabled": true,
+    "export_port": 9100,
+    "export_format": "prometheus",
+    "collection_interval_ms": 1000
+  }
+}
