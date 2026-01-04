@@ -87,7 +87,7 @@ Total: 32 bits
 - [ ] .github/ISSUE_TEMPLATE/*.yml
 
 ### silver-pancake (19 files)
-- [ ] README.md
+- [x] README.md (32-bit Ra-Canonical reference)
 - [x] docs/ROTATIONAL_PACKET_PROTOCOL.md (Ra-Canonical notice added)
 - [x] docs/RPP_HARDWARE_ARCHITECTURE.md (Ra-Canonical notice added)
 - [x] docs/RPP_LIFECYCLE_GUIDE.md (v2.0 notice added)
