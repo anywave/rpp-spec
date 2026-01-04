@@ -1,4 +1,11 @@
-"""Tests for RPP extended addressing module."""
+"""
+Tests for RPP extended addressing module (Legacy 64-bit).
+
+DEPRECATION NOTICE (v2.0):
+    This test suite covers the legacy 64-bit extended format.
+    The current canonical format is Ra-Canonical v2.0 (32-bit).
+    See test_address_canonical.py for v2.0 tests.
+"""
 
 import pytest
 import math

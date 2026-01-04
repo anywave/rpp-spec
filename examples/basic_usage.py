@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-RPP Basic Usage Examples
-========================
+RPP Basic Usage Examples (Legacy 28-bit)
+========================================
 
 Demonstrates fundamental RPP address encoding, decoding, and interpretation.
+
+DEPRECATION NOTICE (v2.0):
+    This example uses the legacy 28-bit format.
+    The current canonical format is Ra-Canonical v2.0 (32-bit):
+        [θ:5][φ:3][h:3][r:8][reserved:13]
+    See rpp.address_canonical for the v2.0 implementation.
+    See spec/RPP-CANONICAL-v2.md for the authoritative specification.
 
 Usage:
     python examples/basic_usage.py

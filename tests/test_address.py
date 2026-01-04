@@ -1,7 +1,12 @@
 """
-RPP Address Test Suite
+RPP Address Test Suite (Legacy 28-bit)
 
 Tests for the rpp.address module.
+
+DEPRECATION NOTICE (v2.0):
+    This test suite covers the legacy 28-bit format.
+    The current canonical format is Ra-Canonical v2.0 (32-bit).
+    See test_address_canonical.py for v2.0 tests.
 """
 
 import json

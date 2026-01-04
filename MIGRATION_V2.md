@@ -72,12 +72,12 @@ Total: 32 bits
 - [x] rpp/extended.py (deprecation notice added)
 - [x] reference/python/rpp_address.py (deprecation warning added)
 - [x] reference/haskell/RPPAddress.hs (deprecation notice added)
-- [ ] reference/haskell/README.md
+- [x] reference/haskell/README.md (deprecation notice added)
 - [x] hardware/clash/RPP.hs (marked deprecated)
 - [x] hardware/clash/RPP_Canonical.hs (NEW - Ra-Canonical v2.0)
 - [x] hardware/clash/README.md (v2.0 notice, points to RPP_Canonical.hs)
-- [ ] examples/*.py
-- [ ] tests/*.py
+- [x] examples/*.py (deprecation notices added)
+- [x] tests/test_address.py, test_extended.py (deprecation notices added)
 - [ ] landing/index.html
 - [ ] docs/index.html
 - [ ] diagrams/*.svg
@@ -98,14 +98,15 @@ Total: 32 bits
 - [ ] hardware/phase_slot_register.v
 - [ ] hardware/hdl/DEPRECATED.md
 - [x] fpga/clash/RPP.hs (marked deprecated)
-- [ ] fpga/simulations/rpp_hardware_sim.py
+- [x] fpga/simulations/rpp_hardware_sim.py (deprecation notice added)
 - [ ] fpga/constraints/arty_a7.xdc
 - [x] holographic/virtual_hardware.py (deprecation notice added)
 - [x] holographic/rpp_integration_proof.py (deprecation notice added)
 - [ ] crypto/keys.py
-- [ ] tests/test_virtual_hardware.py
-- [ ] tests/test_rpp_api.py
+- [x] tests/test_virtual_hardware.py (deprecation notice added)
+- [x] tests/test_rpp_api.py (deprecation notice added)
 - [ ] tests/test_emulation_firmware_alignment.py
+- [x] docs/E2E_TEST_FIXES.md (v2.0 notice added)
 
 ---
 

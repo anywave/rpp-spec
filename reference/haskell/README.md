@@ -1,6 +1,14 @@
-# RPP Address - Haskell Reference Implementation
+# RPP Address - Haskell Reference Implementation (Legacy 28-bit)
 
 Pure Haskell reference implementation of RPP (Rotational Packet Protocol) addressing.
+
+> **⚠️ DEPRECATION NOTICE (v2.0):** This implementation uses the legacy 28-bit format.
+> The current canonical format is **Ra-Canonical v2.0 (32-bit)**:
+> ```
+> [θ:5][φ:3][h:3][r:8][reserved:13]
+> ```
+> See `hardware/clash/RPP_Canonical.hs` for the v2.0 Haskell implementation.
+> See `spec/RPP-CANONICAL-v2.md` for the authoritative specification.
 
 ## Overview
 

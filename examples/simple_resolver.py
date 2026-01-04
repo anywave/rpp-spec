@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-RPP Simple Resolver Example
-============================
+RPP Simple Resolver Example (Legacy 28-bit)
+===========================================
 
 Demonstrates a minimal resolver implementation that maps RPP addresses
 to filesystem paths, showing the bridge architecture concept.
+
+DEPRECATION NOTICE (v2.0):
+    This example uses the legacy 28-bit format.
+    The current canonical format is Ra-Canonical v2.0 (32-bit):
+        [θ:5][φ:3][h:3][r:8][reserved:13]
+    See rpp.address_canonical for the v2.0 implementation.
+    See spec/RPP-CANONICAL-v2.md for the authoritative specification.
 
 Usage:
     python examples/simple_resolver.py
