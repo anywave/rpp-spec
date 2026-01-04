@@ -2,12 +2,14 @@
 
 Visual documentation for the Rotational Packet Protocol specification.
 
+> **⚠️ NOTICE:** These diagrams depict the legacy 28-bit format. The current canonical format is **Ra-Canonical v2.0 (32-bit)**: `[θ:5][φ:3][h:3][r:8][reserved:13]`. See `spec/RPP-CANONICAL-v2.md` for the authoritative specification.
+
 ## Static Diagrams
 
-### Address Structure
+### Address Structure (Legacy 28-bit)
 ![Address Structure](address-structure.svg)
 
-Shows the 28-bit address layout with Shell, Theta, Phi, and Harmonic fields.
+Shows the legacy 28-bit address layout with Shell, Theta, Phi, and Harmonic fields.
 
 ### Bridge Architecture
 ![Bridge Architecture](bridge-architecture.svg)

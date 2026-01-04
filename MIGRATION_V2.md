@@ -78,11 +78,11 @@ Total: 32 bits
 - [x] hardware/clash/README.md (v2.0 notice, points to RPP_Canonical.hs)
 - [x] examples/*.py (deprecation notices added)
 - [x] tests/test_address.py, test_extended.py (deprecation notices added)
-- [ ] landing/index.html
-- [ ] docs/index.html
-- [ ] diagrams/*.svg
-- [ ] diagrams/*.html
-- [ ] paper/main.tex
+- [x] landing/index.html (meta description updated)
+- [x] docs/index.html (meta description updated)
+- [x] diagrams/README.md (v2.0 notice added)
+- [x] diagrams/interactive-explorer.html (deprecation notice added)
+- [x] paper/main.tex (v2.0 deprecation notice added)
 - [ ] .github/workflows/ci.yml
 - [ ] .github/ISSUE_TEMPLATE/*.yml
 
@@ -93,19 +93,19 @@ Total: 32 bits
 - [x] docs/RPP_LIFECYCLE_GUIDE.md (v2.0 notice added)
 - [x] docs/END_TO_END_TUTORIAL.md (v2.0 notice added)
 - [x] docs/DEMO_GUIDE.md (v2.0 notice added)
-- [ ] docs/E2E_TEST_FIXES.md
+- [x] docs/E2E_TEST_FIXES.md (v2.0 notice added)
 - [x] docs/whitepapers/WHITEPAPER_06_FPGA_CONSENT_GATE.md (v2.0 notice added)
-- [ ] hardware/phase_slot_register.v
-- [ ] hardware/hdl/DEPRECATED.md
+- [x] hardware/phase_slot_register.v (deprecation notice added)
+- [x] hardware/hdl/DEPRECATED.md (already has v2.0 info)
 - [x] fpga/clash/RPP.hs (marked deprecated)
 - [x] fpga/simulations/rpp_hardware_sim.py (deprecation notice added)
-- [ ] fpga/constraints/arty_a7.xdc
+- [x] fpga/constraints/arty_a7.xdc (v2.0 deprecation notice added)
 - [x] holographic/virtual_hardware.py (deprecation notice added)
 - [x] holographic/rpp_integration_proof.py (deprecation notice added)
 - [ ] crypto/keys.py
 - [x] tests/test_virtual_hardware.py (deprecation notice added)
 - [x] tests/test_rpp_api.py (deprecation notice added)
-- [ ] tests/test_emulation_firmware_alignment.py
+- [x] tests/test_emulation_firmware_alignment.py (deprecation notice added)
 - [x] docs/E2E_TEST_FIXES.md (v2.0 notice added)
 
 ---
