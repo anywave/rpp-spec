@@ -1,5 +1,12 @@
 """
-RPP Resolver
+RPP Resolver (Legacy v1.0)
+
+DEPRECATED: This module implements the legacy 28-bit address format.
+For new implementations, use resolver_canonical.py which implements
+the Ra-Canonical v2.0 (32-bit) format.
+
+See: rpp/resolver_canonical.py for the current format.
+See: spec/RESOLVER.md for resolver architecture documentation.
 
 The resolver translates RPP addresses into routing decisions.
 It returns exactly: allowed (bool), route (str or null), reason (str).
@@ -12,6 +19,14 @@ Consent integration:
 - Checks sector sensitivity and grounding zone
 - Requires verified identity for high-sensitivity operations
 """
+
+import warnings
+
+warnings.warn(
+    "rpp.resolver uses legacy 28-bit format. Use rpp.resolver_canonical for Ra-Canonical v2.0.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, Protocol

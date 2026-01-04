@@ -1,16 +1,23 @@
 {-|
 Module      : RPPAddress
-Description : RPP Reference Implementation in Haskell
+Description : RPP Reference Implementation in Haskell (Legacy v1.0)
 Copyright   : (c) Alexander Liam Lennon, 2024
 License     : Apache-2.0
 Maintainer  : rpp-spec@example.org
-Stability   : stable
+Stability   : deprecated
 Portability : portable
 
-Reference implementation of RPP (Rotational Packet Protocol) address
-encoding and decoding in pure Haskell.
+__DEPRECATED:__ This is the legacy 28-bit format reference implementation.
+For new implementations, use the Ra-Canonical v2.0 (32-bit) format.
 
-= Address Format
+See:
+
+* @hardware\/clash\/RPP_Canonical.hs@ for Ra-Canonical v2.0 Clash implementation
+* @spec\/RPP-CANONICAL-v2.md@ for authoritative specification
+
+This implementation is preserved for backward compatibility and migration support.
+
+= Legacy Address Format (v1.0)
 
 28-bit address: @[Shell:2][Theta:9][Phi:9][Harmonic:8]@
 

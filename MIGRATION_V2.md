@@ -49,29 +49,29 @@ Total: 32 bits
 
 ### rpp-spec (~50 files)
 - [x] README.md
-- [ ] DESIGN_RATIONALE.md
+- [x] DESIGN_RATIONALE.md
 - [ ] DEFENSIVE_PUBLICATION.md
-- [ ] MVP.md
-- [ ] VISION.md
-- [ ] VERSION_POLICY.md
-- [ ] CONTRIBUTING.md
-- [ ] ARXIV_INTENT.md
+- [x] MVP.md
+- [x] VISION.md
+- [x] VERSION_POLICY.md
+- [x] CONTRIBUTING.md
+- [x] ARXIV_INTENT.md
 - [ ] pyproject.toml
 - [x] spec/SPEC.md (marked deprecated)
 - [x] spec/PACKET.md
 - [x] spec/RPP-CANONICAL-v2.md (marked canonical)
-- [ ] spec/RESOLVER.md
-- [ ] spec/SPEC-EXTENDED.md
+- [x] spec/RESOLVER.md
+- [x] spec/SPEC-EXTENDED.md
 - [ ] spec/extensions/MESH.md
-- [ ] rpp/address.py
-- [ ] rpp/cli.py
-- [ ] rpp/packet.py
-- [ ] rpp/resolver.py
+- [x] rpp/address.py (deprecation warning added)
+- [x] rpp/cli.py (deprecation notice added)
+- [x] rpp/packet.py (deprecation warning added)
+- [x] rpp/resolver.py (deprecation warning added)
 - [ ] rpp/visual.py
 - [ ] rpp/i18n.py
 - [ ] rpp/extended.py
-- [ ] reference/python/rpp_address.py
-- [ ] reference/haskell/RPPAddress.hs
+- [x] reference/python/rpp_address.py (deprecation warning added)
+- [x] reference/haskell/RPPAddress.hs (deprecation notice added)
 - [ ] reference/haskell/README.md
 - [x] hardware/clash/RPP.hs (marked deprecated)
 - [x] hardware/clash/RPP_Canonical.hs (NEW - Ra-Canonical v2.0)
@@ -88,8 +88,8 @@ Total: 32 bits
 
 ### silver-pancake (19 files)
 - [ ] README.md
-- [ ] docs/ROTATIONAL_PACKET_PROTOCOL.md
-- [ ] docs/RPP_HARDWARE_ARCHITECTURE.md
+- [x] docs/ROTATIONAL_PACKET_PROTOCOL.md (Ra-Canonical notice added)
+- [x] docs/RPP_HARDWARE_ARCHITECTURE.md (Ra-Canonical notice added)
 - [ ] docs/RPP_LIFECYCLE_GUIDE.md
 - [ ] docs/END_TO_END_TUTORIAL.md
 - [ ] docs/DEMO_GUIDE.md

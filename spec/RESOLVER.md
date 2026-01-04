@@ -1,9 +1,15 @@
 # RPP Resolver Architecture
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Status:** Canonical
-**Last Updated:** 2024-12-27
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
+
+---
+
+> **Ra-Canonical v2.0:** This document has been updated for the 32-bit Ra-Canonical format.
+> Address examples use the new format (θ:5 + φ:3 + h:3 + r:8 + reserved:13).
+> See [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) for address specification.
 
 ---
 
@@ -23,7 +29,7 @@ RPP does not store data. RPP **routes** data to existing storage systems.
 ┌─────────────────────────────────────────────────────────────┐
 │                    RPP ADDRESS SPACE                         │
 │                                                             │
-│    [28-bit semantic coordinates]                            │
+│    [32-bit Ra-Canonical semantic coordinates]               │
 │                                                             │
 └──────────────────────┬──────────────────────────────────────┘
                        │
@@ -110,7 +116,7 @@ class RPPResolver(Protocol):
         Resolve an RPP address to a storage location.
 
         Args:
-            address: 28-bit RPP address
+            address: 32-bit Ra-Canonical RPP address
             consent_state: Current user consent/coherence state
             operation: "read", "write", "delete", "list"
 
@@ -177,8 +183,8 @@ class ExtendedRPPResolver(RPPResolver):
 ```
 INPUT: address, consent_state, operation
 
-1. VALIDATE address (28-bit range)
-2. DECODE address → (shell, theta, phi, harmonic)
+1. VALIDATE address (32-bit Ra-Canonical range)
+2. DECODE address → (theta, phi, harmonic, radius)
 3. CHECK consent_requirements(theta, phi) vs consent_state
    - If insufficient → RETURN ConsentDenied
 4. LOOKUP backend_mapping(shell, theta)
@@ -193,11 +199,11 @@ INPUT: address, consent_state, operation
 ```python
 def resolve(address: int, consent: ConsentState, operation: str) -> Result:
     # Step 1: Validate
-    if not (0 <= address <= 0x0FFFFFFF):
+    if not (0x08000000 <= address <= 0xFFFFFFFF):
         return ResolutionError("INVALID_ADDRESS", "Address out of range")
 
-    # Step 2: Decode
-    shell, theta, phi, harmonic = decode_rpp_address(address)
+    # Step 2: Decode (Ra-Canonical v2.0)
+    theta, phi, harmonic, radius = decode_rpp_address(address)
 
     # Step 3: Consent check
     required_consent = get_consent_requirement(theta, phi, operation)
@@ -237,27 +243,28 @@ def resolve(address: int, consent: ConsentState, operation: str) -> Result:
 
 ## 5. Consent Gating
 
-### 5.1 Consent Requirements by Sector
+### 5.1 Consent Requirements by Sector (Ra-Canonical v2.0)
 
-| Theta Range | Sector | Read | Write | Delete |
-|-------------|--------|------|-------|--------|
-| 0-63 | Gene | FULL | FULL | EMERGENCY |
-| 64-127 | Memory | DIMINISHED | FULL | FULL |
-| 128-191 | Witness | DIMINISHED | DIMINISHED | SUSPENDED |
-| 192-255 | Dream | DIMINISHED | DIMINISHED | DIMINISHED |
-| 256-319 | Bridge | DIMINISHED | DIMINISHED | DIMINISHED |
-| 320-383 | Guardian | FULL | FULL | EMERGENCY |
-| 384-447 | Emergence | FULL | FULL | FULL |
-| 448-511 | Meta | NONE | EMERGENCY | EMERGENCY |
+| Theta (Repitan) | Sector | Read | Write | Delete |
+|-----------------|--------|------|-------|--------|
+| 1-4 | Foundation | FULL | FULL | EMERGENCY |
+| 5-9 | Structure | DIMINISHED | FULL | FULL |
+| 10-14 | Process | DIMINISHED | DIMINISHED | SUSPENDED |
+| 15-18 | Connection | DIMINISHED | DIMINISHED | DIMINISHED |
+| 19-22 | Expression | DIMINISHED | DIMINISHED | DIMINISHED |
+| 23-25 | Integration | FULL | FULL | EMERGENCY |
+| 26-27 | Transcendence | FULL | FULL | FULL |
 
-### 5.2 Consent Requirements by Grounding
+### 5.2 Consent Requirements by RAC Level (Ra-Canonical v2.0)
 
-| Phi Range | Grounding | Additional Requirement |
-|-----------|-----------|------------------------|
-| 0-127 | Grounded | +1 consent level for writes |
-| 128-255 | Transitional | Standard requirements |
-| 256-383 | Abstract | Standard requirements |
-| 384-511 | Ethereal | -1 consent level allowed |
+| Phi (RAC) | Level | Additional Requirement |
+|-----------|-------|------------------------|
+| 1 (RAC1) | Highest access | Standard requirements |
+| 2 (RAC2) | High access | Standard requirements |
+| 3 (RAC3) | Medium-high | +1 consent for sensitive ops |
+| 4 (RAC4) | Medium | +1 consent level for writes |
+| 5 (RAC5) | Low | +2 consent level for writes |
+| 6 (RAC6) | Lowest access | Full consent required |
 
 ### 5.3 Consent Comparison
 
@@ -462,7 +469,7 @@ shell_mapping:
 
 | Code | Meaning | Recommended Action |
 |------|---------|-------------------|
-| INVALID_ADDRESS | Address out of 28-bit range | Reject |
+| INVALID_ADDRESS | Address out of 32-bit range | Reject |
 | CONSENT_DENIED | Insufficient consent | Request elevation |
 | BACKEND_UNAVAILABLE | Storage offline | Retry with fallback |
 | NOT_FOUND | Address not mapped | Return empty |
@@ -507,7 +514,7 @@ def resolve_with_degradation(address: int, consent: ConsentState) -> Result:
 | Field | Description |
 |-------|-------------|
 | timestamp | ISO 8601 timestamp |
-| address | 28-bit RPP address (hex) |
+| address | 32-bit Ra-Canonical RPP address (hex) |
 | operation | read/write/delete/list |
 | consent_state | Current consent level |
 | result | success/error code |
@@ -536,7 +543,8 @@ def resolve_with_degradation(address: int, consent: ConsentState) -> Result:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2024-12-27 | Initial resolver specification |
+| 2.0.0 | 2026-01-04 | Ra-Canonical v2.0 address format |
+| 1.0.0 | 2024-12-27 | Initial resolver specification (legacy 28-bit) |
 
 ---
 

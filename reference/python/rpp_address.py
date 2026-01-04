@@ -1,12 +1,29 @@
 """
-RPP Address Encoding/Decoding Reference Implementation
+RPP Address Encoding/Decoding Reference Implementation (Legacy v1.0)
 
-This is the canonical Python implementation of RPP 28-bit addressing.
-All implementations in other languages should produce identical results.
+DEPRECATED: This is the legacy 28-bit format reference implementation.
+For new implementations, use the Ra-Canonical v2.0 (32-bit) format.
+
+See: rpp/address_canonical.py for the Ra-Canonical v2.0 reference.
+See: spec/RPP-CANONICAL-v2.md for the authoritative specification.
+
+This implementation is preserved for:
+- Backward compatibility with existing systems
+- Migration path from v1.0 to v2.0
+- Test vector validation for legacy format
 
 License: Apache 2.0
-Version: 1.0.0
+Version: 1.0.0 (Legacy)
 """
+
+import warnings
+
+warnings.warn(
+    "reference/python/rpp_address.py implements legacy 28-bit format. "
+    "Use rpp.address_canonical for Ra-Canonical v2.0.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from dataclasses import dataclass
 from typing import Tuple

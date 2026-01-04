@@ -1,29 +1,53 @@
 # RPP Extended Addressing Specification
 ## Hardware-Testable Spec for Holographic Acceleration
 
-**Version:** 2.0.0-draft  
-**Status:** Working Draft  
-**Target:** Software Emulation + FPGA/ASIC Implementation  
-**Repository:** github.com/anywave/rpp-spec  
+**Version:** 2.1.0-draft
+**Status:** Working Draft
+**Target:** Software Emulation + FPGA/ASIC Implementation
+**Repository:** github.com/anywave/rpp-spec
+
+---
+
+> **Ra-Canonical v2.0 Update:** This document describes extended precision formats.
+> The core 32-bit format is now defined by Ra-Canonical v2.0 (see [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md)).
+> The legacy 28-bit core format described below is deprecated for new implementations.
 
 ---
 
 ## 1. Executive Summary
 
-This specification defines a dual-layer addressing system for RPP:
+This specification defines a multi-layer addressing system for RPP:
 
 | Layer | Bit Width | Purpose | Hardware Target |
 |-------|-----------|---------|-----------------|
-| **Core** | 28 bits | Routing, storage, consent | FPGA registers, SPI, MRAM |
+| **Ra-Canonical** | 32 bits | Core routing (θ/φ/h/r format) | FPGA registers, SPI, MRAM |
+| **Legacy Core** | 28 bits | Routing, storage, consent (deprecated) | Legacy hardware |
 | **Extended** | 64+ bits | Holographic precision | DSP, floating-point units |
 
 The goal: **testable at every layer**, from Python emulation to Verilog synthesis.
 
 ---
 
-## 2. Core Address Format (28-bit)
+## 2. Core Address Formats
 
-### 2.1 Canonical Layout
+### 2.0 Ra-Canonical Format (32-bit) — Current Standard
+
+See [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) for the authoritative specification.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               RPP CANONICAL ADDRESS (32 bits)                │
+├─────────┬─────────┬─────────┬──────────┬───────────────────┤
+│    θ    │    φ    │    h    │    r     │   Reserved/CRC    │
+│ (5 bits)│ (3 bits)│ (3 bits)│ (8 bits) │    (13 bits)      │
+├─────────┼─────────┼─────────┼──────────┼───────────────────┤
+│ [31:27] │ [26:24] │ [23:21] │ [20:13]  │      [12:0]       │
+└─────────┴─────────┴─────────┴──────────┴───────────────────┘
+```
+
+### 2.1 Legacy Layout (28-bit) — Deprecated
+
+> **DEPRECATED:** Use Ra-Canonical v2.0 for new implementations.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -590,7 +614,8 @@ def extended_phi_to_degrees(phi_fine: int) -> float:
 
 ## 13. References
 
-- `rpp-spec/spec/SPEC.md` - Core 28-bit specification
+- `rpp-spec/spec/RPP-CANONICAL-v2.md` - Core 32-bit Ra-Canonical specification (current)
+- `rpp-spec/spec/SPEC.md` - Legacy 28-bit specification (deprecated)
 - `holographic/hardware_simulation.py` - Physics emulation
 - `holographic/virtual_hardware.py` - FPGA/MRAM emulation
 - `holographic/intersection_engine.py` - Holographic file formation

@@ -1,8 +1,13 @@
 # Version Policy and Stability Guarantees
 
-**Document Version:** 1.0.0
-**Last Updated:** 2024-12-27
+**Document Version:** 2.0.0
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
+
+---
+
+> **Note:** This document has been updated for Ra-Canonical v2.0 (32-bit format).
+> Version 1.x refers to the legacy 28-bit format. Version 2.x refers to Ra-Canonical v2.0.
 
 ---
 
@@ -30,19 +35,60 @@ MAJOR.MINOR.PATCH
 
 ## Current Version
 
-**RPP Specification Version:** 1.0.0
+**RPP Specification Version:** 2.0.0 (Ra-Canonical)
 **Status:** Stable
-**Release Date:** 2024-12-27
+**Release Date:** 2026-01-04
+
+**Legacy Version:** 1.0.0 (28-bit format, deprecated)
 
 ---
 
 ## Stability Guarantees
 
-### What v1.0.0 Guarantees
+### What v2.0.0 Guarantees (Ra-Canonical)
 
-The following are **immutable** for all 1.x.x versions:
+The following are **immutable** for all 2.x.x versions:
 
-#### Address Format
+#### Address Format (Ra-Canonical v2.0)
+| Guarantee | Value |
+|-----------|-------|
+| Total address width | 32 bits |
+| Theta field position | Bits 31:27 |
+| Theta field width | 5 bits |
+| Phi field position | Bits 26:24 |
+| Phi field width | 3 bits |
+| Harmonic field position | Bits 23:21 |
+| Harmonic field width | 3 bits |
+| Radius field position | Bits 20:13 |
+| Radius field width | 8 bits |
+| Reserved field position | Bits 12:0 |
+| Reserved field width | 13 bits |
+
+#### Encoding/Decoding
+| Guarantee | Formula |
+|-----------|---------|
+| Encoding | `(theta << 27) \| ((phi-1) << 24) \| (harmonic << 21) \| (radius << 13) \| reserved` |
+| Theta decoding | `(address >> 27) & 0x1F` |
+| Phi decoding | `((address >> 24) & 0x07) + 1` |
+| Harmonic decoding | `(address >> 21) & 0x07` |
+| Radius decoding | `(address >> 13) & 0xFF` |
+| Reserved decoding | `address & 0x1FFF` |
+
+#### Value Ranges
+| Field | Minimum | Maximum | Notes |
+|-------|---------|---------|-------|
+| Theta | 1 | 27 | 27 Repitans |
+| Phi | 1 | 6 | 6 RAC levels |
+| Harmonic | 0 | 4 | 5 Omega tiers |
+| Radius | 0 | 255 | Normalized 0-1 |
+| Reserved | 0 | 8191 | CRC or future |
+| Address | 0x08000000 | 0xFFFFFFFF | Valid range |
+
+### What v1.0.0 Guaranteed (Legacy 28-bit)
+
+> **DEPRECATED:** The following applies to the legacy 28-bit format only.
+
+#### Address Format (Legacy)
 | Guarantee | Value |
 |-----------|-------|
 | Total address width | 28 bits |
@@ -55,7 +101,7 @@ The following are **immutable** for all 1.x.x versions:
 | Harmonic field position | Bits 7:0 |
 | Harmonic field width | 8 bits |
 
-#### Encoding/Decoding
+#### Encoding/Decoding (Legacy)
 | Guarantee | Formula |
 |-----------|---------|
 | Encoding | `(shell << 26) \| (theta << 17) \| (phi << 8) \| harmonic` |
@@ -64,7 +110,7 @@ The following are **immutable** for all 1.x.x versions:
 | Phi decoding | `(address >> 8) & 0x1FF` |
 | Harmonic decoding | `address & 0xFF` |
 
-#### Value Ranges
+#### Value Ranges (Legacy)
 | Field | Minimum | Maximum |
 |-------|---------|---------|
 | Shell | 0 | 3 |
@@ -239,7 +285,8 @@ Implementations may claim:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2024-12-27 | Initial stable release |
+| 2.0.0 | 2026-01-04 | Ra-Canonical 32-bit format |
+| 1.0.0 | 2024-12-27 | Initial stable release (28-bit, now deprecated) |
 
 ---
 

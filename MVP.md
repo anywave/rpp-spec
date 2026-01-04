@@ -1,9 +1,14 @@
 # RPP Minimum Viable Product (MVP)
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Author:** Alexander Liam Lennon
-**Last Updated:** 2024-12-27
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
+
+---
+
+> **Ra-Canonical v2.0:** This MVP document has been updated for the 32-bit Ra-Canonical format.
+> See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for address specification.
 
 ---
 
@@ -38,14 +43,15 @@ No coherence pipeline. No twin. No emergence. No hardware.
 
 ### A. Address Format
 
-28-bit address with minimal semantics:
+32-bit Ra-Canonical address with semantic meaning:
 
 | Field | Bits | Range | Meaning |
 |-------|------|-------|---------|
-| Shell | 2 | 0-3 | Tier (hot/warm/cold/archive) or lifecycle class |
-| Theta | 9 | 0-511 | Domain bucket |
-| Phi | 9 | 0-511 | Sensitivity/grounding band |
-| Harmonic | 8 | 0-255 | Mode/version |
+| θ (Theta) | 5 | 1-27 | Semantic sector (27 Repitans) |
+| φ (Phi) | 3 | 1-6 | Access sensitivity (6 RAC levels) |
+| h (Harmonic) | 3 | 0-4 | Coherence tier (5 Omega formats) |
+| r (Radius) | 8 | 0-255 | Intensity scalar |
+| Reserved | 13 | 0-8191 | CRC or future use |
 
 ```
 encode(shell, theta, phi, harmonic) = (shell << 26) | (theta << 17) | (phi << 8) | harmonic

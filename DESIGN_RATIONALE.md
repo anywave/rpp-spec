@@ -1,8 +1,14 @@
 # RPP Design Rationale
 
-**Version:** 1.0.0
-**Last Updated:** 2024-12-27
+**Version:** 2.0.0
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
+
+---
+
+> **Note:** This document has been updated for Ra-Canonical v2.0 (32-bit format).
+> The original 28-bit format (v1.0) is preserved for historical context.
+> See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for current specification.
 
 ---
 
@@ -23,9 +29,26 @@ What if the address itself carried meaning?
 
 ## Core Design Decisions
 
-### 1. Why 28 Bits?
+### 1. Why 32 Bits (Ra-Canonical v2.0)?
 
-**Decision:** Fixed 28-bit address width.
+**Current Decision:** Fixed 32-bit Ra-Canonical address.
+
+The v2.0 format derives field allocations from the Ra System constants:
+- **θ (5 bits):** 27 Repitans (semantic sectors)
+- **φ (3 bits):** 6 RAC access levels
+- **h (3 bits):** 5 Omega coherence tiers
+- **r (8 bits):** Intensity scalar (Ankh-normalized)
+- **Reserved (13 bits):** CRC or future use
+
+**Why the change from 28-bit v1.0?**
+- Ra System provides semantic meaning to field boundaries
+- Full 32-bit alignment simplifies hardware implementation
+- Reserved bits allow for integrity checking (CRC-13)
+- Maintains backward compatibility via migration path
+
+#### Historical: Why 28 Bits? (v1.0)
+
+**Original Decision:** Fixed 28-bit address width.
 
 **Alternatives Considered:**
 | Width | Pros | Cons |
@@ -35,7 +58,7 @@ What if the address itself carried meaning?
 | 64-bit | Huge space | Overkill, splits registers |
 | Variable | Flexible | Parsing overhead, no hardware parity |
 
-**Rationale:**
+**Original Rationale (v1.0):**
 - 28 bits = 268M addresses (sufficient for semantic space)
 - Fits in 32-bit register with 4 bits for parity/flags
 - Matches historical sweet spots (68000, LISP machines, early ARM)

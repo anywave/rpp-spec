@@ -1,7 +1,7 @@
 # Academic Publication Intent
 
-**Document Version:** 1.0.0
-**Last Updated:** 2024-12-27
+**Document Version:** 2.0.0
+**Last Updated:** 2026-01-04
 **Status:** Ready for Submission
 
 ---
@@ -49,13 +49,13 @@ This specification is published as **defensive prior art** under the following p
 ### Preferred Citation (BibTeX)
 
 ```bibtex
-@techreport{rpp2024,
-  title     = {Rotational Packet Protocol ({RPP}): A Semantic Addressing
-               Architecture for Consent-Aware Memory Systems},
+@techreport{rpp2026,
+  title     = {Rotational Packet Protocol ({RPP}): A Ra-Canonical Semantic
+               Addressing Architecture for Consent-Aware Memory Systems},
   author    = {Lennon, Alexander Liam},
-  year      = {2024},
-  month     = {December},
-  version   = {1.0.0},
+  year      = {2026},
+  month     = {January},
+  version   = {2.0.0},
   url       = {https://github.com/anywave/rpp-spec},
   note      = {Open specification, Apache 2.0 + CC BY 4.0}
 }
@@ -64,16 +64,16 @@ This specification is published as **defensive prior art** under the following p
 ### Preferred Citation (APA)
 
 ```
-Lennon, A. L. (2024). Rotational Packet Protocol (RPP): A semantic
-addressing architecture for consent-aware memory systems (Version 1.0.0).
+Lennon, A. L. (2026). Rotational Packet Protocol (RPP): A Ra-Canonical semantic
+addressing architecture for consent-aware memory systems (Version 2.0.0).
 https://github.com/anywave/rpp-spec
 ```
 
 ### Preferred Citation (IEEE)
 
 ```
-A. L. Lennon, "Rotational Packet Protocol (RPP): A Semantic Addressing
-Architecture for Consent-Aware Memory Systems," version 1.0.0, Dec. 2024.
+A. L. Lennon, "Rotational Packet Protocol (RPP): A Ra-Canonical Semantic Addressing
+Architecture for Consent-Aware Memory Systems," version 2.0.0, Jan. 2026.
 [Online]. Available: https://github.com/anywave/rpp-spec
 ```
 
@@ -82,13 +82,13 @@ Architecture for Consent-Aware Memory Systems," version 1.0.0, Dec. 2024.
 Once a Zenodo DOI is assigned, citations should include:
 
 ```bibtex
-@techreport{rpp2024,
-  title     = {Rotational Packet Protocol ({RPP}): A Semantic Addressing
-               Architecture for Consent-Aware Memory Systems},
+@techreport{rpp2026,
+  title     = {Rotational Packet Protocol ({RPP}): A Ra-Canonical Semantic
+               Addressing Architecture for Consent-Aware Memory Systems},
   author    = {Lennon, Alexander Liam},
-  year      = {2024},
-  month     = {December},
-  version   = {1.0.0},
+  year      = {2026},
+  month     = {January},
+  version   = {2.0.0},
   doi       = {10.5281/zenodo.XXXXXXX},
   url       = {https://github.com/anywave/rpp-spec}
 }
@@ -102,16 +102,16 @@ Once a Zenodo DOI is assigned, citations should include:
 
 | Version | Status | Citability |
 |---------|--------|------------|
-| 1.0.0 | Stable | Citable as canonical reference |
-| 1.x.x | Minor updates | Citable; note specific version |
-| 2.x.x | Major revision | Cite as separate work |
+| 2.0.0 | Stable (Ra-Canonical) | Citable as canonical reference |
+| 2.x.x | Minor updates | Citable; note specific version |
+| 1.0.0 | Legacy (28-bit, deprecated) | Cite for historical reference |
 
 ### Citing Specific Versions
 
 For reproducibility, cite the specific version used:
 
 ```
-Lennon, A. L. (2024). Rotational Packet Protocol (RPP) (Version 1.0.0).
+Lennon, A. L. (2026). Rotational Packet Protocol (RPP) (Version 2.0.0).
 ```
 
 Git tags and GitHub releases provide permanent references to specific versions.
@@ -176,8 +176,9 @@ Open an issue on GitHub: https://github.com/anywave/rpp-spec/issues
 
 | Date | Event |
 |------|-------|
-| 2024-12-27 | Initial GitHub publication |
-| 2024-12-27 | Version 1.0.0 release tagged |
+| 2024-12-27 | Initial GitHub publication (v1.0.0) |
+| 2024-12-27 | Version 1.0.0 release tagged (legacy 28-bit) |
+| 2026-01-04 | Version 2.0.0 release (Ra-Canonical 32-bit) |
 | Pending | Zenodo DOI assignment |
 | Pending | arXiv submission |
 
@@ -195,12 +196,14 @@ Publication timestamps can be independently verified via:
 
 This publication establishes prior art for:
 
-1. **28-bit semantic addressing format** with Shell/Theta/Phi/Harmonic fields
-2. **Spherical coordinate addressing** for functional classification
-3. **Consent-aware address resolution** as intrinsic property
-4. **Bridge architecture** for semantic routing to existing storage
-5. **Sector-based functional classification** (Gene, Memory, Witness, Dream, etc.)
-6. **Grounding-level encoding** (physical → abstract spectrum)
+1. **32-bit Ra-Canonical semantic addressing format** with θ/φ/h/r fields (v2.0)
+2. **Ra-derived field semantics**: 27 Repitans, 6 RAC levels, 5 Omega tiers
+3. **Legacy 28-bit semantic addressing format** with Shell/Theta/Phi/Harmonic fields (v1.0)
+4. **Spherical coordinate addressing** for functional classification
+5. **Consent-aware address resolution** as intrinsic property
+6. **Bridge architecture** for semantic routing to existing storage
+7. **Sector-based functional classification** mapped to Ra System constants
+8. **RAC-level encoding** for access sensitivity
 
 This list is illustrative, not exhaustive. The complete prior art scope encompasses all concepts described in the specification documents.
 

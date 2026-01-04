@@ -1,7 +1,7 @@
 # Contributing to RPP
 
-**Document Version:** 1.0.0
-**Last Updated:** 2024-12-27
+**Document Version:** 2.0.0
+**Last Updated:** 2026-01-04
 **License:** CC BY 4.0
 
 ---
@@ -115,15 +115,21 @@ Changes to core specification documents are reviewed against:
 
 ## Backward Compatibility
 
-### Immutable Elements
+### Immutable Elements (v2.x Ra-Canonical)
 
 The following cannot change in minor versions:
 
+- 32-bit address width
+- Field positions (Theta:5, Phi:3, Harmonic:3, Radius:8, Reserved:13)
+- Bit masks and shifts
+- Ra-derived semantic mappings (27 Repitans, 6 RAC levels, 5 Omega tiers)
+- Test vectors (results must not change)
+
+### Immutable Elements (v1.x Legacy - Deprecated)
+
 - 28-bit address width
 - Field positions (Shell, Theta, Phi, Harmonic)
-- Bit masks and shifts
 - Canonical sector definitions (0-511 ranges)
-- Test vectors (results must not change)
 
 ### Mutable Elements
 
@@ -149,12 +155,12 @@ Breaking changes require:
 ### If You Build on RPP
 
 ```bibtex
-@techreport{rpp2024,
-  title     = {Rotational Packet Protocol ({RPP}): A Semantic Addressing
-               Architecture for Consent-Aware Memory Systems},
+@techreport{rpp2026,
+  title     = {Rotational Packet Protocol ({RPP}): A Ra-Canonical Semantic
+               Addressing Architecture for Consent-Aware Memory Systems},
   author    = {{RPP Contributors}},
-  year      = {2024},
-  version   = {1.0.0},
+  year      = {2026},
+  version   = {2.0.0},
   url       = {https://github.com/anywave/rpp-spec}
 }
 ```

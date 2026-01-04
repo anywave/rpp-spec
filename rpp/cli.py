@@ -1,5 +1,10 @@
 """
-RPP Command Line Interface
+RPP Command Line Interface (Legacy v1.0)
+
+NOTE: This CLI uses the legacy 28-bit address format.
+For Ra-Canonical v2.0 (32-bit) format, use rpp-canonical CLI.
+
+See: rpp/cli_canonical.py for the Ra-Canonical v2.0 CLI.
 
 Emulator-proof CLI for RPP operations.
 Works via stdin/stdout with no ANSI codes or cursor control.

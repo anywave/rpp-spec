@@ -1,8 +1,13 @@
 # RPP Vision & Intent
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Status:** Canonical
 **License:** CC BY 4.0
+
+---
+
+> **Ra-Canonical v2.0:** This document has been updated for the 32-bit Ra-Canonical format.
+> See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for address specification.
 
 ---
 
@@ -25,11 +30,12 @@ RPP asks: *"Where does this belong?"*
 
 ### 1. Meaning at the Address Level
 
-Every RPP address is a **28-bit coordinate** encoding:
-- **Shell** (2 bits): Radial depth / storage tier
-- **Theta** (9 bits): Functional sector (what it does)
-- **Phi** (9 bits): Elevation / grounding level
-- **Harmonic** (8 bits): Resolution / mode / version
+Every RPP address is a **32-bit Ra-Canonical coordinate** encoding:
+- **Theta** (5 bits): 27 Repitans / semantic sector
+- **Phi** (3 bits): 6 RAC access sensitivity levels
+- **Harmonic** (3 bits): 5 Omega coherence tiers
+- **Radius** (8 bits): Intensity scalar (Ankh-normalized)
+- **Reserved** (13 bits): CRC or future use
 
 No lookup tables required. The address **is** the classification.
 
@@ -51,11 +57,12 @@ Access is not binary (allowed/denied). It is:
 
 ### 4. Hardware-Software Parity
 
-The 28-bit address format is designed for:
-- FPGA register packing
-- SPI transfer efficiency
+The 32-bit Ra-Canonical address format is designed for:
+- FPGA register packing (full 32-bit alignment)
+- SPI transfer efficiency (4 bytes)
 - MRAM addressability
 - Deterministic routing
+- CRC-13 integrity checking
 
 Software emulation and hardware execution produce identical results.
 
@@ -107,7 +114,7 @@ Open source is not charity. It is strategy aligned with values.
 
 RPP succeeds when:
 
-- [ ] The 28-bit addressing spec is stable and widely understood
+- [ ] The 32-bit Ra-Canonical addressing spec is stable and widely understood
 - [ ] Multiple independent implementations exist
 - [ ] Integration with existing systems requires no migration
 - [ ] The architecture can outlive its original authors
@@ -128,7 +135,8 @@ RPP succeeds when:
 
 | Document | Purpose |
 |----------|---------|
-| [SPEC.md](spec/SPEC.md) | Canonical 28-bit addressing specification |
+| [RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) | Canonical 32-bit Ra-Canonical addressing specification |
+| [SPEC.md](spec/SPEC.md) | Legacy 28-bit specification (deprecated) |
 | [SEMANTICS.md](spec/SEMANTICS.md) | Meaning model and geometric interpretation |
 | [RESOLVER.md](spec/RESOLVER.md) | Bridge/adapter architecture |
 | [GOVERNANCE.md](GOVERNANCE.md) | Decision-making process |
