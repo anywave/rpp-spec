@@ -28,6 +28,33 @@ developers: addresses are encoded in human-meaningful terms (storage tier, data 
 spectrum, routing mode). The transport substrate uses the v2.0 Ra-Canonical format; a translation
 layer bridges the two. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).
 
+### 1.1 Addresses Are Temporal, Not Permanent
+
+**Critical design property:** RPP addresses are routing states, not permanent object identifiers.
+
+A data record does not have one fixed RPP address. Its address is a function of:
+
+```
+address = f(data_type, current_consent_state, routing_context)
+```
+
+When consent changes, the address changes. An address resolved at time T is not guaranteed
+valid at time T+1. Callers MUST resolve addresses at the point of access — caching is not safe.
+
+This means the 28-bit address space (268,435,456 values) represents **concurrent routing
+capacity**, not a universal object namespace. Addresses are recycled as consent states change,
+sessions end, or routing contexts expire.
+
+**Implications:**
+- Stolen addresses become stale — unlike stolen object IDs, which are permanently valid
+- Consent revocation is immediate — the address ceases to resolve; no object can be located
+- No central registry — nothing permanently maps "this data" to "this address"
+- The Shell field encodes temporal scope (see Section 2.3)
+
+On spintronic hardware, temporality is enforced physically: the spin state carrying a routing
+permission decoheres in T2 time. The address literally ceases to exist in the substrate.
+Software implementations MUST enforce equivalent TTL semantics per Shell tier.
+
 ---
 
 ## 2. Address Format
@@ -55,7 +82,25 @@ layer bridges the two. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).
 | Harmonic | 8 | 7:0 | 0-255 | Unsigned |
 
 **Total Width:** 28 bits (unsigned integer)
-**Address Space:** 2²⁸ = 268,435,456 unique addresses
+**Address Space:** 2²⁸ = 268,435,456 concurrent routing states (recycled over time — not a fixed namespace)
+
+### 2.2.1 Shell: Temporal Scope
+
+Shell encodes both storage proximity AND the temporal validity window of the routing address.
+Implementations MUST enforce address expiry per shell tier:
+
+| Shell | Name | Storage | Address TTL (software) | Spintronic T2 |
+|-------|------|---------|------------------------|---------------|
+| 0 | Hot | In-memory cache | Session duration | ~25 ns |
+| 1 | Warm | Near-line storage | Transaction / day | ~100 ns |
+| 2 | Cold | Archive | Agreement / month | ~400 ns |
+| 3 | Frozen | Deep archive | Until explicit revocation | ~1,600 ns |
+
+A Shell=0 (Hot) address resolved in one session MUST NOT be assumed valid in another session.
+A Shell=3 (Frozen) address persists until the data owner explicitly revokes consent.
+
+This is the software equivalent of the spintronics T2 profile: Shell determines how long the
+routing permission physically (or logically) survives.
 
 ### 2.3 Bit Masks
 

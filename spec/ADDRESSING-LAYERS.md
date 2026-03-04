@@ -7,7 +7,31 @@
 
 ---
 
-## Overview
+## The Core Property: Addresses Are Temporal
+
+RPP addresses are **routing states**, not permanent object identifiers. This is the design
+property that distinguishes RPP from all conventional addressing schemes.
+
+```
+Conventional:   address = permanent_location(object)
+                consent = external_policy_overlay
+
+RPP:            address = f(data_type, current_consent, routing_context)
+                consent = intrinsic_to_address
+                address expires when consent expires
+```
+
+The 28-bit address space (268,435,456 values) represents concurrent routing capacity, not a
+universal namespace. Addresses are recycled. A stolen address becomes stale the moment consent
+changes or the session ends. No central registry permanently maps objects to addresses.
+
+On spintronic hardware, this is physics, not policy: the spin state carrying a routing
+permission decoheres in T2 time. The address ceases to exist in the substrate. Software
+implementations enforce equivalent TTL semantics via the Shell field.
+
+---
+
+## Two-Layer Architecture
 
 RPP operates as two complementary, coexisting layers of an addressing stack — analogous to how DNS
 and subnet addressing both exist in TCP/IP without one replacing the other:
