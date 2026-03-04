@@ -1,15 +1,13 @@
 """
-RPP Resolver (Legacy v1.0)
+RPP Resolver (Semantic Interface Layer v1.0)
 
-DEPRECATED: This module implements the legacy 28-bit address format.
-For new implementations, use resolver_canonical.py which implements
-the Ra-Canonical v2.0 (32-bit) format.
+The resolver translates 28-bit Semantic Interface Layer addresses into routing
+decisions. This is NOT deprecated — it is the application-layer resolver.
+For the Transport/Resonance Layer resolver, see resolver_canonical.py.
 
-See: rpp/resolver_canonical.py for the current format.
 See: spec/RESOLVER.md for resolver architecture documentation.
 
-The resolver translates RPP addresses into routing decisions.
-It returns exactly: allowed (bool), route (str or null), reason (str).
+Returns exactly: allowed (bool), route (str or null), reason (str).
 
 This is the core of RPP's bridge architecture - it routes TO storage,
 it does not provide storage itself.
@@ -20,20 +18,13 @@ Consent integration:
 - Requires verified identity for high-sensitivity operations
 """
 
-import warnings
-
-warnings.warn(
-    "rpp.resolver uses legacy 28-bit format. Use rpp.resolver_canonical for Ra-Canonical v2.0.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Protocol
-from rpp.address import from_raw, RPPAddress, is_valid_address
+from typing import Any, Dict, Optional, Protocol
+
+from rpp.address import RPPAddress, from_raw, is_valid_address
 from rpp.consent import (
-    ConsentState,
     ConsentContext,
+    ConsentState,
     check_consent,
     create_consent_context,
 )

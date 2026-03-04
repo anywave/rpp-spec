@@ -5,7 +5,6 @@ Tests for Transitions Module
 Tests for state transition dynamics.
 """
 
-import pytest
 
 from rpp.transitions import (
     TransitionDirection,
@@ -338,7 +337,7 @@ class TestTransitionManager:
         manager = TransitionManager()
 
         # Initial value
-        result1 = manager.smooth_somatic(15)
+        manager.smooth_somatic(15)
 
         # Jump to 0
         result2 = manager.smooth_somatic(0)

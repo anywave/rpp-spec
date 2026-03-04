@@ -10,11 +10,9 @@ import pytest
 from rpp.consent_header import (
     ConsentState,
     AncestralConsent,
-    PayloadType,
     ConsentPacketHeader,
     SpiralPacket,
     derive_consent_state,
-    compute_crc8,
     HEADER_SIZE,
 )
 from rpp.ra_constants import (
@@ -22,7 +20,7 @@ from rpp.ra_constants import (
     ATTENTIVE_THRESHOLD_4BIT,
     DIMINISHED_THRESHOLD_4BIT,
 )
-from rpp.address_canonical import RPPAddress, ThetaSector, create_from_sector
+from rpp.address_canonical import ThetaSector, create_from_sector
 
 
 # =============================================================================

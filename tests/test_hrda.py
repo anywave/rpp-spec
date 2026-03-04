@@ -5,7 +5,6 @@ Tests for HRDA Module
 Tests for Harmonic Reflection & Derivation Algorithm.
 """
 
-import pytest
 
 from rpp.hrda import (
     WEIGHT_HRV,

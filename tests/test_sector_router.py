@@ -12,7 +12,6 @@ from rpp.sector_router import (
     SECTOR_ACCESS,
     UNIVERSAL_SECTORS,
     RESTRICTED_SECTORS,
-    SECTOR_SENSITIVITY,
     FALLBACK_CHAIN,
     can_access_sector,
     get_accessible_sectors,

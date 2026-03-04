@@ -9,7 +9,6 @@ import pytest
 
 from rpp.coherence import (
     ComplecountState,
-    CoherenceResult,
     compute_coherence_score,
     compute_binding_coefficient,
     is_binding_valid,

@@ -1,15 +1,9 @@
 """
-RPP Packet - Rotational Packet Envelope (Legacy v1.0)
+RPP Packet - Rotational Packet Envelope (Semantic Interface Layer v1.0)
 
-DEPRECATED: This module implements the legacy 28-bit address format.
-For new implementations, use packet_canonical.py which implements
-the Ra-Canonical v2.0 (32-bit) format.
-
-See: rpp/packet_canonical.py for the current format.
-
-Implements the packet format from PACKET.md:
-- 4-byte address (28-bit RPP address in big-endian)
-- Optional payload (0 to N bytes)
+Implements the packet format from PACKET.md using the 28-bit Semantic Interface
+Layer. This is NOT deprecated — it is the application-layer packet format.
+For the Transport/Resonance Layer, see packet_canonical.py.
 
 Packet types:
 - Empty: Address only (routing, query)
@@ -19,18 +13,10 @@ Packet types:
 - Framed: Length-prefixed content
 """
 
-import warnings
-
-warnings.warn(
-    "rpp.packet uses legacy 28-bit format. Use rpp.packet_canonical for Ra-Canonical v2.0.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
-from dataclasses import dataclass
-from typing import Optional
-from enum import IntEnum
 import hashlib
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import Optional
 
 from rpp.address import from_raw, RPPAddress, is_valid_address, MAX_ADDRESS
 

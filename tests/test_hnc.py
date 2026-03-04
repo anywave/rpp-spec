@@ -5,16 +5,14 @@ Tests for HNC Module
 Tests for Harmonic Nexus Core.
 """
 
-import pytest
 
 from rpp.hnc import (
     FragmentStatus,
     FragmentState,
-    ConflictResult,
     HarmonicNexusCore,
     create_hnc_with_fragments,
 )
-from rpp.ra_constants import MAX_COHERENCE, BINDING_THRESHOLD
+from rpp.ra_constants import MAX_COHERENCE
 
 
 # =============================================================================

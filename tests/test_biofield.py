@@ -5,11 +5,9 @@ Tests for Biofield Module
 Tests for biofield binding and phase memory.
 """
 
-import pytest
 
 from rpp.biofield import (
     BindingStatus,
-    BindingEvent,
     BiofieldBinding,
     PhaseMemoryAnchor,
     PhaseMemoryField,
@@ -20,7 +18,6 @@ from rpp.ra_constants import (
     MAX_COHERENCE,
     BINDING_THRESHOLD,
     KHAT_DURATION,
-    ALPHA_INVERSE,
 )
 
 

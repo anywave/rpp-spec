@@ -5,7 +5,6 @@ Tests for Fragment Mesh Module
 Tests for fragment mesh addressing and routing.
 """
 
-import pytest
 
 from rpp.mesh import (
     AddressType,
@@ -18,8 +17,6 @@ from rpp.mesh import (
     create_mesh_with_fragments,
 )
 from rpp.sector_router import RoutableSector
-from rpp.consent_header import ConsentState
-from rpp.ra_constants import MAX_COHERENCE, BINDING_THRESHOLD
 
 
 # =============================================================================

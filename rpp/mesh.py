@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Set, Callable
 from datetime import datetime, timezone
 import hashlib
 
-from rpp.ra_constants import MAX_COHERENCE, BINDING_THRESHOLD, PHI
+from rpp.ra_constants import MAX_COHERENCE, BINDING_THRESHOLD
 from rpp.sector_router import RoutableSector
 from rpp.consent_header import ConsentState
 

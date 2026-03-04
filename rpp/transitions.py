@@ -11,15 +11,11 @@ Version: 2.2.0-RaCanonical
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from enum import IntEnum
 from typing import Optional
 
 from rpp.ra_constants import (
     RADEL_ALPHA,
-    PHI_THRESHOLD_4BIT,
-    ATTENTIVE_THRESHOLD_4BIT,
-    DIMINISHED_THRESHOLD_4BIT,
     KHAT_DURATION,
     ETF_DURATION,
     DWELL_BASE,
@@ -483,7 +479,7 @@ class TransitionManager:
 
         # Update gates
         fallback_trigger = self._fallback_gate.update(coherence)
-        etf_trigger = self._etf_gate.update(is_emergency)
+        self._etf_gate.update(is_emergency)
 
         # Override state if ETF active
         if self._etf_gate.is_active:

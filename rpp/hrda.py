@@ -11,15 +11,12 @@ Version: 2.2.0-RaCanonical
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Final, Optional
+from dataclasses import dataclass
+from typing import Final
 
 from rpp.ra_constants import (
     RADEL_ALPHA,
     PHI,
-    PHI_THRESHOLD_4BIT,
-    ATTENTIVE_THRESHOLD_4BIT,
-    DIMINISHED_THRESHOLD_4BIT,
 )
 
 

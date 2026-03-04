@@ -12,7 +12,7 @@ Version: 2.2.0-RaCanonical
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import Dict, List, Optional, Set
 from datetime import datetime, timezone
@@ -20,12 +20,6 @@ from datetime import datetime, timezone
 from rpp.ra_constants import (
     MAX_COHERENCE,
     BINDING_THRESHOLD,
-    PHI,
-)
-from rpp.coherence import (
-    compute_coherence,
-    CoherenceResult,
-    ComplecountState,
 )
 
 

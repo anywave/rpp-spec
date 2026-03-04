@@ -6,7 +6,6 @@ Validates the mathematical foundation for SPIRAL protocol.
 """
 
 import math
-import pytest
 
 from rpp.ra_constants import (
     # Core constants
@@ -121,7 +120,6 @@ class TestConsentThresholds:
         """PHI_THRESHOLD_4BIT should be 10 (φ × 16)."""
         assert PHI_THRESHOLD_4BIT == 10
         # Check derivation: φ × 16 ≈ 9.89, rounds to 10
-        derived = round(PHI * 10)  # Using 10 as base since 16 × 0.618 ≈ 9.89
         assert PHI_THRESHOLD_4BIT == 10
 
     def test_attentive_threshold(self):
