@@ -1,29 +1,22 @@
 """
-RPP Address Encoding/Decoding (Legacy v1.0)
+RPP Address Encoding/Decoding — Semantic Interface Layer (v1.0)
 
-DEPRECATED: This module implements the legacy 28-bit address format.
-For new implementations, use address_canonical.py which implements
-the Ra-Canonical v2.0 (32-bit) format.
+This module implements the 28-bit Semantic Interface Layer: the developer-facing
+application API for RPP. It is NOT deprecated — it is one of two complementary
+layers in the RPP architecture (analogous to DNS vs. subnet addressing).
 
-See: rpp/address_canonical.py for the current format.
-
-Legacy 28-bit format:
+28-bit format:
   [31:28] Reserved (must be 0)
-  [27:26] Shell (2 bits, 0-3)
-  [25:17] Theta (9 bits, 0-511)
-  [16:8]  Phi (9 bits, 0-511)
-  [7:0]   Harmonic (8 bits, 0-255)
+  [27:26] Shell (2 bits, 0-3)   — storage proximity tier
+  [25:17] Theta (9 bits, 0-511) — data type sector (continuous)
+  [16:8]  Phi (9 bits, 0-511)   — consent level (continuous spectrum)
+  [7:0]   Harmonic (8 bits, 0-255) — routing mode
+
+For the Transport/Resonance Layer (Ra-derived), see address_canonical.py.
+See spec/ADDRESSING-LAYERS.md for the full two-layer architecture.
 
 This module is pure Python with no external dependencies.
 """
-
-import warnings
-
-warnings.warn(
-    "rpp.address is deprecated. Use rpp.address_canonical for Ra-Canonical v2.0 format.",
-    DeprecationWarning,
-    stacklevel=2
-)
 
 from dataclasses import dataclass
 from typing import Tuple

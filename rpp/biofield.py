@@ -22,8 +22,6 @@ from rpp.ra_constants import (
     MAX_COHERENCE,
     BINDING_THRESHOLD,
     KHAT_DURATION,
-    ALPHA_INVERSE,
-    PHI,
 )
 
 
