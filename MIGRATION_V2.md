@@ -1,13 +1,20 @@
-# Migration Guide: RPP v1.0 (28-bit) to Ra-Canonical v2.0 (32-bit)
+# RPP Layer Translation Reference: Semantic Interface ↔ Transport/Resonance
 
-**Status:** In Progress
+**Status:** Active reference
 **Date:** 2026-01-04
+**Revised:** 2026-03-04
+
+> **Framing Note:** This document was originally titled "Migration Guide" with the framing that
+> v1.0 was being replaced by v2.0. That framing was incorrect. v1.0 and v2.0 are NOT competing
+> versions — they are **complementary layers** of the same protocol stack, analogous to DNS names
+> and IP addresses. Neither is deprecated. This document now describes the **translation** between
+> the two layers. See [spec/ADDRESSING-LAYERS.md](spec/ADDRESSING-LAYERS.md) for full architecture.
 
 ---
 
 ## 1. Format Comparison
 
-### OLD Format (v1.0 - 28-bit)
+### Semantic Interface Layer (v1.0 - 28-bit)
 ```
 ┌─────────┬───────────┬───────────┬────────────┐
 │  Shell  │   Theta   │    Phi    │  Harmonic  │
@@ -19,7 +26,7 @@ Total: 28 bits
 Encoding: (shell << 26) | (theta << 17) | (phi << 8) | harmonic
 ```
 
-### NEW Format (Ra-Canonical v2.0 - 32-bit)
+### Transport/Resonance Layer (v2.0 - 32-bit)
 ```
 ┌─────────┬─────────┬─────────┬──────────┬───────────────────┐
 │    θ    │    φ    │    h    │    r     │    Reserved/CRC   │
@@ -32,16 +39,24 @@ Total: 32 bits
 
 ---
 
-## 2. Semantic Changes
+## 2. Layer Field Correspondence
 
-| Old Field | Old Range | New Field | New Range | Mapping |
-|-----------|-----------|-----------|-----------|---------|
-| Shell (2 bits) | 0-3 | **Removed** | N/A | Storage tier now derived from context |
-| Theta (9 bits) | 0-511 | θ (5 bits) | 1-27 | 27 Repitans from Ra System |
-| Phi (9 bits) | 0-511 | φ (3 bits) | 1-6 | 6 RAC access levels |
-| Harmonic (8 bits) | 0-255 | h (3 bits) | 0-4 | 5 Omega tiers (RED→BLUE) |
-| N/A | N/A | r (8 bits) | 0-255 | Radius/intensity scalar |
-| N/A | N/A | Reserved (13 bits) | 0-8191 | CRC or future use |
+These fields are **not replacements** — they are representations of the same address at two
+different layers of the protocol stack. The projection from semantic to transport is intentionally
+lossy: the transport layer encodes resonance category, not exact semantic position.
+
+| Semantic (v1.0) | Range | Transport (v2.0) | Range | Layer Projection |
+|-----------------|-------|------------------|-------|-----------------|
+| Shell (2 bits) | 0–3 | r / radius | 0–255 | Shell → normalized radius (shell/3) |
+| Theta (9 bits) | 0–511 | θ (5 bits) | 1–27 | 512 semantic sectors → 27 Repitans |
+| Phi (9 bits) | 0–511 | φ (3 bits) | 1–6 | 512-value consent spectrum → 6 RAC levels |
+| Harmonic (8 bits) | 0–255 | h (3 bits) | 0–4 | 256 routing modes → 5 Omega tiers |
+| — | — | Reserved (13 bits) | 0–8191 | CRC or routing hints |
+
+**Note on Phi:** Phi's reduction from 9 bits (512 consent values) to 3 bits (6 RAC levels)
+is a transport-layer approximation. The full consent spectrum is preserved in the semantic layer
+and must not be discarded — the transport tier can only route at the granularity of RAC levels.
+The resolver uses the semantic Phi value for fine-grained consent decisions.
 
 ---
 

@@ -1,22 +1,32 @@
-# RPP Addressing Specification (Legacy v1.0)
+# RPP Semantic Interface Layer (v1.0)
 
 **Version:** 1.0.0
-**Status:** DEPRECATED - See [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) for current specification
+**Status:** Active — Semantic Interface Layer
 **Last Updated:** 2024-12-27
 **License:** CC BY 4.0
 
 ---
 
-> **DEPRECATION NOTICE:** This document describes the legacy 28-bit address format (v1.0).
-> For new implementations, use the **Ra-Canonical v2.0** 32-bit format defined in
-> [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md). See [MIGRATION_V2.md](../MIGRATION_V2.md) for
-> migration guidance.
+> **Architecture Note:** This document defines the **Semantic Interface Layer** — the developer-facing
+> application-level addressing format. It is NOT deprecated. RPP operates as two complementary layers:
+>
+> - **v1.0 (this document):** Semantic Interface — what developers write: Shell/Theta/Phi/Harmonic
+>   mapped to human-meaningful concepts (storage tier, data type, consent level, routing mode).
+> - **v2.0 ([RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md)):** Transport/Resonance Layer — what the
+>   substrate routes: θ/φ/h/r derived from Ra System constants.
+>
+> This relationship is analogous to DNS vs. subnet addressing: both are correct, both are active,
+> and they serve different levels of the protocol stack. See
+> [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md) for the full architecture.
 
 ---
 
 ## 1. Overview
 
-This document defines the legacy 28-bit RPP (Rotational Packet Protocol) addressing format. For new implementations, refer to [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md).
+This document defines the 28-bit RPP Semantic Interface Layer. This is the primary API for
+developers: addresses are encoded in human-meaningful terms (storage tier, data type, consent
+spectrum, routing mode). The transport substrate uses the v2.0 Ra-Canonical format; a translation
+layer bridges the two. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).
 
 ---
 

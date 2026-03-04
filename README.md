@@ -3,13 +3,14 @@
 **A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
-[![Spec Version](https://img.shields.io/badge/Spec-v2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md)
+[![Semantic Layer](https://img.shields.io/badge/Semantic%20Interface-v1.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
+[![Transport Layer](https://img.shields.io/badge/Transport%2FResonance-v2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md)
 [![CI](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/pypi/pyversions/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18078640.svg)](https://doi.org/10.5281/zenodo.18078640)
 
-> **Ra-Canonical v2.0:** RPP now uses a 32-bit Ra-derived address format. See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for the authoritative specification. Legacy 28-bit format documented in [spec/SPEC.md](spec/SPEC.md).
+> **Two-Layer Architecture:** RPP uses two complementary address formats serving different levels of the protocol stack — analogous to DNS vs. subnet addressing. The **Semantic Interface Layer** ([spec/SPEC.md](spec/SPEC.md)) is the developer-facing API (28-bit Shell/Theta/Phi/Harmonic). The **Transport/Resonance Layer** ([spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md)) is the substrate routing format (32-bit Ra-derived θ/φ/h/r). Both are active. See [spec/ADDRESSING-LAYERS.md](spec/ADDRESSING-LAYERS.md) for the full architecture.
 
 > **Disambiguation:** This specification is unrelated to AMD ROCm Performance Primitives (rocPRIM), REAPER project files (.rpp), or any other technology sharing the "RPP" abbreviation.
 
@@ -31,7 +32,8 @@ RPP is **NOT**:
 - An AI system (deterministic bit operations only)
 
 RPP **IS**:
-- A deterministic 32-bit Ra-Canonical semantic address (v2.0)
+- A **Semantic Interface Layer** (28-bit Shell/Theta/Phi/Harmonic) — the developer API
+- A **Transport/Resonance Layer** (32-bit Ra-derived θ/φ/h/r) — the substrate routing format
 - A resolver returning allow/deny/route decisions
 - A bridge to existing storage backends
 

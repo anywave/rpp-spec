@@ -6,9 +6,11 @@
 
 ---
 
-> **Note:** This document has been updated for Ra-Canonical v2.0 (32-bit format).
-> The original 28-bit format (v1.0) is preserved for historical context.
-> See [spec/RPP-CANONICAL-v2.md](spec/RPP-CANONICAL-v2.md) for current specification.
+> **Architecture Note:** RPP uses two complementary, coexisting address layers — not competing
+> versions. The **Semantic Interface Layer** (v1.0, 28-bit Shell/Theta/Phi/Harmonic) serves
+> developers and applications. The **Transport/Resonance Layer** (v2.0, 32-bit Ra-derived θ/φ/h/r)
+> serves the substrate. Both are active. See [spec/ADDRESSING-LAYERS.md](spec/ADDRESSING-LAYERS.md)
+> for the full architecture and rationale.
 
 ---
 

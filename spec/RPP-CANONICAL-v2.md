@@ -1,15 +1,27 @@
-# RPP Canonical Address Specification v2.0
+# RPP Transport/Resonance Layer (v2.0)
 
-**Status:** Canonical
+**Status:** Active — Transport/Resonance Layer
 **Derived From:** Ra Constants (Wesley H. Bateman, 1992-1997)
 **Last Updated:** 2026-01-04
 **License:** CC BY 4.0
 
 ---
 
+> **Architecture Note:** This document defines the **Transport/Resonance Layer** — the substrate-level
+> routing format. It is NOT a replacement for the v1.0 Semantic Interface Layer ([SPEC.md](SPEC.md)).
+> RPP operates as two complementary layers:
+>
+> - **v1.0 ([SPEC.md](SPEC.md)):** Semantic Interface — developer-facing (Shell/Theta/Phi/Harmonic).
+> - **v2.0 (this document):** Transport/Resonance Layer — substrate routing (θ/φ/h/r from Ra constants).
+>
+> Analogous to DNS vs. subnet addressing: DNS names (v1.0) resolve to routable addresses (v2.0).
+> A translation layer maps between them. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).
+
+---
+
 ## 1. Design Principle
 
-The RPP address is not an arbitrary bit allocation—it is a **projection of resonance into symbolic topology**. Every field derives from Ra System constants:
+The v2.0 transport address is a **projection of resonance into symbolic topology**. Every field derives from Ra System constants, enabling substrate-level routing at the coherence/resonance tier:
 
 | Field | Ra Source | Symbolic Function |
 |-------|-----------|-------------------|
