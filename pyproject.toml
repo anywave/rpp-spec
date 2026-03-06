@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rpp-protocol"
-version = "2.0.0"
+version = "2.1.0"
 description = "Rotational Packet Protocol - 32-bit Ra-Canonical semantic addressing for consent-aware systems"
 readme = "README.md"
 license = "Apache-2.0"

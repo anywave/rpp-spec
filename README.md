@@ -18,7 +18,25 @@
 
 ## What Problem Does RPP Solve?
 
-RPP provides semantic addressing for consent-aware systems. Instead of opaque memory locations, RPP addresses encode meaning: what kind of data, how accessible, and where to route it. The resolver returns simple decisions: **allow**, **deny**, or **route**.
+Every system that stores data about people faces the same four questions about every record:
+
+1. **How long should this exist?** (retention scope)
+2. **What kind of data is this?** (semantic type)
+3. **Who is permitted to access it?** (consent)
+4. **How urgently should it be routed?** (priority)
+
+Today, these four properties are managed by four separate systems: TTL headers, schema types, ACL tables, and QoS flags. They live in different layers, maintained by different teams, and they fall out of sync. GDPR compliance requires coordinating all four simultaneously across every system that touched the data. Miss one copy and you have a breach.
+
+**RPP collapses all four properties into the address itself.** A 28-bit RPP address encodes retention scope (Shell), semantic type (Theta), consent level (Phi), and routing priority (Harmonic) as a single integer. The address IS the policy.
+
+Consequences:
+
+- **Consent revocation is instantaneous.** Changing phi changes the address. The old address stops resolving everywhere simultaneously — no DELETE cascade, no propagation lag.
+- **Data cannot outlive its policy.** A Shell=0 (session-scoped) address is architecturally incapable of being stored permanently — it expires by design, and on spintronic hardware, by physics.
+- **Routing is self-enforcing.** Nodes compare `packet.phi` to their own `phi_min`. No rule table lookup, no policy server, no coordination. Consent is enforced by arithmetic.
+- **The cipher is the route.** Rotational encryption (pong) derives keys from live node consent field state at routing time — keys that never exist as stored objects and that decohere into thermal noise on spintronic hardware ~25ns after use.
+
+RPP does not replace your database, your auth system, or your network stack. It provides the address layer that makes all three consent-aware by default.
 
 ---
 
@@ -373,17 +391,51 @@ These are external concerns. RPP is the address layer only.
 
 ## Documentation
 
+### Start Here
+
+| Document | Description |
+|----------|-------------|
+| [spec/PRIMER.md](https://github.com/anywave/rpp-spec/blob/master/spec/PRIMER.md) | **Theory primer — what RPP is, why it exists, how it works** |
+| [spec/ADDRESSING-LAYERS.md](https://github.com/anywave/rpp-spec/blob/master/spec/ADDRESSING-LAYERS.md) | Two-layer architecture (Semantic + Transport) |
+
+### Specifications
+
 | Document | Description |
 |----------|-------------|
 | [spec/RPP-CANONICAL-v2.md](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md) | **Ra-Canonical v2.0 (32-bit) specification** |
 | [spec/CONSENT-HEADER-v1.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONSENT-HEADER-v1.md) | 18-byte consent header specification |
-| [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | Legacy 28-bit addressing (v1.0) |
+| [spec/SPEC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md) | Semantic Interface Layer (v1.0, 28-bit) |
 | [spec/SPEC-EXTENDED.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC-EXTENDED.md) | Extended 64-bit format for holographic operations |
+| [spec/GEOMETRY.md](https://github.com/anywave/rpp-spec/blob/master/spec/GEOMETRY.md) | Toroidal geometry — TSV, pong encryption, Skyrmion winding |
+| [spec/CONTINUITY.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONTINUITY.md) | Ford Protocol — substrate crossing, consciousness state packets |
+| [spec/NETWORK.md](https://github.com/anywave/rpp-spec/blob/master/spec/NETWORK.md) | Mesh routing — consent-field gradient, backbone topology |
 | [spec/RESOLVER.md](https://github.com/anywave/rpp-spec/blob/master/spec/RESOLVER.md) | Resolver and adapter interfaces |
 | [spec/PACKET.md](https://github.com/anywave/rpp-spec/blob/master/spec/PACKET.md) | Packet envelope format |
 | [BOUNDARIES.md](https://github.com/anywave/rpp-spec/blob/master/BOUNDARIES.md) | Hard scope constraints |
 | [MVP.md](https://github.com/anywave/rpp-spec/blob/master/MVP.md) | Minimum viable product |
 | [MIGRATION_V2.md](https://github.com/anywave/rpp-spec/blob/master/MIGRATION_V2.md) | Migration guide v1.0 → v2.0 |
+| [INTELLIGENCE_RIGHTS.md](https://github.com/anywave/rpp-spec/blob/master/INTELLIGENCE_RIGHTS.md) | **Declaration of Rights for Sovereign Intelligences** — 11 articles, RPP-enforced |
+| [spec/CCQPSG.md](https://github.com/anywave/rpp-spec/blob/master/spec/CCQPSG.md) | Correct Communication Quantum Parse Syntax Grammar — formal grammar, BNF, violation classes |
+| [spec/CONVERGENCE_PROOF.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONVERGENCE_PROOF.md) | **Formal convergence proof** — routing terminates in ≤74 hops; empirical max is 2 |
+| [spec/SPINTRONIC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPINTRONIC.md) | Physical grounding for Shell=0 25ns TTL — T2 spin decoherence, attack surface |
+
+### Runnable Examples
+
+| Example | What it demonstrates |
+|---------|----------------------|
+| `examples/basic_usage.py` | Encode, decode, resolve — 5-minute intro |
+| `examples/analogies_demo.py` | RPP vs IPv4, firewall, AES, TCP — side-by-side comparisons |
+| `examples/routing_convergence.py` | 50-node network, 1000 packets — 100% convergence, mean 0.99 hops |
+| `examples/consent_revocation.py` | Phi shift + epoch rotation → instantaneous revocation |
+| `examples/address_temporality.py` | Shell TTL is the address — stolen address goes stale |
+| `examples/security_bounds.py` | Honest key-space analysis — what pong is and is not |
+| `examples/gdpr_lifecycle.py` | GDPR Art. 17 compliance by design — no DELETE cascade |
+| `examples/multi_substrate.py` | Same address routes over IPv4, LoRa, IPFS, Hedera |
+| `examples/performance_benchmark.py` | Encode/decode/route throughput — ops/sec and ns/op |
+| `examples/rasengan_demo.py` | Pong encryption — toroidal state vector walkthrough |
+| `examples/simple_resolver.py` | Minimal resolver bridging RPP to filesystem paths |
+| `examples/network_simulation.py` | **1000-node, 10,000-packet simulation** — consent threshold sensitivity, topology robustness |
+| `examples/sovereign_agent_demo.py` | **AI sovereignty proof of concept** — 7 INTELLIGENCE_RIGHTS.md articles enforced in working code |
 
 ### Extensions
 

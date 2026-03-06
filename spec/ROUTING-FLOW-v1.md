@@ -449,4 +449,12 @@ def deliver_packet(
 
 ---
 
+---
+
+## See Also
+
+- [NETWORK.md](NETWORK.md) — Consent-field mesh topology underlying fragment mesh queries in Step 7
+- [GEOMETRY.md](GEOMETRY.md) — Toroidal routing coordinates used for address resolution and fallback computation
+- [CONTINUITY.md](CONTINUITY.md) — Ford Protocol for cross-substrate routing continuity
+
 *"Route by resonance, not just destination."*

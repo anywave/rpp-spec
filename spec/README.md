@@ -1,45 +1,100 @@
 # RPP Specification Directory
 
-This directory contains the complete specification for the Recursive Packet Protocol (RPP), derived from Ra Constants and aligned with SPIRAL architecture.
+This directory contains the complete specification for the Recursive Packet Protocol (RPP),
+a consent-aware addressing system aligned with SPIRAL architecture.
 
-## Specification Hierarchy
+---
 
-### Core Specifications (Ra-Derived)
+## Two-Layer Architecture
+
+RPP operates as two complementary, coexisting layers — analogous to how DNS and subnet
+addressing both exist in TCP/IP without one replacing the other. See
+[ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md) for the full architecture.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│          APPLICATION / DEVELOPER LAYER                  │
+│                                                         │
+│   RPP Semantic Interface (v1.0)                         │
+│   28-bit  ·  Shell / Theta / Phi / Harmonic             │
+│   Human-meaningful: storage tier, type, consent, mode   │
+├─────────────────────────────────────────────────────────┤
+│          TRANSLATION / RESOLVER LAYER                   │
+│                                                         │
+│   v1.0 ──── encodes ───► v2.0 transport address         │
+│   (like DNS name  ──────► IP address)                   │
+├─────────────────────────────────────────────────────────┤
+│          TRANSPORT / RESONANCE LAYER                    │
+│                                                         │
+│   RPP Ra-Canonical (v2.0)                               │
+│   32-bit  ·  θ / φ / h / r / reserved                  │
+│   Ra-derived: Repitan, RAC level, Omega, radius         │
+└─────────────────────────────────────────────────────────┘
+```
+
+Neither layer is deprecated. They serve different levels of the protocol stack.
+
+---
+
+## Specification Index
+
+### Semantic Interface Layer (v1.0) — Developer-Facing
 
 | Document | Version | Status | Description |
 |----------|---------|--------|-------------|
-| [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) | 2.0 | **Finalized** | Canonical RPP address format derived from Ra Constants |
+| [SPEC.md](SPEC.md) | 1.0 | **Active** | Semantic Interface Layer — 28-bit Shell/Theta/Phi/Harmonic |
+| [SPEC-EXTENDED.md](SPEC-EXTENDED.md) | 1.1 | Active | Extended field definitions and edge cases |
+| [SEMANTICS.md](SEMANTICS.md) | 1.0 | Active | Sector and grounding-level semantic definitions |
+| [PACKET.md](PACKET.md) | 1.0 | Active | Packet framing for v1.0 semantic addresses |
+
+### Transport / Resonance Layer (v2.0) — Substrate-Facing
+
+| Document | Version | Status | Description |
+|----------|---------|--------|-------------|
+| [RPP-CANONICAL-v2.md](RPP-CANONICAL-v2.md) | 2.0 | **Active** | Transport/Resonance Layer — 32-bit Ra-derived address format |
 | [CONSENT-HEADER-v1.md](CONSENT-HEADER-v1.md) | 1.0 | Draft | System-layer envelope wrapping RPP address |
 | [PMA-SCHEMA-v1.md](PMA-SCHEMA-v1.md) | 1.0 | Draft | Phase Memory Anchor persistence schema |
 | [ROUTING-FLOW-v1.md](ROUTING-FLOW-v1.md) | 1.0 | Draft | Complete resolver routing decision flow |
 
-### Legacy Specifications (Superseded)
+### Architecture and Cross-Layer Documents
 
-| Document | Status | Notes |
-|----------|--------|-------|
-| [PACKET.md](PACKET.md) | Superseded | Original 28-bit format, replaced by RPP-CANONICAL-v2 |
-| [RESOLVER.md](RESOLVER.md) | Active | Backend resolver protocol (still valid) |
-| [SECTOR.md](SECTOR.md) | Active | Sector definitions (compatible) |
+| Document | Version | Status | Description |
+|----------|---------|--------|-------------|
+| [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md) | 1.0 | **Active** | Two-layer architecture — the definitive reference |
+| [RESOLVER.md](RESOLVER.md) | 2.1 | Active | Resolver protocol spanning both layers (updated) |
+| [GEOMETRY.md](GEOMETRY.md) | 1.0 | Active | Toroidal state vector and rotational encryption |
+| [CONTINUITY.md](CONTINUITY.md) | 1.0 | Active | Consciousness routing layer — the Ford Protocol |
+| [NETWORK.md](NETWORK.md) | 1.0 | Active | Consent-field mesh network architecture |
+| [DEPLOYABLE.md](DEPLOYABLE.md) | 1.0 | Active | Real-world deployment guide (without spintronic hardware) |
 
-### Architecture Documents
+---
 
-| Document | Description |
-|----------|-------------|
-| [SPIRAL-Architecture.md](../SPIRAL-Architecture.md) | Full SPIRAL packet format (208+ bytes) |
+## Field Reference
 
-## Ra Constants Integration
+### v1.0 Semantic Interface Fields
 
-The canonical RPP address format is derived directly from Ra System constants:
+| Field | Bits | Range | Meaning |
+|-------|------|-------|---------|
+| Shell | 2 | 0–3 | Storage proximity: Hot → Warm → Cold → Frozen |
+| Theta | 9 | 0–511 | Data type sector (continuous azimuthal angle) |
+| Phi | 9 | 0–511 | Consent level (continuous polar spectrum) |
+| Harmonic | 8 | 0–255 | Routing mode / frequency tier |
 
-| RPP Field | Ra Source | Bit Width | Range |
-|-----------|-----------|-----------|-------|
-| θ (Theta) | 27 Repitans | 5 bits | 1-27 (0, 28-31 reserved) |
-| φ (Phi) | 6 RAC Levels | 3 bits | 0-5 (6-7 reserved) |
-| h (Omega) | 5 Omega Formats | 3 bits | 0-4 (5-7 reserved) |
-| r (Radius) | Ankh-normalized | 8 bits | 0-255 (0.0-1.0) |
-| Reserved | — | 13 bits | CRC or future |
+**Total: 28 bits**
 
-**Total: 32 bits (4 bytes)**
+### v2.0 Transport/Resonance Fields (Ra-Derived)
+
+| Field | Bits | Range | Ra Source |
+|-------|------|-------|-----------|
+| θ (Theta) | 5 | 1–27 | 27 Repitans |
+| φ (Phi) | 3 | 0–5 | 6 RAC Levels |
+| h (Harmonic) | 3 | 0–4 | 5 Omega Formats |
+| r (Radius) | 8 | 0–255 | Ankh-normalized |
+| Reserved/CRC | 13 | — | Integrity / routing hints |
+
+**Total: 32 bits**
+
+---
 
 ## Packet Type Hierarchy
 
@@ -48,16 +103,21 @@ The canonical RPP address format is derived directly from Ra System constants:
 │                    PACKET TYPE HIERARCHY                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│  RPP Compact          4 bytes     Ra-derived address only    │
+│  RPP v1.0 Address     4 bytes     Semantic (28-bit)          │
 │       │                                                      │
-│       └──▶ SPIRAL Routing Frame                              │
-│                      22 bytes     Consent Header + RPP       │
-│                 │                                            │
-│                 └──▶ SPIRAL Envelope                         │
-│                            208+ bytes   Full packet + sigs   │
+│       └──▶ [resolver] RPP v2.0 Address                       │
+│                        4 bytes     Transport/Resonance       │
+│                   │                                          │
+│                   └──▶ SPIRAL Routing Frame                  │
+│                              22 bytes   Consent Header + RPP │
+│                         │                                    │
+│                         └──▶ SPIRAL Envelope                 │
+│                                    208+ bytes   Full packet  │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## Implementation Status
 
@@ -65,16 +125,24 @@ The canonical RPP address format is derived directly from Ra System constants:
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| `address_canonical.py` | ✅ Complete | Canonical address with full Ra integration |
+| `address.py` | ✅ Complete | v1.0 Semantic Interface address (Shell/Theta/Phi/Harmonic) |
+| `address_canonical.py` | ✅ Complete | v2.0 Transport address with full Ra integration |
 | `consent_header.py` | ✅ Complete | Consent header encoding/decoding |
 | `pma.py` | ✅ Complete | Phase Memory Anchor storage |
-| `packet.py` | ⚠️ Legacy | Original packet utilities |
+| `resolver.py` | ✅ Complete | Cross-layer resolver (v1.0 → v2.0 translation) |
+| `packet.py` | ✅ Complete | Packet framing utilities |
+| `mesh.py` | 🔄 In Progress | Consent-field mesh (see NETWORK.md) |
+| `coherence.py` | 🔄 In Progress | Toroidal geometry and rotational encoding (see GEOMETRY.md) |
+| `transitions.py` | 🔄 In Progress | Continuity/Ford Protocol routing (see CONTINUITY.md) |
+| `sector_router.py` | ✅ Complete | Sector classification and routing |
+| `ra_constants.py` | ✅ Complete | Ra System constants |
+| `consent.py` | ✅ Complete | Consent field utilities |
 
 ### Verilog (`hardware/verilog/`)
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| `rpp_canonical.v` | ✅ Complete | Ra-derived address encoder/decoder/coherence |
+| `rpp_canonical.v` | ✅ Complete | v2.0 Ra-derived address encoder/decoder/coherence |
 
 ### Tests (`tests/`)
 
@@ -82,29 +150,39 @@ The canonical RPP address format is derived directly from Ra System constants:
 |------------|--------|----------|
 | `test_address_canonical.py` | ✅ Complete | Full Ra alignment validation |
 
+---
+
+## Integration Points
+
+RPP addresses integrate with:
+
+- **SPIRAL Resolver**: v1.0 → v2.0 translation for all route calculations
+- **Consent Packet Header**: Overlay consistency validation (v2.0 transport layer)
+- **Phase Memory Anchor**: Address reference anchoring
+- **Cymatics Engine**: Tone generation via θ-φ-h vector (v2.0)
+- **Fragment Mesh (DTFM)**: Coherence-based routing (NETWORK.md)
+- **Ford Protocol**: Session continuity across address recycling (CONTINUITY.md)
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
-| v1.0-RaCanonical | 2025-01-01 | Canonical format derived from Ra Constants |
-| v0.9-Legacy | 2024-12-27 | Original 28-bit format (superseded) |
-
-## Integration Points
-
-The canonical RPP address integrates with:
-
-- **SPIRAL Resolver**: Required for all route calculations
-- **Consent Packet Header**: Overlay consistency validation
-- **Phase Memory Anchor**: Address reference anchoring
-- **Cymatics Engine**: Tone generation via θ-φ-h vector
-- **Fragment Mesh (DTFM)**: Coherence-based routing
-
-## Symbolic Note
-
-> *"This is not an address. It is a phase vector."*
-> 
-> It encodes positional resonance across the Ra topology, treated as harmonic origin from which coherence can be measured.
+| v2.0 Transport Layer | 2025-01-01 | Ra-Canonical format added as Transport/Resonance Layer |
+| v1.0 Semantic Layer | 2024-12-27 | Original 28-bit Semantic Interface Layer (still active) |
+| ADDRESSING-LAYERS.md | 2026-03-04 | Two-layer architecture formally documented |
+| GEOMETRY / CONTINUITY / NETWORK | 2026-03-04 | New spec documents for geometry, continuity, mesh layers |
+| RESOLVER v2.1 | 2026-03-04 | Resolver updated to handle cross-layer translation |
+| DEPLOYABLE v1.0 | 2026-03-04 | Deployment guide for real-world (non-spintronic) use |
 
 ---
 
-*RPP v1.0-RaCanonical — Anywave Creations*
+## Symbolic Note
+
+> *"The address is not a label — it is a coordinate in resonance space, expressed at the layer
+> appropriate to the observer."*
+
+---
+
+*RPP Specification — Anywave Creations*

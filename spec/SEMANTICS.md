@@ -353,4 +353,10 @@ Semantics describe **classification**, not value judgments.
 
 ---
 
+---
+
+## See Also
+
+- [DEPLOYABLE.md](DEPLOYABLE.md) — Real-world consent semantics mapping for GDPR/HIPAA/IoT deployments
+
 *This document is released under CC BY 4.0. Attribution required.*

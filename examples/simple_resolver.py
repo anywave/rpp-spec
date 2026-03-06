@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """
-RPP Simple Resolver Example (Legacy 28-bit)
-===========================================
+RPP Simple Resolver Example — Semantic Interface Layer (v1.0)
+=============================================================
 
 Demonstrates a minimal resolver implementation that maps RPP addresses
 to filesystem paths, showing the bridge architecture concept.
 
-DEPRECATION NOTICE (v2.0):
-    This example uses the legacy 28-bit format.
-    The current canonical format is Ra-Canonical v2.0 (32-bit):
-        [θ:5][φ:3][h:3][r:8][reserved:13]
-    See rpp.address_canonical for the v2.0 implementation.
-    See spec/RPP-CANONICAL-v2.md for the authoritative specification.
+Architecture Note:
+    This example uses the v1.0 Semantic Interface Layer (28-bit Shell/Theta/Phi/Harmonic).
+    This is NOT deprecated. RPP operates as two complementary layers:
+
+    - v1.0 (this file): Semantic Interface — the developer-facing API. Human-meaningful
+      fields (storage tier, data type, consent level, routing mode).
+    - v2.0 (rpp.address_canonical): Transport/Resonance Layer — substrate routing format
+      (32-bit Ra-derived θ/φ/h/r). Used by hardware implementations.
+
+    See spec/ADDRESSING-LAYERS.md for the full two-layer architecture.
 
 Usage:
     python examples/simple_resolver.py

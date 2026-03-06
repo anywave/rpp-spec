@@ -1,14 +1,18 @@
 """
-RPP - Recursive Packet Protocol
+RPP - Rotational Packet Protocol
 
-Ra-derived address and routing implementation for SPIRAL systems.
+Two-layer addressing and routing implementation.
 
-Modules:
-    address_canonical: RPP Canonical Address v1.0-RaCanonical
-    consent_header: SPIRAL Consent Packet Header v1.0
-    pma: Phase Memory Anchor v1.1 (18-byte compact format)
+Layers:
+    Semantic Interface (v1.0): address, resolver — Shell/Theta/Phi/Harmonic
+    Transport/Resonance (v2.0): address_canonical — Ra-derived θ/φ/h/r
 
-Version: 1.1.0-RaCanonical
+Geometry & Routing:
+    geometry:   Toroidal State Vector, Rasengan/Skyrmion encryption
+    continuity: Ford Protocol, ConsciousnessStatePacket
+    network:    Consent-field mesh, node tiers, routing algorithm
+
+See spec/ADDRESSING-LAYERS.md for the full two-layer architecture.
 """
 
 from rpp.address_canonical import (
@@ -52,7 +56,69 @@ from rpp.pma import (
 from rpp.address import encode, decode, from_components
 from rpp.resolver import resolve, ResolveResult
 
-__version__ = "1.2.0"
+from rpp.geometry import (
+    TorusPoint,
+    ToroidalStateVector,
+    SkyrmionStateVector,
+    TopologicalCollapseError,
+    HarmonicMode as GeometryHarmonicMode,
+    HARMONIC_OMEGA,
+    antipodal,
+    build_tsv,
+    apply_rotation,
+    apply_skyrmion_rotation,
+    derive_rotation_key,
+    derive_skyrmion_key,
+    encrypt_volley,
+    decrypt_volleys,
+    encrypt_skyrmion_volley,
+    decrypt_skyrmion_volleys,
+    verify_self_coherence,
+    angular_drift_from_origin,
+    to_skyrmion,
+)
+
+from rpp.continuity import (
+    HarmonicMode as ContinuityHarmonicMode,
+    FordPhase,
+    RecoveryLevel,
+    LiminalState,
+    ConsciousnessStatePacket,
+    csp_from_rpp,
+    compute_liminal_timeout,
+    ford_crossing_phases,
+    continuity_hash,
+)
+
+from rpp.network import (
+    NodeTier,
+    NodeRecord,
+    RoutingDecision,
+    FieldPulse,
+    angular_distance,
+    make_routing_decision,
+    rank_next_hops,
+    harmonic_to_tier_preference,
+    detect_backbone_gaps,
+)
+
+from rpp.ccqpsg import (
+    verify_ccqpsg_compliance,
+    CCQPSGViolation,
+    VIOLATION_CLASSES,
+    bidirectional_check,
+    routing_decision_compliant,
+)
+
+from rpp.memory_bridge import (
+    RPPMemoryBridge,
+    THETA_MEMORY,
+    THETA_WITNESS,
+    THETA_PROJECT,
+    PERSISTENT_SHELLS,
+)
+
+__version__ = "2.1.0"
 __author__ = "Anywave Creations"
 
 __all__ = [
@@ -88,11 +154,63 @@ __all__ = [
     "encode_timestamp",
     "decode_timestamp",
     "PMA_RECORD_SIZE",
-    # Address (legacy API)
+    # Address (Semantic Interface v1.0)
     "encode",
     "decode",
     "from_components",
     # Resolver
     "resolve",
     "ResolveResult",
+    # Geometry
+    "TorusPoint",
+    "ToroidalStateVector",
+    "SkyrmionStateVector",
+    "TopologicalCollapseError",
+    "GeometryHarmonicMode",
+    "HARMONIC_OMEGA",
+    "antipodal",
+    "build_tsv",
+    "apply_rotation",
+    "apply_skyrmion_rotation",
+    "derive_rotation_key",
+    "derive_skyrmion_key",
+    "encrypt_volley",
+    "decrypt_volleys",
+    "encrypt_skyrmion_volley",
+    "decrypt_skyrmion_volleys",
+    "verify_self_coherence",
+    "angular_drift_from_origin",
+    "to_skyrmion",
+    # Continuity (Ford Protocol)
+    "ContinuityHarmonicMode",
+    "FordPhase",
+    "RecoveryLevel",
+    "LiminalState",
+    "ConsciousnessStatePacket",
+    "csp_from_rpp",
+    "compute_liminal_timeout",
+    "ford_crossing_phases",
+    "continuity_hash",
+    # Network (Consent-Field Mesh)
+    "NodeTier",
+    "NodeRecord",
+    "RoutingDecision",
+    "FieldPulse",
+    "angular_distance",
+    "make_routing_decision",
+    "rank_next_hops",
+    "harmonic_to_tier_preference",
+    "detect_backbone_gaps",
+    # CCQPSG (Correct Communication Quantum Parse Syntax Grammar)
+    "verify_ccqpsg_compliance",
+    "CCQPSGViolation",
+    "VIOLATION_CLASSES",
+    "bidirectional_check",
+    "routing_decision_compliant",
+    # Memory Bridge (cross-session persistence)
+    "RPPMemoryBridge",
+    "THETA_MEMORY",
+    "THETA_WITNESS",
+    "THETA_PROJECT",
+    "PERSISTENT_SHELLS",
 ]

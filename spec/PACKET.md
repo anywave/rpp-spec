@@ -365,4 +365,11 @@ A conforming packet implementation MUST:
 
 ---
 
+---
+
+## See Also
+
+- [GEOMETRY.md](GEOMETRY.md) — Toroidal State Vector payload format and Rasengan encryption for packet payloads
+- [CONTINUITY.md](CONTINUITY.md) — Ford Protocol for routing packets across substrate boundaries
+
 *The packet is the envelope. The address is the label. The payload is optional.*

@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
-RPP Basic Usage Examples (Legacy 28-bit)
-========================================
+RPP Basic Usage Examples — Semantic Interface Layer (v1.0)
+==========================================================
 
 Demonstrates fundamental RPP address encoding, decoding, and interpretation.
 
-DEPRECATION NOTICE (v2.0):
-    This example uses the legacy 28-bit format.
-    The current canonical format is Ra-Canonical v2.0 (32-bit):
-        [θ:5][φ:3][h:3][r:8][reserved:13]
-    See rpp.address_canonical for the v2.0 implementation.
-    See spec/RPP-CANONICAL-v2.md for the authoritative specification.
+Architecture Note:
+    This example uses the v1.0 Semantic Interface Layer (28-bit Shell/Theta/Phi/Harmonic).
+    This is the developer-facing API and is NOT deprecated. RPP operates as two complementary
+    layers:
+
+    - v1.0 (this file): Semantic Interface — Shell/Theta/Phi/Harmonic mapped to human-
+      meaningful concepts (storage tier, data type, consent level, routing mode).
+    - v2.0 (rpp.address_canonical): Transport/Resonance Layer — θ/φ/h/r derived from
+      Ra System constants. Used by substrate implementations and hardware routing.
+
+    This relationship is analogous to DNS vs. subnet addressing: both are correct, both are
+    active, and they serve different levels of the protocol stack.
+    See spec/ADDRESSING-LAYERS.md for the full architecture.
 
 Usage:
     python examples/basic_usage.py

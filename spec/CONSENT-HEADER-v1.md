@@ -385,4 +385,11 @@ All consent headers are logged to the Semantic Consent Ledger:
 
 ---
 
+---
+
+## See Also
+
+- [DEPLOYABLE.md](DEPLOYABLE.md) — GDPR/HIPAA/IoT deployment context governing consent level requirements
+- [NETWORK.md](NETWORK.md) — How consent fields propagate and are enforced across the consent-field mesh
+
 *"This is not metadata. This is consent made coherent."*
