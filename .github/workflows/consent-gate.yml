@@ -1,0 +1,111 @@
+# RPP consent gate: simulation (Icarus Verilog) and synthesis / place-and-route (Yosys + nextpnr-ecp5).
+# Evidence is simulation and synthesis only; nothing here runs on a physical board.
+#
+# Mutation check (6 deliberate bugs) is NOT run here: RPP_CONSENT_GATE.md lists the six mutants but neither it
+# nor the testbench describes how they are applied, so there is no documented procedure to reproduce.
+name: Consent gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Pinned release of the OSS CAD Suite (the version the published numbers were measured with),
+  # and the sha256 of the tarball, checked before it is unpacked.
+  OSS_CAD_DATE: "2026-09-24"
+  OSS_CAD_TAG: "20260924"
+  OSS_CAD_SHA256: "fec0e57d9e2a87f218f4ed83f1e10a495c5263fb20e3b40dd8b57fe5ec563197"
+
+jobs:
+  simulate:
+    name: Simulate (iverilog, expect 20/20 PASS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Compile and run the testbench
+        working-directory: hardware/verilog
+        run: |
+          iverilog -V | head -1
+          iverilog -g2012 -Wall -o gate_tb rpp_consent_gate.v rpp_consent_gate_tb.v
+          vvp gate_tb | tee sim.txt
+
+      - name: Require exactly 20/20 PASS
+        working-directory: hardware/verilog
+        run: |
+          # The testbench prints "PASS <name>" / "FAIL <name>" per check and "SUMMARY pass=N fail=M".
+          grep -qx 'SUMMARY pass=20 fail=0' sim.txt
+          test "$(grep -c '^PASS ' sim.txt)" = 20
+          ! grep -q '^FAIL ' sim.txt
+
+      - name: Job summary
+        if: always()
+        working-directory: hardware/verilog
+        run: |
+          {
+            echo "## Consent gate simulation (Icarus Verilog)"
+            echo
+            echo '```'
+            tail -n 25 sim.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  synthesize:
+    name: Synthesise (Yosys + nextpnr-ecp5, LFE5U-12F)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Download OSS CAD Suite (pinned, checksum-verified)
+        run: |
+          url="https://github.com/YosysHQ/oss-cad-suite-build/releases/download/${OSS_CAD_DATE}/oss-cad-suite-linux-x64-${OSS_CAD_TAG}.tgz"
+          curl -fsSL --retry 3 -o oss.tgz "$url"
+          echo "${OSS_CAD_SHA256}  oss.tgz" | sha256sum -c -
+          tar -xzf oss.tgz
+          rm oss.tgz
+
+      - name: Tool versions
+        run: |
+          export PATH="$PWD/oss-cad-suite/bin:$PATH"
+          yosys -V
+          nextpnr-ecp5 --version
+
+      # Flow A is the flow RPP_CONSENT_GATE.md measured with: ABC9 asserted on the Windows nightly, so the
+      # LUT mapping stage uses classic `abc -lut 4`. Flow B is the standard synth_lattice flow (ABC9), which
+      # may work on Linux; it is recorded alongside so any difference is visible.
+      - name: Synthesise and place-and-route, both flows
+        run: |
+          export PATH="$GITHUB_WORKSPACE/oss-cad-suite/bin:$PATH"
+          mkdir -p synth
+          cd hardware/verilog
+          out=../../synth
+          # Flow A (documented flow); must succeed
+          yosys -q -l $out/yosys_A.log -p "read_verilog -sv rpp_consent_gate.v; hierarchy -top rpp_consent_gate; synth_lattice -family ecp5 -run begin:map_luts; abc -lut 4 -dress; clean; synth_lattice -family ecp5 -json $out/gate_A.json -run map_cells:"
+          nextpnr-ecp5 --12k --package CABGA256 --json $out/gate_A.json --freq 90 --timing-allow-fail > $out/pnr_A.log 2>&1 || { cat $out/pnr_A.log; exit 1; }
+          # Flow B (standard flow); allowed to fail, the outcome is recorded
+          if yosys -q -l $out/yosys_B.log -p "read_verilog -sv rpp_consent_gate.v; hierarchy -top rpp_consent_gate; synth_lattice -family ecp5 -json $out/gate_B.json" \
+             && nextpnr-ecp5 --12k --package CABGA256 --json $out/gate_B.json --freq 90 --timing-allow-fail > $out/pnr_B.log 2>&1; then
+            echo ok > $out/flow_B.status
+          else
+            echo failed > $out/flow_B.status
+          fi
+
+      - name: Publish the numbers as a job summary
+        if: always()
+        run: python3 tools/ci_synth_summary.py synth "${OSS_CAD_DATE}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: consent-gate-synth-logs
+          path: synth/*.log
