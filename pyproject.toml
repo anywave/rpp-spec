@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rpp-protocol"
 version = "2.1.0"
-description = "Rotational Packet Protocol - 32-bit Ra-Canonical semantic addressing for consent-aware systems"
+description = "Rotational Packet Protocol (RPP) Python reference implementation: 28-bit semantic and 32-bit Ra-Canonical address formats for consent-aware routing"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
@@ -47,9 +47,11 @@ rpp = "rpp.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/anywave/rpp-spec"
-Documentation = "https://github.com/anywave/rpp-spec"
+Documentation = "https://github.com/anywave/rpp-spec/tree/master/spec"
 Repository = "https://github.com/anywave/rpp-spec"
 Issues = "https://github.com/anywave/rpp-spec/issues"
+Changelog = "https://github.com/anywave/rpp-spec/blob/master/CHANGELOG.md"
+Security = "https://github.com/anywave/rpp-spec/security/policy"
 
 [tool.hatch.build.targets.wheel]
 packages = ["rpp"]

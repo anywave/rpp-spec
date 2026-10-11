@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rpp-mesh"
 version = "0.2.0"
-description = "RPP Mesh - Consent-aware overlay network extension for RPP"
+description = "RPP Mesh - experimental consent-aware overlay network extension for the RPP Python reference implementation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
@@ -55,6 +55,7 @@ Homepage = "https://github.com/anywave/rpp-spec"
 Documentation = "https://github.com/anywave/rpp-spec/blob/master/spec/extensions/MESH.md"
 Repository = "https://github.com/anywave/rpp-spec"
 Issues = "https://github.com/anywave/rpp-spec/issues"
+Security = "https://github.com/anywave/rpp-spec/security/policy"
 
 [tool.hatch.build.targets.wheel]
 packages = ["."]

@@ -310,10 +310,13 @@ consent after the fact.
 
 **RPP Distinction:** Consent management platforms enforce consent through policy
 lookup at the access layer. RPP enforces consent through address arithmetic at the
-routing layer. The difference: CMPs can be bypassed by accessing storage directly;
-phi-gating cannot be bypassed without changing the address integer, which would
-change the identity of the data. RPP is consent management by construction, not
-by configuration.
+routing layer. The difference: in RPP the consent level is part of the address, so
+every routing node can check it on every hop, and changing it changes the identity of
+the data. This does not make phi-gating impossible to bypass: a node that does not
+check, or a party with direct storage access, can still bypass it, and an enforcement
+point must compare the phi a packet claims against consent state it holds itself
+(see the Security section of spec/extensions/MESH.md). RPP aims at consent management
+by construction rather than by configuration.
 
 ---
 
