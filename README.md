@@ -2,7 +2,8 @@
 
 **A Semantic Addressing Architecture for Consent-Aware Memory Systems**
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
+[![Code License: Apache-2.0](https://img.shields.io/badge/Code-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
+[![Spec License: CC BY 4.0](https://img.shields.io/badge/Spec-CC%20BY%204.0-lightgrey.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE-CC-BY-4.0)
 [![Semantic Layer](https://img.shields.io/badge/Semantic%20Interface-v1.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
 [![Transport Layer](https://img.shields.io/badge/Transport%2FResonance-v2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md)
 [![CI](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml)
@@ -449,12 +450,27 @@ These are external concerns. RPP is the address layer only.
 
 | Component | License |
 |-----------|---------|
-| Specification | CC BY 4.0 |
-| Implementation | Apache 2.0 |
+| Specification | CC BY 4.0 ([LICENSE-CC-BY-4.0](LICENSE-CC-BY-4.0)) |
+| Implementation | Apache 2.0 ([LICENSE](LICENSE)) |
+
+The per-path map is in [LICENSING.md](LICENSING.md). RPP is published as open prior art with no patent claims:
+see [DEFENSIVE_PUBLICATION.md](DEFENSIVE_PUBLICATION.md) (2024) and
+[DEFENSIVE_PUBLICATION_2026-10.md](DEFENSIVE_PUBLICATION_2026-10.md) (October 2026 supplement).
 
 ---
 
-## Citation
+## Credit and citation
+
+RPP was created by **Alexander Liam Lennon / ANYWAVE**. If you use, implement or build on RPP, please credit the
+author and link the repository. Machine-readable citation metadata is in [CITATION.cff](CITATION.cff) (GitHub shows a
+"Cite this repository" button for it); contributors are listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
+```
+Lennon, A. L. (ANYWAVE). (2026). Rotational Packet Protocol (RPP): Defensive
+Publication Supplement, October 2026. https://github.com/anywave/rpp-spec
+```
+
+Original specification:
 
 ```
 Lennon, A. L. (2025). Rotational Packet Protocol (RPP): A Semantic
