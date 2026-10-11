@@ -7,6 +7,8 @@
 [![Semantic Layer](https://img.shields.io/badge/Semantic%20Interface-v1.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/SPEC.md)
 [![Transport Layer](https://img.shields.io/badge/Transport%2FResonance-v2.0-green.svg)](https://github.com/anywave/rpp-spec/blob/master/spec/RPP-CANONICAL-v2.md)
 [![CI](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml)
+[![Golden vectors](https://github.com/anywave/rpp-spec/actions/workflows/golden-vectors.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/golden-vectors.yml)
+[![Consent gate](https://github.com/anywave/rpp-spec/actions/workflows/consent-gate.yml/badge.svg)](https://github.com/anywave/rpp-spec/actions/workflows/consent-gate.yml)
 [![Python](https://img.shields.io/pypi/pyversions/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-protocol.svg)](https://pypi.org/project/rpp-protocol/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18078640.svg)](https://doi.org/10.5281/zenodo.18078640)
@@ -350,6 +352,18 @@ These three scenarios prove RPP works. Everything else is implementation detail.
 > **Legacy Format:** For 28-bit v1.0 format compatibility, see [spec/SPEC.md](spec/SPEC.md).
 
 ---
+
+## Evidence
+
+Claims in this repository are re-checked on every push and pull request by public CI. You can watch each run, read its logs and re-run the same commands yourself.
+
+| Claim | Check | Runs |
+|---|---|---|
+| The Python reference implementation passes its test suite on Windows, Linux and macOS, Python 3.9 to 3.12 | `pytest tests/` | [CI runs](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml) |
+| The Mobius 32-bit address profile: four golden vectors, reject-not-mask, nonzero MBZ refused | `python tests/test_golden_vectors_mobius32.py` (standalone, no package import) | [Golden vectors runs](https://github.com/anywave/rpp-spec/actions/workflows/golden-vectors.yml) |
+| The consent gate passes its 20 simulation checks (Icarus Verilog) and synthesises for a Lattice ECP5 (LUT, FF, BRAM, Fmax in the job summary) | `iverilog -g2012 -Wall -o gate_tb rpp_consent_gate.v rpp_consent_gate_tb.v && vvp gate_tb`, then Yosys + nextpnr-ecp5 from a pinned OSS CAD Suite release | [Consent gate runs](https://github.com/anywave/rpp-spec/actions/workflows/consent-gate.yml) |
+
+Scope: the gate results are simulation and synthesis / place-and-route only; nothing has been run on a physical board. The mutation check described in `hardware/verilog/RPP_CONSENT_GATE.md` is not part of CI. All actions are pinned by commit SHA, workflows have read-only permissions and use no secrets.
 
 ## Testing
 

@@ -1,0 +1,49 @@
+# Golden vectors for the Mobius 32-bit address profile (DEFENSIVE_PUBLICATION_2026-10.md, Section 1.2).
+# Standalone: the test file implements the encoder from the supplement's bit layout and imports nothing
+# from the rpp package, so this check does not depend on the package under test.
+name: Golden vectors
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  golden-vectors:
+    name: Mobius 32-bit golden vectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Run the standalone check (no dependencies)
+        run: python tests/test_golden_vectors_mobius32.py | tee golden.txt
+
+      - name: Require the four vectors, reject-not-mask and MBZ refusal
+        run: grep -qx 'SUMMARY pass=5 fail=0' golden.txt
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Mobius 32-bit golden vectors"
+            echo
+            echo "| (shell, theta, phi, harmonic) | expected word |"
+            echo "|---|---|"
+            echo "| (1, 100, 170, 2) | 0x4C8AA002 |"
+            echo "| (1, 300, 170, 2) | 0x658AA002 |"
+            echo "| (3, 511, 511, 255) | 0xFFFFF0FF |"
+            echo "| (0, 0, 0, 0) | 0x00000000 |"
+            echo
+            echo '```'
+            cat golden.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
