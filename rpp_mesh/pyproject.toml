@@ -58,4 +58,7 @@ Issues = "https://github.com/anywave/rpp-spec/issues"
 Security = "https://github.com/anywave/rpp-spec/security/policy"
 
 [tool.hatch.build.targets.wheel]
-packages = ["."]
+include = ["/*.py"]
+
+[tool.hatch.build.targets.wheel.sources]
+"" = "rpp_mesh/"
