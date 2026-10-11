@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://rpp-spec.anywave.io/parl/router_config.schema.json",
+  "$id": "https://github.com/anywave/rpp-spec/blob/master/parl/router_config.json",
   "title": "PARL Router Configuration",
   "description": "Configuration for Phase-Aware Routing Layer nodes",
 
@@ -22,14 +22,14 @@
   "neighbors": [
     {
       "id": "node-002",
-      "host": "192.168.1.102",
+      "host": "192.0.2.102",
       "port": 7331,
       "priority": 1,
       "shared_secret": null
     },
     {
       "id": "node-003",
-      "host": "192.168.1.103",
+      "host": "192.0.2.103",
       "port": 7331,
       "priority": 2,
       "shared_secret": null

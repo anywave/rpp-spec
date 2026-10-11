@@ -6,3 +6,11 @@ dist/
 # Installer binaries
 tools/*.exe
 tools/*.msi
+
+# LaTeX build output
+paper/*.aux
+paper/*.log
+paper/*.out
+
+# Local tool settings
+.claude/settings.local.json

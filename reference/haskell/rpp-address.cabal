@@ -21,7 +21,7 @@ bug-reports:        https://github.com/anywave/rpp-spec/issues
 license:            Apache-2.0
 license-file:       ../../LICENSE
 author:             Alexander Liam Lennon
-maintainer:         rpp-spec@anywave.org
+maintainer:         Alexander Liam Lennon (https://github.com/anywave)
 copyright:          2024 Alexander Liam Lennon
 category:           Data, Protocol
 build-type:         Simple

@@ -23,7 +23,7 @@ import struct
 import time
 
 # Add project root to path
-sys.path.insert(0, r'C:\Users\schmi\Documents\GitHub\rpp-spec')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 
 # =============================================================================
@@ -729,7 +729,7 @@ class SpiralTestbench:
 
 if __name__ == "__main__":
     # Change to output directory
-    output_dir = r"C:\Users\schmi\Documents\GitHub\rpp-spec\hardware\verilog"
+    output_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(output_dir)
     
     # Run simulation
