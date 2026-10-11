@@ -231,7 +231,7 @@ def verify_ra_constants_integration() -> List[str]:
     
     # Check if rpp-spec has access to ra_system
     try:
-        sys.path.insert(0, r'C:\Users\schmi\Documents\GitHub\ra-system\python')
+        # ra_system must be importable: `pip install ra-system`, or put a ra-system checkout's python/ on PYTHONPATH.
         from ra_system import ANKH, Repitan, RacLevel, OmegaFormat
         from ra_system.repitans import all_repitans
         from ra_system.rac import all_rac_levels

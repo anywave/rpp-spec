@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use or build on RPP, please cite it as below."
+title: "Rotational Packet Protocol (RPP): A Semantic Addressing Architecture for Consent-Aware Memory Systems"
+type: software
+authors:
+  - family-names: Lennon
+    given-names: Alexander Liam
+    affiliation: ANYWAVE
+version: 2.1.0
+# Date of the October 2026 defensive publication supplement (DEFENSIVE_PUBLICATION_2026-10.md).
+date-released: "2026-10-10"
+url: "https://github.com/anywave/rpp-spec"
+repository-code: "https://github.com/anywave/rpp-spec"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.18078640
+    description: "Zenodo DOI shown in the repository README"
+license:
+  - CC-BY-4.0
+  - Apache-2.0
+keywords:
+  - semantic addressing
+  - consent-aware systems
+  - packet protocol
+  - defensive publication
+  - prior art

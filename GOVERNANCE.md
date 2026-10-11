@@ -224,7 +224,7 @@ Use them freely with accurate attribution.
 
 - **Issues**: GitHub Issues
 - **Discussions**: GitHub Discussions
-- **Security**: security@[project-domain]
+- **Security**: report privately via GitHub private vulnerability reporting; see [SECURITY.md](SECURITY.md)
 
 ---
 
