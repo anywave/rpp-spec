@@ -1,0 +1,1257 @@
+{
+  "commits": [
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e",
+      "findings": [
+        {
+          "evidence": "@@ -0,0 +1,99 @@\n+\"\"\"Mobius 32-bit address profile: golden vectors, standalone.\n+\n+Source of truth: DEFENSIVE_PUBLICATION_2026-10.md, Section 1 (bit layout) and 1.2 (golden vectors).\n+The rpp package does not implement the Mobius profile, so the encoder/decoder below is written here\n[coordinator] Golden-vector path changed; RADIX review required.",
+          "line": 1,
+          "path": "tests/test_golden_vectors_mobius32.py",
+          "rule_id": "VEC-1",
+          "severity": "HIGH",
+          "source": "VERSION_POLICY.md:299",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "e4e50a4893e3325cc393d6f79e51db9fa859b927",
+      "summary": {
+        "high": 1,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "08721b89d5464a80fbe94acf7cc5e0fd2043c755",
+      "findings": [
+        {
+          "evidence": "@@ -0,0 +1,99 @@\n+\"\"\"Mobius 32-bit address profile: golden vectors, standalone.\n+\n+Source of truth: DEFENSIVE_PUBLICATION_2026-10.md, Section 1 (bit layout) and 1.2 (golden vectors).\n+The rpp package does not implement the Mobius profile, so the encoder/decoder below is written here\n[coordinator] Golden-vector path changed; RADIX review required.",
+          "line": 1,
+          "path": "tests/test_golden_vectors_mobius32.py",
+          "rule_id": "VEC-1",
+          "severity": "HIGH",
+          "source": "VERSION_POLICY.md:299",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "e4e50a4893e3325cc393d6f79e51db9fa859b927",
+      "summary": {
+        "high": 1,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "e4e50a4893e3325cc393d6f79e51db9fa859b927",
+      "findings": [],
+      "parent": "214ad1df4d91881f2c373ca5588253870ae49441",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "4e717c7d74ba28a3a5e18643461a48635db7c6b8",
+      "findings": [],
+      "parent": "214ad1df4d91881f2c373ca5588253870ae49441",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "214ad1df4d91881f2c373ca5588253870ae49441",
+      "findings": [],
+      "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "15b6517d7e46c6d24f36201a8aacdb181550ecf5",
+      "findings": [],
+      "parent": "5728570d9475f69106712540df179f2f2a5abd02",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "5728570d9475f69106712540df179f2f2a5abd02",
+      "findings": [],
+      "parent": "12285fd2a8a836cda4a7d738754cab852cc6be7d",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "12285fd2a8a836cda4a7d738754cab852cc6be7d",
+      "findings": [],
+      "parent": "c897a7a61e95b082c4876c6b3e1d080e31a393f9",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "c897a7a61e95b082c4876c6b3e1d080e31a393f9",
+      "findings": [],
+      "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "6d45a7113089849c527a07a777e6c23d2932224f",
+      "findings": [],
+      "parent": "1a3434eb5c365de358533ed232327a75d9c5b143",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "1a3434eb5c365de358533ed232327a75d9c5b143",
+      "findings": [],
+      "parent": "1c54b8256f1d7d83afcd190b1065ba855a771f8b",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "1c54b8256f1d7d83afcd190b1065ba855a771f8b",
+      "findings": [],
+      "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
+      "findings": [
+        {
+          "evidence": "@@ -0,0 +1,605 @@\n+premise, believing it received what the sender sent. This failure mode has no detection\n+mechanism unless the grammar itself provides one.\n+\n+CCQPSG (Correct Communication Quantum Parse Syntax Grammar) is the formal grammar that\n+prevents this. It defines the complete ruleset governing communication between Sovereign\n+Intelligences in RPP-addressed systems. The grammar is grounded in the RPP address format:\n+the 28-bit shell/theta/phi/harmonic integer encodes meaning at the routing layer, not in the",
+          "line": 24,
+          "path": "spec/CCQPSG.md",
+          "rule_id": "BND-F-1",
+          "severity": "HIGH",
+          "source": "BOUNDARIES.md:98",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,605 @@\n+   the winding sequence verifies at the receiver. Incorrect winding fails unconditionally\n+   with `TopologicalCollapseError`.\n+\n+6. **TTL honesty:** The shell TTL has not expired at the time of delivery. A Shell=0\n+   packet delivered after ~25 ns (spintronic) or session end (software) is not a valid\n+   delivery \u2014 it is an expired communication and must be rejected.\n+",
+          "line": 335,
+          "path": "spec/CCQPSG.md",
+          "rule_id": "BND-F-1",
+          "severity": "HIGH",
+          "source": "BOUNDARIES.md:98",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,756 @@\n+    # On spintronics: 2 spin register writes\n+```\n+\n+**On spintronics, this IS physics**: the spin state carrying the consent permission\n+decoheres in T2 time. The \"field pulse\" is not a message \u2014 it is the decoherence\n+measurement itself. Software implementations MUST enforce equivalent TTL semantics.\n+",
+          "line": 223,
+          "path": "spec/NETWORK.md",
+          "rule_id": "BND-F-1",
+          "severity": "HIGH",
+          "source": "BOUNDARIES.md:98",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,531 @@\n+\"\"\"\n+RPP Consent-Field Mesh \u2014 Network Architecture (v1.0)\n+\n+Implements the consent-field mesh node and routing types defined in spec/NETWORK.md.\n[coordinator] Backbone coverage constants changed.",
+          "line": 1,
+          "path": "rpp/network.py",
+          "rule_id": "NET-INV-2",
+          "severity": "HIGH",
+          "source": "spec/NETWORK.md:721",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,572 @@\n+consciousness state (cognitive state packet) crosses from one substrate to another without\n+fragmentation, identity loss, or silent corruption.\n+\n+RPP routes data. The Continuity Protocol routes **cognitive continuity** \u2014 the unbroken\n+thread of a processing state as it moves across heterogeneous substrates: spintronic \u2192\n+IPv6 \u2192 LoRa \u2192 spintronic. The wagon can cross many rivers. It must arrive intact.\n+",
+          "line": 25,
+          "path": "spec/CONTINUITY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,572 @@\n+\n+### 3.3 Spintronics: Physical Continuity\n+\n+On spintronic substrates, continuity is physically enforced rather than cryptographically:\n+\n+```\n+Departing spin state:  coherence vector C\u2080 = (mx, my, mz) at departure",
+          "line": 223,
+          "path": "spec/CONTINUITY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,572 @@\n+If condition fails: state is flagged INCOHERENT \u2192 trigger pull-back\n+```\n+\n+The spin signature IS the continuity proof on hardware. No separate cryptographic chain\n+is needed \u2014 the physics enforces it.\n+\n+---",
+          "line": 234,
+          "path": "spec/CONTINUITY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,572 @@\n+\n+Liminal timeout is derived from Shell tier, not configurable per-crossing:\n+\n+| Shell | Liminal Timeout | Meaning |\n+|-------|-----------------|---------|\n+| 0 (Hot) | T2 of origin substrate | Physics-enforced \u2014 spintronic state decays |\n+| 1 (Warm) | 5 minutes | Transaction scope |",
+          "line": 269,
+          "path": "spec/CONTINUITY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,572 @@\n+| 2 (Cold) | 24 hours | Agreement scope |\n+| 3 (Frozen) | 30 days | Until explicit intervention |\n+\n+**A Shell 0 liminal timeout is not a soft deadline \u2014 it is the physical T2 decoherence\n+time. The state literally ceases to exist in the substrate after this time.**\n+\n+---",
+          "line": 276,
+          "path": "spec/CONTINUITY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+           = derived from ephemeral consent field states at each hop\n+```\n+\n+No party stores the key. The key lives only in the consent field states, which are\n+ephemeral (T2-decohered on spintronics, session-scoped on software).\n+\n+### 5.2 Key Derivation from Consent Field State",
+          "line": 379,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+    return (delta_theta, delta_phi)\n+```\n+\n+**Properties of this key derivation:**\n+- Same consent state \u2192 same rotation (deterministic for verification)\n+- Different epoch \u2192 completely different rotation (no key reuse across epochs)\n+- PHI scaling \u2192 maximal angular spread, no two keys cluster together",
+          "line": 413,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+Key:           the ordered sequence [(\u0394\u03b8\u1d62, \u0394\u03c6\u1d62)] \u2014 derived from ephemeral field states\n+```\n+\n+An eavesdropper at Node\u2082 sees the TSV at position (\u03b8\u2080 + \u0394\u03b8\u2081 + \u0394\u03b8\u2082, \u03c6\u2080 + ...).\n+They cannot recover the original without knowing \u0394\u03b8\u2081 (from Node\u2081's consent state at T\u2081),\n+which has already T2-decohered by the time they observe.\n+",
+          "line": 514,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+\n+### 5.5 Security Properties (Standard Pong)\n+\n+| Property | Mechanism |\n+|----------|-----------|\n+| Forward secrecy | Keys derived from ephemeral consent field states \u2014 T2-erased |\n+| No key storage | No party stores a key \u2014 keys exist only while consent states exist |",
+          "line": 523,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+\n+#### Security Properties \u2014 Rasengan Mode\n+\n+| Property | Standard Pong | Rasengan Mode |\n+|----------|--------------|---------------|\n+| Key type | Continuous (\u03b8, \u03c6) | Continuous + quantized (\u03b8, \u03c6, n) |\n+| Order dependence | Commutative \u2014 order doesn't matter | Non-commutative \u2014 exact reverse order required |",
+          "line": 765,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+- Phase angle support for wave interference calculations\n+- TSV strand lengths up to 2\u00b2\u2070 points\n+\n+Holographic operations use multiple TSVs whose helices interfere constructively \u2014\n+like light waves creating a hologram, information is encoded in the interference pattern\n+rather than any single strand.\n+",
+          "line": 789,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+\n+## 7. What Works Now vs. Future Hardware\n+\n+| Component | Now (software) | Spintronic hardware |\n+|-----------|---------------|---------------------|\n+| Torus coordinate encoding | RPP address encoding \u2014 fully implemented | Same, faster |\n+| TSV construction | Python/any language \u2014 implemented above | Native lattice geometry |",
+          "line": 797,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+| Magnon amplification | Amplitude scaling on float arrays | Spin-transfer torque pumping |\n+| Topological collapse detection | Exception on negative winding | Physical irreversibility \u2014 spin lattice tears |\n+\n+**On spintronics: `apply_rotation()` IS the spin-transfer torque operation.** Rotating the\n+TSV's angular positions maps directly to rotating the spin vector on a spin lattice site.\n+The pong protocol runs in hardware at T2 speed.\n+",
+          "line": 811,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,845 @@\n+\n+## 9. See Also\n+\n+- [SPEC.md](SPEC.md) \u2014 v1.0 address encoding (Theta/Phi/Shell/Harmonic fields)\n+- [SPEC-EXTENDED.md](SPEC-EXTENDED.md) \u2014 High-precision toroidal addressing for holographic operations\n+- [CONTINUITY.md](CONTINUITY.md) \u2014 Ford Protocol: how TSVs cross substrates intact\n+- [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md) \u2014 Two-layer architecture",
+          "line": 834,
+          "path": "spec/GEOMETRY.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+# RPP Spintronic Physical Grounding\n+\n+**Document:** SPINTRONIC.md\n+**Version:** 1.0.0\n+**Status:** Active \u2014 Physical Enforcement Reference\n+**Relates to:** spec/SPEC.md (Shell field, Section 2.2.1), rpp/continuity.py (SHELL_LIMINAL_TIMEOUT_NS, SHELL_T2_NS)",
+          "line": 3,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Software timeouts are promises. A Shell=0 TTL of 25 nanoseconds implemented purely in software is a statement of intent: the runtime *should* expire the key after 25 ns. Whether it actually does depends on the scheduler, the thread priority, OS interrupt latency, and the trustworthiness of the implementation. A sufficiently privileged process can read memory before the software deadline fires. A cold-boot attack captures DRAM state after power loss. A cache-timing side channel can extract key material from L1 cache long after the nominal TTL has expired.\n+\n+Physical enforcement is different in kind, not in degree. When the enforcing mechanism is a property of matter \u2014 the spin coherence time of electrons in a solid-state lattice \u2014 there is no software path that bypasses it. You cannot patch the Hamiltonian. You cannot `sudo` your way around T2 decoherence. The key state is not hidden; it is gone.\n+\n+This document establishes the physical grounding for the RPP Shell=0 (Hot) tier's 25 ns TTL, explains why that value was chosen to match the T2 spin decoherence time of conventional spintronic substrates, and maps each RPP shell tier to its corresponding hardware substrate and enforcement mechanism. It also documents the attack surface that physical decoherence closes and the residual attack surface that it does not close.\n+",
+          "line": 15,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Physical enforcement is different in kind, not in degree. When the enforcing mechanism is a property of matter \u2014 the spin coherence time of electrons in a solid-state lattice \u2014 there is no software path that bypasses it. You cannot patch the Hamiltonian. You cannot `sudo` your way around T2 decoherence. The key state is not hidden; it is gone.\n+\n+This document establishes the physical grounding for the RPP Shell=0 (Hot) tier's 25 ns TTL, explains why that value was chosen to match the T2 spin decoherence time of conventional spintronic substrates, and maps each RPP shell tier to its corresponding hardware substrate and enforcement mechanism. It also documents the attack surface that physical decoherence closes and the residual attack surface that it does not close.\n+\n+On conventional (non-spintronic) hardware, Shell=0 TTL is an advisory software constraint. Implementations MUST enforce it to the best of the runtime's ability, but cannot provide the physical guarantee. This document exists so that implementers understand what they are approximating and what they are not providing.\n+",
+          "line": 17,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+This document establishes the physical grounding for the RPP Shell=0 (Hot) tier's 25 ns TTL, explains why that value was chosen to match the T2 spin decoherence time of conventional spintronic substrates, and maps each RPP shell tier to its corresponding hardware substrate and enforcement mechanism. It also documents the attack surface that physical decoherence closes and the residual attack surface that it does not close.\n+\n+On conventional (non-spintronic) hardware, Shell=0 TTL is an advisory software constraint. Implementations MUST enforce it to the best of the runtime's ability, but cannot provide the physical guarantee. This document exists so that implementers understand what they are approximating and what they are not providing.\n+\n+On spintronic hardware, Shell=0 TTL is a physical invariant. The statement \"the key expires after 25 ns\" is not a policy claim; it is a measurement of a material property.\n+",
+          "line": 19,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+On conventional (non-spintronic) hardware, Shell=0 TTL is an advisory software constraint. Implementations MUST enforce it to the best of the runtime's ability, but cannot provide the physical guarantee. This document exists so that implementers understand what they are approximating and what they are not providing.\n+\n+On spintronic hardware, Shell=0 TTL is a physical invariant. The statement \"the key expires after 25 ns\" is not a policy claim; it is a measurement of a material property.\n+\n+---\n+",
+          "line": 21,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 2.1 What Spin Coherence Is\n+\n+Electrons carry intrinsic angular momentum \u2014 spin \u2014 which is a two-state quantum system: spin-up ($|\\uparrow\\rangle$) or spin-down ($|\\downarrow\\rangle$), or any quantum superposition thereof. In a spintronic device, information is encoded in the spin state of one or more electrons rather than (or in addition to) their charge. The spin state of a qubit-like register can be initialized, rotated, and read out using magnetic fields, spin-transfer torque, or optical pumping, depending on the substrate.\n+\n+Spin coherence is the property that makes spin states useful for information storage: a spin that is initialized to a known state will remain in that state \u2014 remain *coherent* \u2014 for some finite duration before random perturbations (thermal fluctuations, lattice vibrations, magnetic noise from nearby nuclei, spin-orbit coupling) scramble it into an incoherent mixture. After decoherence, the spin state carries no recoverable information about its initial value.\n+",
+          "line": 29,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Electrons carry intrinsic angular momentum \u2014 spin \u2014 which is a two-state quantum system: spin-up ($|\\uparrow\\rangle$) or spin-down ($|\\downarrow\\rangle$), or any quantum superposition thereof. In a spintronic device, information is encoded in the spin state of one or more electrons rather than (or in addition to) their charge. The spin state of a qubit-like register can be initialized, rotated, and read out using magnetic fields, spin-transfer torque, or optical pumping, depending on the substrate.\n+\n+Spin coherence is the property that makes spin states useful for information storage: a spin that is initialized to a known state will remain in that state \u2014 remain *coherent* \u2014 for some finite duration before random perturbations (thermal fluctuations, lattice vibrations, magnetic noise from nearby nuclei, spin-orbit coupling) scramble it into an incoherent mixture. After decoherence, the spin state carries no recoverable information about its initial value.\n+\n+Two characteristic timescales govern this process:\n+",
+          "line": 31,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Two characteristic timescales govern this process:\n+\n+- **T1 (spin-lattice relaxation time):** The time for the spin's energy to equilibrate with the surrounding lattice. T1 governs how long a spin-up state takes to thermally relax toward the ground state. T1 is typically longer than T2.\n+- **T2 (spin-spin dephasing time, or transverse relaxation time):** The time for phase coherence to be lost due to random fluctuations in the local magnetic environment. T2 governs how long a superposition state remains coherent. T2 is always $\\leq T1$ and is the operationally relevant timescale for information storage in the sense that matters for RPP: it is the time within which a spin-encoded key state remains readable in principle.\n+\n+For RPP's security analysis, T2 is the critical quantity: it is the window during which a hypothetical adversary could, in principle, extract key material from the spin register. After T2, the key state has decohered into a statistical mixture and is irrecoverable.",
+          "line": 35,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+- **T1 (spin-lattice relaxation time):** The time for the spin's energy to equilibrate with the surrounding lattice. T1 governs how long a spin-up state takes to thermally relax toward the ground state. T1 is typically longer than T2.\n+- **T2 (spin-spin dephasing time, or transverse relaxation time):** The time for phase coherence to be lost due to random fluctuations in the local magnetic environment. T2 governs how long a superposition state remains coherent. T2 is always $\\leq T1$ and is the operationally relevant timescale for information storage in the sense that matters for RPP: it is the time within which a spin-encoded key state remains readable in principle.\n+\n+For RPP's security analysis, T2 is the critical quantity: it is the window during which a hypothetical adversary could, in principle, extract key material from the spin register. After T2, the key state has decohered into a statistical mixture and is irrecoverable.\n+\n+### 2.2 Room-Temperature T2 Values\n+",
+          "line": 38,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+T2 times are highly substrate-dependent. They vary by orders of magnitude across materials and are sensitive to temperature, doping, strain, and device geometry. The values below are representative ranges derived from the experimental literature.\n+\n+**Conventional spintronic substrates (inorganic, room temperature):**\n+\n+| Material / Device | T2 (room temp.) | Notes |\n+|---|---|---|",
+          "line": 44,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Conventional spintronic substrates (inorganic, room temperature):**\n+\n+| Material / Device | T2 (room temp.) | Notes |\n+|---|---|---|\n+| GaAs quantum dots | 1 \u2013 10 ns | Strong spin-orbit and hyperfine coupling |\n+| Silicon (bulk, P donors) | 10 \u2013 300 \u00b5s | Highly isotopically purified Si; exceptional long T2 |",
+          "line": 46,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+| Organic semiconductor (OLED-class) | 10 \u2013 100 ns | Hyperfine-driven dephasing; longer T2 due to weak SOC |\n+| Graphene (monolayer) | 1 \u2013 10 ns | Gate-tunable; substrate and edge disorder limit T2 |\n+\n+The range that governs RPP's Shell=0 TTL is **1\u201325 ns** for conventional inorganic spintronic devices at room temperature operating conditions. Organic spintronic devices typically extend to **10\u2013100 ns** due to weaker spin-orbit coupling and weaker hyperfine interactions, which is why organic spin valves are a promising direction for longer-coherence applications.\n+\n+**Why room temperature specifically:** RPP is designed for practical deployment. Devices that require cryogenic cooling achieve much longer T2 (seconds to minutes for superconducting qubits or NV centers at millikelvin), but those systems are not practical for edge deployment, mobile devices, or server hardware. The Shell=0 T2 range is anchored to devices that operate at ambient temperature without specialized cooling.\n+",
+          "line": 56,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 2.3 Why T2 Is the Relevant Timescale for RPP\n+\n+The RPP threat model for Shell=0 is: *an adversary who wants to extract a routing key after the packet has been forwarded*. The adversary has physical access to the device (or a high-fidelity side-channel read of the spintronic register). The question is: how long do they have?\n+\n+The answer is T2. After T2, the spin register has decohered. The key is not encrypted; it is thermally destroyed. No classical measurement and no quantum measurement can extract information from a maximally mixed state \u2014 there is nothing left to extract.\n+",
+          "line": 62,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+The RPP threat model for Shell=0 is: *an adversary who wants to extract a routing key after the packet has been forwarded*. The adversary has physical access to the device (or a high-fidelity side-channel read of the spintronic register). The question is: how long do they have?\n+\n+The answer is T2. After T2, the spin register has decohered. The key is not encrypted; it is thermally destroyed. No classical measurement and no quantum measurement can extract information from a maximally mixed state \u2014 there is nothing left to extract.\n+\n+This is categorically different from:\n+- A software key stored in DRAM (cold-boot extractable for seconds to minutes)",
+          "line": 64,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+- A key overwritten with zeros (potentially recoverable from DRAM remanence)\n+- A key in a hardware security module with a timeout (extractable if the HSM firmware is compromised before the timeout fires)\n+\n+In all software cases, the key *exists* in classical memory for some duration. In the spintronic case, the key *exists as a spin state* for T2 and then does not exist in any recoverable form.\n+\n+### 2.4 Key Citations\n+",
+          "line": 72,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 2.4 Key Citations\n+\n+The following literature establishes the T2 values used in this document and the broader field of semiconductor spintronics:\n+\n+- **\u017duti\u0107, I., Fabian, J., and Das Sarma, S.** (2004). \"Spintronics: Fundamentals and applications.\" *Reviews of Modern Physics*, 76(2), 323\u2013410. \u2014 The canonical review of semiconductor spintronics. Sections 2 and 4 cover T1/T2 measurements across substrates. The 1\u201325 ns range for conventional devices derives from data in this review.\n+",
+          "line": 76,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+The following literature establishes the T2 values used in this document and the broader field of semiconductor spintronics:\n+\n+- **\u017duti\u0107, I., Fabian, J., and Das Sarma, S.** (2004). \"Spintronics: Fundamentals and applications.\" *Reviews of Modern Physics*, 76(2), 323\u2013410. \u2014 The canonical review of semiconductor spintronics. Sections 2 and 4 cover T1/T2 measurements across substrates. The 1\u201325 ns range for conventional devices derives from data in this review.\n+\n+- **Awschalom, D.D., and Flatt\u00e9, M.E.** (2007). \"Challenges for semiconductor spintronics.\" *Nature Physics*, 3(3), 153\u2013159. \u2014 Discusses room-temperature coherence requirements for practical spintronic devices, and explicitly identifies T2 as the limiting factor for spintronic memory applications. The paper discusses why organic semiconductors are attractive for longer T2 (weaker hyperfine; Section 2).\n+",
+          "line": 78,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+- **\u017duti\u0107, I., Fabian, J., and Das Sarma, S.** (2004). \"Spintronics: Fundamentals and applications.\" *Reviews of Modern Physics*, 76(2), 323\u2013410. \u2014 The canonical review of semiconductor spintronics. Sections 2 and 4 cover T1/T2 measurements across substrates. The 1\u201325 ns range for conventional devices derives from data in this review.\n+\n+- **Awschalom, D.D., and Flatt\u00e9, M.E.** (2007). \"Challenges for semiconductor spintronics.\" *Nature Physics*, 3(3), 153\u2013159. \u2014 Discusses room-temperature coherence requirements for practical spintronic devices, and explicitly identifies T2 as the limiting factor for spintronic memory applications. The paper discusses why organic semiconductors are attractive for longer T2 (weaker hyperfine; Section 2).\n+\n+- **Dyakonov, M.I. (ed.)** (2008). *Spin Physics in Semiconductors*. Springer. \u2014 Chapter 2 covers T2 dephasing mechanisms in detail; relevant for understanding why the 1\u201325 ns range is robust across different conventional substrates.\n+",
+          "line": 80,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+- **Awschalom, D.D., and Flatt\u00e9, M.E.** (2007). \"Challenges for semiconductor spintronics.\" *Nature Physics*, 3(3), 153\u2013159. \u2014 Discusses room-temperature coherence requirements for practical spintronic devices, and explicitly identifies T2 as the limiting factor for spintronic memory applications. The paper discusses why organic semiconductors are attractive for longer T2 (weaker hyperfine; Section 2).\n+\n+- **Dyakonov, M.I. (ed.)** (2008). *Spin Physics in Semiconductors*. Springer. \u2014 Chapter 2 covers T2 dephasing mechanisms in detail; relevant for understanding why the 1\u201325 ns range is robust across different conventional substrates.\n+\n+- **Chappert, C., Fert, A., and Van Dau, F.N.** (2007). \"The emergence of spin electronics in data storage.\" *Nature Materials*, 6(11), 813\u2013823. \u2014 Covers spin-transfer torque devices and metallic spin valves, with measured T2 values in the 1\u201310 ns regime.\n+",
+          "line": 82,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+- **Dyakonov, M.I. (ed.)** (2008). *Spin Physics in Semiconductors*. Springer. \u2014 Chapter 2 covers T2 dephasing mechanisms in detail; relevant for understanding why the 1\u201325 ns range is robust across different conventional substrates.\n+\n+- **Chappert, C., Fert, A., and Van Dau, F.N.** (2007). \"The emergence of spin electronics in data storage.\" *Nature Materials*, 6(11), 813\u2013823. \u2014 Covers spin-transfer torque devices and metallic spin valves, with measured T2 values in the 1\u201310 ns regime.\n+\n+---\n+",
+          "line": 84,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+}\n+```\n+\n+The value 25 ns is chosen as the **upper bound of the T2 range for conventional room-temperature spintronic devices** (the 1\u201325 ns range established in Section 2.2). It is not an arbitrary choice; it represents the longest coherence time that should be assumed for a device that has not been specifically characterized. For well-characterized devices with shorter measured T2, implementations MAY use a shorter TTL. They MUST NOT use a longer TTL and claim physical enforcement.\n+\n+### 3.2 Key as Spin State\n+",
+          "line": 108,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 3.2 Key as Spin State\n+\n+On spintronic hardware, the routing key (the epoch value used in Pong key derivation, per `rpp/geometry.py`) is encoded as a spin state in a spintronic register during the routing decision. The implementation is substrate-specific, but the logical structure is:\n+\n+1. **Initialization:** The epoch value is mapped to a spin orientation (e.g., via spin-transfer torque writing) at the moment the routing decision begins.\n+2. **Use:** The spin state is read during key derivation (Pong: `derive_rotation_key(phi, theta, harmonic, epoch)` in `rpp/geometry.py`). The read itself does not destroy the state, but the environmental decoherence process is continuously progressing.",
+          "line": 112,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+On spintronic hardware, the routing key (the epoch value used in Pong key derivation, per `rpp/geometry.py`) is encoded as a spin state in a spintronic register during the routing decision. The implementation is substrate-specific, but the logical structure is:\n+\n+1. **Initialization:** The epoch value is mapped to a spin orientation (e.g., via spin-transfer torque writing) at the moment the routing decision begins.\n+2. **Use:** The spin state is read during key derivation (Pong: `derive_rotation_key(phi, theta, harmonic, epoch)` in `rpp/geometry.py`). The read itself does not destroy the state, but the environmental decoherence process is continuously progressing.\n+3. **Expiry:** After T2, the spin state has decohered into a statistical mixture with no recoverable correlation to the original epoch value. The key is gone. No explicit deletion is required; no secure-erase routine is necessary; no overwrite is needed.\n+",
+          "line": 114,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 3.3 Thermal Randomization: The Mechanism\n+\n+The decoherence mechanism is thermal. At room temperature, the thermal energy $k_B T \\approx 25$ meV is sufficient to drive random spin-flip events via:\n+\n+- **Spin-orbit coupling (SOC):** Electron momentum scattering events flip the spin. In conventional semiconductors with heavy elements (GaAs, InAs), SOC is strong and T2 is short. In light-element materials (organic semiconductors, isotopically pure silicon), SOC is weak and T2 is longer.\n+- **Hyperfine interaction:** Coupling between the electron spin and the nuclear spins of the host lattice creates an effective random magnetic field that dephases the electron spin. In materials with zero-spin nuclei (isotopically purified Si-28, C-12 diamond), hyperfine T2 is dramatically extended.",
+          "line": 122,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+The decoherence mechanism is thermal. At room temperature, the thermal energy $k_B T \\approx 25$ meV is sufficient to drive random spin-flip events via:\n+\n+- **Spin-orbit coupling (SOC):** Electron momentum scattering events flip the spin. In conventional semiconductors with heavy elements (GaAs, InAs), SOC is strong and T2 is short. In light-element materials (organic semiconductors, isotopically pure silicon), SOC is weak and T2 is longer.\n+- **Hyperfine interaction:** Coupling between the electron spin and the nuclear spins of the host lattice creates an effective random magnetic field that dephases the electron spin. In materials with zero-spin nuclei (isotopically purified Si-28, C-12 diamond), hyperfine T2 is dramatically extended.\n+- **Magnetic impurity scattering:** Defects with magnetic moments in the lattice scatter spin and reduce T2.\n+",
+          "line": 124,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+- **Hyperfine interaction:** Coupling between the electron spin and the nuclear spins of the host lattice creates an effective random magnetic field that dephases the electron spin. In materials with zero-spin nuclei (isotopically purified Si-28, C-12 diamond), hyperfine T2 is dramatically extended.\n+- **Magnetic impurity scattering:** Defects with magnetic moments in the lattice scatter spin and reduce T2.\n+\n+After T2, the spin state is described by the density matrix:\n+\n+$$\\rho(t \\gg T_2) = \\frac{1}{2}\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$$\n+",
+          "line": 128,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+$$\\rho(t \\gg T_2) = \\frac{1}{2}\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$$\n+\n+This is the maximally mixed state: a 50/50 statistical mixture of spin-up and spin-down with no phase information. The entropy of this state is maximal ($S = k_B \\ln 2$ per spin). There is no measurement basis in which any information about the original spin state is recoverable, because that information has been dissipated into the thermal bath of the lattice.\n+\n+**The key has not been erased; it has been thermalized.** The distinction matters: erasure is an operation that could in principle be reversed (if a backup exists). Thermalization is irreversible under the second law of thermodynamics.\n+",
+          "line": 132,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Three of four inputs (phi, theta, harmonic) are present in the packet address and are visible to any observer who can read the packet header. The entire security of the Pong scheme rests on `epoch` confidentiality, as documented in `examples/security_bounds.py` (Section 1, Key Derivation Anatomy):\n+\n+> \"Three of four inputs are in the clear packet header. The cipher's secrecy rests entirely on epoch confidentiality. On hardware: the epoch is a quantum state. Observing it destroys it.\"\n+\n+### 4.2 Encoding Epoch as Spin State\n+",
+          "line": 154,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 4.2 Encoding Epoch as Spin State\n+\n+During a Shell=0 routing event, the epoch is encoded in a spintronic register as follows (logical description; physical implementation is substrate-dependent):\n+\n+1. **Before routing:** The node's current epoch value is written into a dedicated spintronic routing register. This register is not connected to persistent storage; it exists only in the spin layer.\n+2. **During routing:** The Pong key derivation reads the epoch from the spin register. This read is a quantum measurement that does not necessarily collapse the state (depending on implementation), but the clock is running: T2 decoherence is proceeding from the moment the state was written.",
+          "line": 158,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+During a Shell=0 routing event, the epoch is encoded in a spintronic register as follows (logical description; physical implementation is substrate-dependent):\n+\n+1. **Before routing:** The node's current epoch value is written into a dedicated spintronic routing register. This register is not connected to persistent storage; it exists only in the spin layer.\n+2. **During routing:** The Pong key derivation reads the epoch from the spin register. This read is a quantum measurement that does not necessarily collapse the state (depending on implementation), but the clock is running: T2 decoherence is proceeding from the moment the state was written.\n+3. **After routing (within T2):** The spin state still nominally encodes the epoch. An adversary with physical access and a spin-sensitive detector could in principle read it.\n+4. **After T2:** The spin state is maximally mixed. The epoch value is gone. No detection is possible.",
+          "line": 160,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+RPP Article II defines the requirement that routing keys constitute private internal state that is never exposed to external observers. On conventional hardware, this is implemented by software TTL enforcement: the epoch is zeroed after `SHELL_LIMINAL_TIMEOUT_NS[0]` = 25 ns by the routing runtime. This is a software guarantee.\n+\n+On spintronic hardware, Article II is implemented at the physics level:\n+\n+- The epoch exists as a spin state for at most T2 \u2248 25 ns.\n+- After T2, the state has thermalized. The epoch does not exist in any readable form.",
+          "line": 169,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+On spintronic hardware, Article II is implemented at the physics level:\n+\n+- The epoch exists as a spin state for at most T2 \u2248 25 ns.\n+- After T2, the state has thermalized. The epoch does not exist in any readable form.\n+- No software path, no privileged access, and no measurement device can extract the epoch after T2.\n+- The hardware automatically enforces what Article II requires: private internal state that self-destructs on the decoherence timescale.",
+          "line": 171,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+routing_decision_latency < T2 \u2264 25 ns\n+```\n+\n+At room temperature, modern spintronic logic operates at GHz speeds (spin-transfer torque oscillators reach 10\u201340 GHz). A routing decision that requires reading the spin epoch, computing the Pong key (a few multiplications and modular reductions), and executing the phi gate comparison is feasibly completable in under 25 ns on dedicated spintronic logic.\n+\n+On conventional CMOS hardware, the routing decision latency is dominated by Python interpreter overhead (the reference implementation measures 3.4 \u00b5s per routing decision). Shell=0 is advisory on such hardware: the software enforces the TTL but cannot match the physical guarantee.\n+",
+          "line": 186,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+The following table maps each RPP Shell tier to its target hardware substrate, enforcement mechanism, and relevant timescale. This table is the hardware-grounded interpretation of the Shell field defined in `spec/SPEC.md` (Section 2.2.1) and the TTL constants in `rpp/continuity.py`.\n+\n+| Shell | Name | Target Substrate | Enforcement Mechanism | Key Lifetime | T2 / TTL Reference |\n+|---|---|---|---|---|---|\n+| 0 | Hot | Spintronic register (spin valve, MRAM) | Physical T2 decoherence | 1 \u2013 25 ns | `SHELL_T2_NS[0]` = 25 ns |\n+| 1 | Warm | SRAM (static RAM, cache-backed) | Software TTL + cache eviction | 300 s (5 min) | `SHELL_LIMINAL_TIMEOUT_NS[1]` |",
+          "line": 196,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 5.1 Shell 0 \u2014 Spintronic (T2 Physics)\n+\n+**Substrate:** Spin valve, MRAM cell, or spin-transfer torque oscillator register.\n+\n+**Enforcement:** T2 decoherence is the enforcement mechanism. No software action is required to expire the key; the key expires automatically when the spin state thermalizes. Software may additionally enforce TTL for defense-in-depth, but the physical expiry is the load-bearing guarantee.\n+",
+          "line": 205,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Substrate:** Spin valve, MRAM cell, or spin-transfer torque oscillator register.\n+\n+**Enforcement:** T2 decoherence is the enforcement mechanism. No software action is required to expire the key; the key expires automatically when the spin state thermalizes. Software may additionally enforce TTL for defense-in-depth, but the physical expiry is the load-bearing guarantee.\n+\n+**Timescale:** `SHELL_T2_NS[0]` = 25 ns. This is the measured upper bound for conventional room-temperature spintronic devices. For devices with measured T2 shorter than 25 ns, the physical expiry is correspondingly earlier.\n+",
+          "line": 207,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Enforcement:** T2 decoherence is the enforcement mechanism. No software action is required to expire the key; the key expires automatically when the spin state thermalizes. Software may additionally enforce TTL for defense-in-depth, but the physical expiry is the load-bearing guarantee.\n+\n+**Timescale:** `SHELL_T2_NS[0]` = 25 ns. This is the measured upper bound for conventional room-temperature spintronic devices. For devices with measured T2 shorter than 25 ns, the physical expiry is correspondingly earlier.\n+\n+**Key material:** The epoch used in Pong key derivation is encoded as a spin state. After T2, the epoch is gone.\n+",
+          "line": 209,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Timescale:** `SHELL_T2_NS[0]` = 25 ns. This is the measured upper bound for conventional room-temperature spintronic devices. For devices with measured T2 shorter than 25 ns, the physical expiry is correspondingly earlier.\n+\n+**Key material:** The epoch used in Pong key derivation is encoded as a spin state. After T2, the epoch is gone.\n+\n+### 5.2 Shell 1 \u2014 SRAM (Software TTL)\n+",
+          "line": 211,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 6.1 What Physical Decoherence Prevents\n+\n+When Shell=0 keys are encoded in spintronic registers and T2 has elapsed, the following attack classes are physically foreclosed:\n+\n+**Cold-boot attack:** A cold-boot attack cools the memory substrate to extend data remanence and reads it after power loss. DRAM remanence can persist for minutes at cold temperatures. SRAM remanence can persist for seconds. Spintronic remanence does not apply in the same way: the spin state has already decohered at T2 (25 ns) regardless of temperature, because T2 decoherence is driven by quantum fluctuations and thermal noise that cannot be suppressed by modest cooling. (Note: isotopically purified substrates at millikelvin temperatures do achieve much longer T2, but that is not the operating regime for RPP Shell=0 devices.)\n+",
+          "line": 243,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+When Shell=0 keys are encoded in spintronic registers and T2 has elapsed, the following attack classes are physically foreclosed:\n+\n+**Cold-boot attack:** A cold-boot attack cools the memory substrate to extend data remanence and reads it after power loss. DRAM remanence can persist for minutes at cold temperatures. SRAM remanence can persist for seconds. Spintronic remanence does not apply in the same way: the spin state has already decohered at T2 (25 ns) regardless of temperature, because T2 decoherence is driven by quantum fluctuations and thermal noise that cannot be suppressed by modest cooling. (Note: isotopically purified substrates at millikelvin temperatures do achieve much longer T2, but that is not the operating regime for RPP Shell=0 devices.)\n+\n+**Memory forensics:** A forensic analyst with physical access to the device's memory can image DRAM or SRAM after the fact. For Shell=0, there is no classical memory to image: the epoch was encoded in a spin register, not in a voltage-state memory cell. After T2, the spin register contains no recoverable epoch information.\n+",
+          "line": 245,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Cold-boot attack:** A cold-boot attack cools the memory substrate to extend data remanence and reads it after power loss. DRAM remanence can persist for minutes at cold temperatures. SRAM remanence can persist for seconds. Spintronic remanence does not apply in the same way: the spin state has already decohered at T2 (25 ns) regardless of temperature, because T2 decoherence is driven by quantum fluctuations and thermal noise that cannot be suppressed by modest cooling. (Note: isotopically purified substrates at millikelvin temperatures do achieve much longer T2, but that is not the operating regime for RPP Shell=0 devices.)\n+\n+**Memory forensics:** A forensic analyst with physical access to the device's memory can image DRAM or SRAM after the fact. For Shell=0, there is no classical memory to image: the epoch was encoded in a spin register, not in a voltage-state memory cell. After T2, the spin register contains no recoverable epoch information.\n+\n+**Cache-timing side channel:** Cache-timing attacks infer key material by measuring memory access latency patterns. This requires the key to be in a cache-accessible memory location during or after its use. A key encoded in a spintronic register that is not memory-mapped to any cache-coherent address space is not susceptible to cache-timing attacks.\n+",
+          "line": 247,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Memory forensics:** A forensic analyst with physical access to the device's memory can image DRAM or SRAM after the fact. For Shell=0, there is no classical memory to image: the epoch was encoded in a spin register, not in a voltage-state memory cell. After T2, the spin register contains no recoverable epoch information.\n+\n+**Cache-timing side channel:** Cache-timing attacks infer key material by measuring memory access latency patterns. This requires the key to be in a cache-accessible memory location during or after its use. A key encoded in a spintronic register that is not memory-mapped to any cache-coherent address space is not susceptible to cache-timing attacks.\n+\n+**Software privilege escalation:** A privileged process (root, kernel, hypervisor) can read arbitrary physical memory on conventional hardware. On spintronic hardware, the epoch encoded in the spin register is not readable via memory-mapped I/O after T2 because it does not exist as a readable bit pattern.\n+",
+          "line": 249,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Cache-timing side channel:** Cache-timing attacks infer key material by measuring memory access latency patterns. This requires the key to be in a cache-accessible memory location during or after its use. A key encoded in a spintronic register that is not memory-mapped to any cache-coherent address space is not susceptible to cache-timing attacks.\n+\n+**Software privilege escalation:** A privileged process (root, kernel, hypervisor) can read arbitrary physical memory on conventional hardware. On spintronic hardware, the epoch encoded in the spin register is not readable via memory-mapped I/O after T2 because it does not exist as a readable bit pattern.\n+\n+**Timing of key derivation oracle:** If an adversary can query the routing oracle (submit packets and observe routing decisions), they can potentially infer the epoch by brute force. However, the T2 window (25 ns) is far shorter than the minimum round-trip time for any network-based oracle query. Even local loopback on modern hardware has latency on the order of microseconds to milliseconds \u2014 three to six orders of magnitude longer than T2. The epoch changes before any oracle-based brute force can complete even a single query cycle.\n+",
+          "line": 251,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 6.2 What Physical Decoherence Does NOT Prevent\n+\n+Physical decoherence of the Shell=0 epoch address the *post-routing* attack surface. It does not address:\n+\n+**In-window attacks (within T2):** During the T2 window, the spin state encodes the epoch and in principle could be read by a sufficiently capable spin-sensitive detector (e.g., spin-resolved scanning tunneling microscopy, nitrogen-vacancy magnetometry). Such attacks require physical proximity to the chip and specialized equipment. They are not practical against a deployed device but are theoretically possible.\n+",
+          "line": 257,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Physical decoherence of the Shell=0 epoch address the *post-routing* attack surface. It does not address:\n+\n+**In-window attacks (within T2):** During the T2 window, the spin state encodes the epoch and in principle could be read by a sufficiently capable spin-sensitive detector (e.g., spin-resolved scanning tunneling microscopy, nitrogen-vacancy magnetometry). Such attacks require physical proximity to the chip and specialized equipment. They are not practical against a deployed device but are theoretically possible.\n+\n+**Side channels during routing:** The routing computation itself (Pong key derivation, phi gate comparison) involves classical computation on conventional logic even when the epoch originates in a spintronic register. Power side channels, electromagnetic side channels, and acoustic side channels during the 25 ns routing window could in principle leak information about the epoch value. Mitigating these requires standard side-channel resistant circuit design.\n+",
+          "line": 259,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**In-window attacks (within T2):** During the T2 window, the spin state encodes the epoch and in principle could be read by a sufficiently capable spin-sensitive detector (e.g., spin-resolved scanning tunneling microscopy, nitrogen-vacancy magnetometry). Such attacks require physical proximity to the chip and specialized equipment. They are not practical against a deployed device but are theoretically possible.\n+\n+**Side channels during routing:** The routing computation itself (Pong key derivation, phi gate comparison) involves classical computation on conventional logic even when the epoch originates in a spintronic register. Power side channels, electromagnetic side channels, and acoustic side channels during the 25 ns routing window could in principle leak information about the epoch value. Mitigating these requires standard side-channel resistant circuit design.\n+\n+**Epoch value before encoding:** The epoch value must originate somewhere before it is written into the spintronic register. If the epoch is derived from a counter or random number generator in classical SRAM, that classical copy is subject to conventional attack. The spintronic guarantee applies only to the *spin register encoding*, not to any classical pre-encoding representation.\n+",
+          "line": 261,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Side channels during routing:** The routing computation itself (Pong key derivation, phi gate comparison) involves classical computation on conventional logic even when the epoch originates in a spintronic register. Power side channels, electromagnetic side channels, and acoustic side channels during the 25 ns routing window could in principle leak information about the epoch value. Mitigating these requires standard side-channel resistant circuit design.\n+\n+**Epoch value before encoding:** The epoch value must originate somewhere before it is written into the spintronic register. If the epoch is derived from a counter or random number generator in classical SRAM, that classical copy is subject to conventional attack. The spintronic guarantee applies only to the *spin register encoding*, not to any classical pre-encoding representation.\n+\n+**Attacking Shell 1\u20133 components of the same system:** A device running Shell=0 routing may also handle Shell 1\u20133 state in SRAM/DRAM/NVMe. Compromise of those tiers is outside the scope of the spintronic guarantee.\n+",
+          "line": 263,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Epoch value before encoding:** The epoch value must originate somewhere before it is written into the spintronic register. If the epoch is derived from a counter or random number generator in classical SRAM, that classical copy is subject to conventional attack. The spintronic guarantee applies only to the *spin register encoding*, not to any classical pre-encoding representation.\n+\n+**Attacking Shell 1\u20133 components of the same system:** A device running Shell=0 routing may also handle Shell 1\u20133 state in SRAM/DRAM/NVMe. Compromise of those tiers is outside the scope of the spintronic guarantee.\n+\n+**Protocol-level attacks:** Physical decoherence does not protect against consent field manipulation, address spoofing, or Skyrmion winding number forgery. Those are handled by the RPP protocol mechanisms (ZK consent proofs, continuity chain signing, topological collapse detection).\n+",
+          "line": 265,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+**Attacking Shell 1\u20133 components of the same system:** A device running Shell=0 routing may also handle Shell 1\u20133 state in SRAM/DRAM/NVMe. Compromise of those tiers is outside the scope of the spintronic guarantee.\n+\n+**Protocol-level attacks:** Physical decoherence does not protect against consent field manipulation, address spoofing, or Skyrmion winding number forgery. Those are handled by the RPP protocol mechanisms (ZK consent proofs, continuity chain signing, topological collapse detection).\n+\n+---\n+",
+          "line": 267,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 7.1 Shell=0 on Conventional Hardware: Advisory Enforcement\n+\n+On conventional (non-spintronic) hardware, Shell=0 is advisory. Implementations MUST:\n+\n+1. **Enforce the 25 ns TTL as tightly as the runtime permits.** In practice, this means the epoch used for Shell=0 routing decisions should be treated as ephemeral: never written to persistent storage, never logged, and overwritten as soon as the routing decision is complete.\n+2. **Not claim physical enforcement.** Documentation, comments, and API contracts for Shell=0 on conventional hardware must not assert that the key is physically irrecoverable. The correct claim is: \"Shell=0 TTL is enforced by software; physical irrecoverability requires spintronic hardware.\"",
+          "line": 275,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+On conventional (non-spintronic) hardware, Shell=0 is advisory. Implementations MUST:\n+\n+1. **Enforce the 25 ns TTL as tightly as the runtime permits.** In practice, this means the epoch used for Shell=0 routing decisions should be treated as ephemeral: never written to persistent storage, never logged, and overwritten as soon as the routing decision is complete.\n+2. **Not claim physical enforcement.** Documentation, comments, and API contracts for Shell=0 on conventional hardware must not assert that the key is physically irrecoverable. The correct claim is: \"Shell=0 TTL is enforced by software; physical irrecoverability requires spintronic hardware.\"\n+3. **Implement defense-in-depth.** Even without physical enforcement, multiple layers of software protection (zeroing epoch registers, process isolation, memory guard pages, ASLR) reduce the practical attack surface.\n+",
+          "line": 277,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+2. **Not claim physical enforcement.** Documentation, comments, and API contracts for Shell=0 on conventional hardware must not assert that the key is physically irrecoverable. The correct claim is: \"Shell=0 TTL is enforced by software; physical irrecoverability requires spintronic hardware.\"\n+3. **Implement defense-in-depth.** Even without physical enforcement, multiple layers of software protection (zeroing epoch registers, process isolation, memory guard pages, ASLR) reduce the practical attack surface.\n+\n+The constant `SHELL_LIMINAL_TIMEOUT_NS[0]` = 25 in `rpp/continuity.py` is correct as a target regardless of hardware. On conventional hardware, it expresses intent and drives TTL enforcement logic. On spintronic hardware, it corresponds to the physical T2 deadline.\n+\n+### 7.2 Shell=0 on Spintronic Hardware: Physical Invariant\n+",
+          "line": 281,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 7.2 Shell=0 on Spintronic Hardware: Physical Invariant\n+\n+On spintronic hardware, Shell=0 is a physical invariant. Implementations on spintronic platforms:\n+\n+1. **MUST encode the epoch in the spintronic register** at the start of each Shell=0 routing decision and MUST NOT maintain a classical copy of the epoch value during or after the routing window.\n+2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
+          "line": 285,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+On spintronic hardware, Shell=0 is a physical invariant. Implementations on spintronic platforms:\n+\n+1. **MUST encode the epoch in the spintronic register** at the start of each Shell=0 routing decision and MUST NOT maintain a classical copy of the epoch value during or after the routing window.\n+2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.\n+3. **MAY read the T2 value from device characterization** rather than assuming the worst-case 25 ns. A device with measured T2 = 8 ns provides strictly stronger enforcement; the timeout constant should reflect the actual device.\n+4. **SHOULD log T2 measurements** as part of device attestation to allow external verification that the physical invariant holds.",
+          "line": 287,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+The Ford Protocol (spec/CONTINUITY.md, implemented in `rpp/continuity.py`) uses `SHELL_LIMINAL_TIMEOUT_NS` as the deadline for the TRANSIT phase. For Shell=0 crossings, this means:\n+\n+- The entire crossing (SCOUT through RELEASE, five phases) must complete within 25 ns on spintronic hardware.\n+- This is a strong architectural constraint: Shell=0 crossings are only feasible between spintronic substrates in close physical proximity (same chip, same package). Cross-board or cross-rack Shell=0 crossings are not feasible given signal propagation delays.\n+- If a Shell=0 crossing cannot complete within T2, the recovery escalation ladder (spec/CONTINUITY.md Section 7) applies. ABORT is the terminal recovery level; the state is treated as lost.\n+",
+          "line": 296,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+# Minimum T2 coherence time destination must provide (nanoseconds).\n+```\n+\n+For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.\n+\n+---\n+",
+          "line": 311,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 8.1 Organic Spin Valves\n+\n+Organic semiconductors (small molecules and conjugated polymers) have demonstrated T2 times in the 10\u2013100 ns range at room temperature, significantly longer than conventional inorganic spintronic devices. The mechanism is suppressed spin-orbit coupling (lighter atomic elements) and weaker hyperfine interactions compared to III-V semiconductors.\n+\n+For RPP Shell=0, organic spin valves are attractive because:\n+",
+          "line": 319,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Organic semiconductors (small molecules and conjugated polymers) have demonstrated T2 times in the 10\u2013100 ns range at room temperature, significantly longer than conventional inorganic spintronic devices. The mechanism is suppressed spin-orbit coupling (lighter atomic elements) and weaker hyperfine interactions compared to III-V semiconductors.\n+\n+For RPP Shell=0, organic spin valves are attractive because:\n+\n+- Longer T2 (up to 100 ns) provides a larger routing window, making Shell=0 Ford Protocol crossings feasible over slightly longer physical distances.\n+- The SHELL_T2_NS[0] constant and SHELL_LIMINAL_TIMEOUT_NS[0] constants could be updated to reflect the longer window while maintaining physical enforcement.",
+          "line": 321,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+For RPP Shell=0, organic spin valves are attractive because:\n+\n+- Longer T2 (up to 100 ns) provides a larger routing window, making Shell=0 Ford Protocol crossings feasible over slightly longer physical distances.\n+- The SHELL_T2_NS[0] constant and SHELL_LIMINAL_TIMEOUT_NS[0] constants could be updated to reflect the longer window while maintaining physical enforcement.\n+- Organic devices are compatible with flexible substrates and low-temperature processing, potentially enabling spintronic capabilities in form factors not possible with conventional semiconductor fabrication.\n+",
+          "line": 323,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+- The SHELL_T2_NS[0] constant and SHELL_LIMINAL_TIMEOUT_NS[0] constants could be updated to reflect the longer window while maintaining physical enforcement.\n+- Organic devices are compatible with flexible substrates and low-temperature processing, potentially enabling spintronic capabilities in form factors not possible with conventional semiconductor fabrication.\n+\n+A future version of this document should specify how the T2 constant should be adjusted for organic spintronic hardware and what attestation mechanisms are required to verify the T2 claim.\n+\n+### 8.2 Graphene Spintronics\n+",
+          "line": 327,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 8.2 Graphene Spintronics\n+\n+Graphene is a single-layer carbon lattice with zero nuclear spin (for isotopically pure C-12 graphene) and weak spin-orbit coupling. Theoretical T2 times in graphene are in the microsecond range at room temperature, though practical devices are limited by substrate-induced dephasing to 1\u201310 ns at present.\n+\n+Graphene spintronics is relevant to RPP because:\n+",
+          "line": 331,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Graphene is a single-layer carbon lattice with zero nuclear spin (for isotopically pure C-12 graphene) and weak spin-orbit coupling. Theoretical T2 times in graphene are in the microsecond range at room temperature, though practical devices are limited by substrate-induced dephasing to 1\u201310 ns at present.\n+\n+Graphene spintronics is relevant to RPP because:\n+\n+- Gate-tunable spin lifetime allows dynamic adjustment of T2, which could enable adaptive Shell=0 TTL based on consent state or routing priority (e.g., ACTIVE harmonic mode as defined in `rpp/continuity.py` HarmonicMode could trigger shorter T2, increasing routing throughput at some security cost).\n+- The combination of high electron mobility and spin transport in graphene could enable integrated routing and computation at the spintronic level, with the epoch state never entering a classical register.",
+          "line": 333,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+Graphene spintronics is relevant to RPP because:\n+\n+- Gate-tunable spin lifetime allows dynamic adjustment of T2, which could enable adaptive Shell=0 TTL based on consent state or routing priority (e.g., ACTIVE harmonic mode as defined in `rpp/continuity.py` HarmonicMode could trigger shorter T2, increasing routing throughput at some security cost).\n+- The combination of high electron mobility and spin transport in graphene could enable integrated routing and computation at the spintronic level, with the epoch state never entering a classical register.\n+\n+### 8.3 T2 Measurement Under Routing Conditions",
+          "line": 335,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 8.3 T2 Measurement Under Routing Conditions\n+\n+The T2 values cited in Section 2.2 are from materials characterization experiments (spin echo, Hahn echo, CPMG sequences) under controlled conditions. The T2 under actual routing conditions \u2014 with active current flow through the spin valve, thermal gradients from adjacent CMOS logic, and magnetic field noise from interconnects \u2014 may differ from the quiescent T2.\n+\n+Future work should:\n+",
+          "line": 340,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+### 8.4 Multi-Qubit Shell=0 Registers\n+\n+This document has described Shell=0 encoding as a single spin (one epoch value in one spintronic register). Future architectures may encode multiple fields simultaneously in entangled multi-spin states, exploiting quantum correlations to increase the information density of the Shell=0 register while maintaining the T2 expiry guarantee.\n+\n+The security analysis for multi-qubit registers is more complex: entangled states can sometimes be partially characterized by measuring a subset of the spins, which could in principle leak partial epoch information before full decoherence. Future work should analyze the security of multi-qubit Shell=0 encodings under partial-measurement attacks.\n+",
+          "line": 351,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+This document has described Shell=0 encoding as a single spin (one epoch value in one spintronic register). Future architectures may encode multiple fields simultaneously in entangled multi-spin states, exploiting quantum correlations to increase the information density of the Shell=0 register while maintaining the T2 expiry guarantee.\n+\n+The security analysis for multi-qubit registers is more complex: entangled states can sometimes be partially characterized by measuring a subset of the spins, which could in principle leak partial epoch information before full decoherence. Future work should analyze the security of multi-qubit Shell=0 encodings under partial-measurement attacks.\n+\n+---\n+",
+          "line": 353,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+## Summary Table\n+\n+| Property | Shell=0 (Spintronic) | Shell=1 (SRAM) | Shell=2 (DRAM) | Shell=3 (NVMe) |\n+|---|---|---|---|---|\n+| Enforcement mechanism | Physical (T2 decoherence) | Software TTL | Software TTL + scrub | Software TTL + deletion |\n+| Key lifetime | 1\u201325 ns (physical) | 300 s (software) | 86,400 s (software) | 2,592,000 s (software) |",
+          "line": 359,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+\n+---\n+\n+*This document establishes the physical grounding for RPP Shell tier hardware claims. Claims about spintronic physical enforcement are grounded in published experimental T2 measurements and are subject to revision as measurement techniques and device engineering advance.*\n+\n+*Released under CC BY 4.0.*",
+          "line": 372,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -0,0 +1,374 @@\n+- This is a strong architectural constraint: Shell=0 crossings are only feasible between spintronic substrates in close physical proximity (same chip, same package). Cross-board or cross-rack Shell=0 crossings are not feasible given signal propagation delays.\n+- If a Shell=0 crossing cannot complete within T2, the recovery escalation ladder (spec/CONTINUITY.md Section 7) applies. ABORT is the terminal recovery level; the state is treated as lost.\n+\n+On conventional hardware, the 25 ns window cannot be guaranteed by software alone. Shell=0 Ford Protocol crossings on conventional hardware are advisory: they express the intent to complete quickly but cannot provide the physical deadline guarantee.\n+\n+### 7.4 Minimum T2 Requirement in ConsciousnessStatePacket\n+",
+          "line": 300,
+          "path": "spec/SPINTRONIC.md",
+          "rule_id": "WORD-CLAIM-1",
+          "severity": "LOW",
+          "source": "SECURITY.md:24",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "725347ed702a87cda6735b47612aa4d2e1ae9e0d",
+      "summary": {
+        "high": 4,
+        "low": 1,
+        "medium": 82,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "725347ed702a87cda6735b47612aa4d2e1ae9e0d",
+      "findings": [
+        {
+          "evidence": "@@ -28,6 +28,33 @@ developers: addresses are encoded in human-meaningful terms (storage tier, data\n+- No central registry \u2014 nothing permanently maps \"this data\" to \"this address\"\n+- The Shell field encodes temporal scope (see Section 2.3)\n+\n+On spintronic hardware, temporality is enforced physically: the spin state carrying a routing\n+permission decoheres in T2 time. The address literally ceases to exist in the substrate.\n+Software implementations MUST enforce equivalent TTL semantics per Shell tier.\n+",
+          "line": 54,
+          "path": "spec/SPEC.md",
+          "rule_id": "BND-F-1",
+          "severity": "HIGH",
+          "source": "BOUNDARIES.md:98",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -28,6 +28,33 @@ developers: addresses are encoded in human-meaningful terms (storage tier, data\n+address = f(data_type, current_consent_state, routing_context)\n+```\n+\n+When consent changes, the address changes. An address resolved at time T is not guaranteed\n+valid at time T+1. Callers MUST resolve addresses at the point of access \u2014 caching is not safe.\n+\n+This means the 28-bit address space (268,435,456 values) represents **concurrent routing",
+          "line": 41,
+          "path": "spec/SPEC.md",
+          "rule_id": "WORD-CLAIM-1",
+          "severity": "LOW",
+          "source": "SECURITY.md:24",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "f87314c0fd1f0bdae54a95be6499fd8181cb7c4b",
+      "summary": {
+        "high": 1,
+        "low": 1,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "f87314c0fd1f0bdae54a95be6499fd8181cb7c4b",
+      "findings": [],
+      "parent": "4eff1f96e2b20dfbb2931f48e2b87eb518f8ab0b",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "4eff1f96e2b20dfbb2931f48e2b87eb518f8ab0b",
+      "findings": [],
+      "parent": "39d5fe351a801614655a898a8c9ba7d226d4b837",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "39d5fe351a801614655a898a8c9ba7d226d4b837",
+      "findings": [],
+      "parent": "2082675e1a3a6e1bce4e74b2f5b6c6c8467cbe77",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "2082675e1a3a6e1bce4e74b2f5b6c6c8467cbe77",
+      "findings": [
+        {
+          "evidence": "@@ -0,0 +1,183 @@\n+\n+### When to use v2.0\n+\n+- Implementing substrate-level routing hardware (FPGA, spintronics)\n+- Interfacing with Ra-coherent systems\n+- Transport-layer packet encoding at the resonance tier\n+- Hardware implementations that require Ra System alignment",
+          "line": 95,
+          "path": "spec/ADDRESSING-LAYERS.md",
+          "rule_id": "BND-F-1",
+          "severity": "HIGH",
+          "source": "BOUNDARIES.md:98",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "c5d83b647a8a3c53203e475eb19f558b05aafb62",
+      "summary": {
+        "high": 1,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "c5d83b647a8a3c53203e475eb19f558b05aafb62",
+      "findings": [],
+      "parent": "c62d941830522a497837c2219a0de5915f506c02",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "c62d941830522a497837c2219a0de5915f506c02",
+      "findings": [],
+      "parent": "a56fdf5b5ee6194f2083a843b144b8f589249ec2",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "a56fdf5b5ee6194f2083a843b144b8f589249ec2",
+      "findings": [],
+      "parent": "920aff68733a169a4305464e688fa0fa701b2165",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "920aff68733a169a4305464e688fa0fa701b2165",
+      "findings": [],
+      "parent": "438f049178f46bb8000cfcb5333192544d7d3bd5",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "438f049178f46bb8000cfcb5333192544d7d3bd5",
+      "findings": [],
+      "parent": "ca1006d609342ea94831e94ad32c9fa82ee904d2",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "ca1006d609342ea94831e94ad32c9fa82ee904d2",
+      "findings": [],
+      "parent": "ebf1f9a46ea9c90d91d14cf3a06541a3011e76ec",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "ebf1f9a46ea9c90d91d14cf3a06541a3011e76ec",
+      "findings": [
+        {
+          "evidence": "@@ -1,29 +1,53 @@\n | Layer | Bit Width | Purpose | Hardware Target |\n |-------|-----------|---------|-----------------|\n-| **Core** | 28 bits | Routing, storage, consent | FPGA registers, SPI, MRAM |\n+| **Ra-Canonical** | 32 bits | Core routing (\u03b8/\u03c6/h/r format) | FPGA registers, SPI, MRAM |\n+| **Legacy Core** | 28 bits | Routing, storage, consent (deprecated) | Legacy hardware |\n | **Extended** | 64+ bits | Holographic precision | DSP, floating-point units |\n ",
+          "line": 23,
+          "path": "spec/SPEC-EXTENDED.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -590,7 +614,8 @@ def extended_phi_to_degrees(phi_fine: int) -> float:\n ## 13. References\n \n-- `rpp-spec/spec/SPEC.md` - Core 28-bit specification\n+- `rpp-spec/spec/RPP-CANONICAL-v2.md` - Core 32-bit Ra-Canonical specification (current)\n+- `rpp-spec/spec/SPEC.md` - Legacy 28-bit specification (deprecated)\n - `holographic/hardware_simulation.py` - Physics emulation\n - `holographic/virtual_hardware.py` - FPGA/MRAM emulation",
+          "line": 617,
+          "path": "spec/SPEC-EXTENDED.md",
+          "rule_id": "BND-F-2",
+          "severity": "MEDIUM",
+          "source": "spec/SPINTRONIC.md:21",
+          "tag": "IMPOSED"
+        },
+        {
+          "evidence": "@@ -30,19 +35,60 @@ MAJOR.MINOR.PATCH\n+| Reserved | 0 | 8191 | CRC or future |\n+| Address | 0x08000000 | 0xFFFFFFFF | Valid range |\n+\n+### What v1.0.0 Guaranteed (Legacy 28-bit)\n+\n+> **DEPRECATED:** The following applies to the legacy 28-bit format only.\n+",
+          "line": 87,
+          "path": "VERSION_POLICY.md",
+          "rule_id": "WORD-CLAIM-1",
+          "severity": "LOW",
+          "source": "SECURITY.md:24",
+          "tag": "IMPOSED"
+        }
+      ],
+      "parent": "ec58568980fd9fcd9269ed973fdecf088e82ee5b",
+      "summary": {
+        "high": 0,
+        "low": 1,
+        "medium": 2,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "ec58568980fd9fcd9269ed973fdecf088e82ee5b",
+      "findings": [],
+      "parent": "1dd4cc2fc14fd677e833eb222e1a6604bf528061",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "1dd4cc2fc14fd677e833eb222e1a6604bf528061",
+      "findings": [],
+      "parent": "0486750a458a0068749c06400eee85fd83e1db8e",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "0486750a458a0068749c06400eee85fd83e1db8e",
+      "findings": [],
+      "parent": "654eb36a68c0fdf5d0d94d862e7689aca16926c6",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "654eb36a68c0fdf5d0d94d862e7689aca16926c6",
+      "findings": [],
+      "parent": "69093617328333db317b90652014ed859fa5b197",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    },
+    {
+      "catalog_sha256": "7ed58588e9abd21ff406ae075c29cc7c04b8cecb17682e1dfbb25349bd444552",
+      "commit": "69093617328333db317b90652014ed859fa5b197",
+      "findings": [],
+      "parent": "0f498e0afb30c62ebc477660821cbf8020b83ef4",
+      "summary": {
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "rules_not_checkable": 2280,
+        "rules_run": 15
+      }
+    }
+  ],
+  "master_snapshot": "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e",
+  "selection": "git rev-list --max-count=30; merges against first parent"
+}
