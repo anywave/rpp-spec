@@ -208,8 +208,8 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -0,0 +1,531 @@\n+\"\"\"\n+RPP Consent-Field Mesh \u2014 Network Architecture (v1.0)\n+\n+Implements the consent-field mesh node and routing types defined in spec/NETWORK.md.\n[coordinator] Backbone coverage constants changed.",
-          "line": 1,
+          "evidence": "@@ -0,0 +1,531 @@\n+# ---------------------------------------------------------------------------\n+\n+# Backbone maintenance\n+THETA_SECTORS              = 8    # 512 theta values / 8 sectors = 64 per sector\n+MIN_HOT_NODES_PER_SECTOR   = 3    # minimum for backbone redundancy\n+BACKBONE_UPGRADE_EPOCH_TTL = 1    # temporary Hot upgrades last 1 epoch\n+\n[coordinator] Backbone coverage constants changed.",
+          "line": 41,
           "path": "rpp/network.py",
           "rule_id": "NET-INV-2",
           "severity": "HIGH",

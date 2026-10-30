@@ -325,3 +325,13 @@ def test_advisory_workflow_has_read_only_pinned_actions():
     assert "persist-credentials: false" in workflow
     assert "pull_request_target" not in workflow
     assert "gh " not in workflow
+
+
+def test_ast_evidence_points_to_changed_expression_not_unrelated_hunk(repo):
+    before = "note = 1\n\n" + "\n" * 12 + "THETA_SHIFT = 27\n"
+    after = before.replace("note = 1", "note = 2").replace("THETA_SHIFT = 27", "THETA_SHIFT = 26")
+    base, head = repo.range((CANONICAL, before, after))
+    finding = next(f for f in checker.check(repo.path, base, head)["findings"] if f["rule_id"] == "VER-FORMAT-1")
+    assert finding["line"] == 15
+    assert "+THETA_SHIFT = 26" in finding["evidence"]
+    assert "+note = 2" not in finding["evidence"]

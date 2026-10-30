@@ -182,7 +182,7 @@ def parse(text):
         raise ToolError("changed protected Python source does not parse") from exc
 
 
-def projection(text, kind):
+def selected_nodes(text, kind):
     """Static structural review only: no imports, eval, or target subprocesses."""
     tree = parse(text)
     selected = []
@@ -193,38 +193,42 @@ def projection(text, kind):
                 if any(isinstance(t, ast.Name) and re.fullmatch(
                     r"(?:ADDRESS|THETA|PHI|OMEGA|HARMONIC|RADIUS|RESERVED|SHELL|MAX)_\w+", t.id
                 ) for t in targets):
-                    selected.append(ast.dump(node, include_attributes=False))
+                    selected.append(node)
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in {
                 "encode", "decode", "to_int", "to_raw", "from_int", "from_raw", "__post_init__", "is_valid"
             }:
-                selected.append(ast.dump(node, include_attributes=False))
+                selected.append(node)
         elif kind == "radius_api":
             if isinstance(node, ast.If) and any(
                 isinstance(t, ast.Attribute) and t.attr == "radius" for t in ast.walk(node.test)
             ):
-                selected.append(ast.dump(node, include_attributes=False))
+                selected.append(node)
         elif kind == "radius_enc":
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
                 targets = node.targets if isinstance(node, ast.Assign) else [node.target]
                 if any(isinstance(t, ast.Name) and (t.id in {"r_enc", "radius_enc"} or t.id.startswith("RADIUS_")) for t in targets):
-                    selected.append(ast.dump(node, include_attributes=False))
+                    selected.append(node)
         elif kind == "fields":
             if isinstance(node, ast.ClassDef) and node.name in {"RPPAddress", "RPPCanonicalAddress"}:
                 for field in node.body:
                     if isinstance(field, ast.AnnAssign) and isinstance(field.target, ast.Name):
                         if not (isinstance(field.annotation, ast.Subscript) and isinstance(field.annotation.value, ast.Name) and field.annotation.value.id == "ClassVar"):
-                            selected.append(ast.dump(field, include_attributes=False))
+                            selected.append(field)
         elif kind == "backbone":
             if isinstance(node, (ast.Assign, ast.AnnAssign)):
                 targets = node.targets if isinstance(node, ast.Assign) else [node.target]
                 if any(isinstance(t, ast.Name) and t.id in {"THETA_SECTORS", "MIN_HOT_NODES_PER_SECTOR"} for t in targets):
-                    selected.append(ast.dump(node, include_attributes=False))
+                    selected.append(node)
         elif kind == "phi_write":
             if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
                 targets = node.targets if isinstance(node, ast.Assign) else [node.target]
                 if any(isinstance(t, ast.Attribute) and t.attr == "phi" for target in targets for t in ast.walk(target)):
-                    selected.append(ast.dump(node, include_attributes=False))
-    return sorted(selected)
+                    selected.append(node)
+    return selected
+
+
+def projection(text, kind):
+    return sorted(ast.dump(node, include_attributes=False) for node in selected_nodes(text, kind))
 
 
 def specification_major(text):
@@ -259,6 +263,25 @@ def check(root, base, head):
         for e in diff[path]:
             if (side is None or e.side == side) and (start is None or start <= e.line <= end):
                 return e
+        return diff[path][0]
+
+    def ast_event(path, kind):
+        old_nodes = selected_nodes(read(base, path), kind)
+        new_nodes = selected_nodes(read(head, path), kind)
+        for side, nodes, other in [("+", new_nodes, old_nodes), ("-", old_nodes, new_nodes)]:
+            remaining = Counter(ast.dump(n, include_attributes=False) for n in other)
+            changed = []
+            for node in nodes:
+                signature = ast.dump(node, include_attributes=False)
+                if remaining[signature]:
+                    remaining[signature] -= 1
+                else:
+                    changed.append(node)
+            # Prefer the smallest changed expression over its enclosing function.
+            for node in sorted(changed, key=lambda n: (n.end_lineno - n.lineno, n.lineno)):
+                for event in diff[path]:
+                    if event.side == side and node.lineno <= event.line <= node.end_lineno:
+                        return event
         return diff[path][0]
 
     core_specs = set(catalog["core_specs"])
@@ -307,21 +330,21 @@ def check(root, base, head):
         if path in addresses:
             old, new = read(base, path), read(head, path)
             if not bumped and projection(old, "format") != projection(new, "format"):
-                add("VER-FORMAT-1", events[0], "Protected encoding/range AST changed without a specification MAJOR increase.")
+                add("VER-FORMAT-1", ast_event(path, "format"), "Protected encoding/range AST changed without a specification MAJOR increase.")
             # Any field-annotation change is a bounded-schema review candidate.
             if projection(old, "fields") != projection(new, "fields"):
-                add("BND-G-1", events[0], "Core address field schema changed.")
+                add("BND-G-1", ast_event(path, "fields"), "Core address field schema changed.")
             if path == "rpp/address_canonical.py":
                 for rule_id, kind in [("VER-RADIUS-API", "radius_api"), ("VER-RADIUS-ENC", "radius_enc")]:
                     if projection(old, kind) != projection(new, kind):
-                        add(rule_id, events[0], "Radius contract AST changed; inspect the diff against both cited layers.")
+                        add(rule_id, ast_event(path, kind), "Radius contract AST changed; inspect the diff against both cited layers.")
 
         if path == "rpp/network.py":
             old, new = read(base, path), read(head, path)
             if projection(old, "backbone") != projection(new, "backbone"):
-                add("NET-INV-2", events[0], "Backbone coverage constants changed.")
+                add("NET-INV-2", ast_event(path, "backbone"), "Backbone coverage constants changed.")
             if projection(old, "phi_write") != projection(new, "phi_write"):
-                add("NET-INV-1", events[0], "A phi-attribute write changed; runtime monotonicity needs review.")
+                add("NET-INV-1", ast_event(path, "phi_write"), "A phi-attribute write changed; runtime monotonicity needs review.")
 
     # Guard verbatim source passages by their occurrence counts, not fixed line numbers.
     # Review only a passage present in base and changed/deleted in head. Historical ranges
