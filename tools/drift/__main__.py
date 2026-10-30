@@ -28,6 +28,8 @@ def main():
         return 2
     counts = report["summary"]
     print("drift: high={high} medium={medium} low={low}".format(**counts))
+    print("open: baselines={open_baselines} steward_items={open_steward_items} advisories={open_advisories}; "
+          "unresolved - steward decision (RADIX)".format(**counts))
     return int(bool(counts["high"] or counts["medium"]))
 
 

@@ -7,20 +7,19 @@ import fnmatch
 import hashlib
 import html
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+
+from .boundary import review as boundary_review
+from .passages import normalize
 
 
 DATA = Path(__file__).with_name("catalog.json")
 SEVERITY = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
 MAX_BLOB = 4 * 1024 * 1024
 MAX_DIFF = 16 * 1024 * 1024
-PHYSICAL = re.compile(
-    r"\b(?:decoher\w*|spin\w*|wave mechanics|quantum|holograph\w*|"
-    r"physical invariant|measurement of a material property)\b", re.I
-)
-DEPENDENCY = re.compile(r"\b(?:MUST|require\w*|depend\w*|valid\w*|correct\w*)\b", re.I)
 PATTERNS = {
     "BND-A-1": r"\b(?:store\w*|persist\w*)\b.{0,80}\b(?:user data|encrypted blobs?|payload bytes)\b|\bbecome (?:a |an )?(?:filesystem|database)\b",
     "BND-B-1": r"\b(?:issu\w*|mint\w*|creat\w*)\b.{0,60}\b(?:accounts?|jwts?|identity tokens?|wallets?|cryptocurrency)\b",
@@ -36,10 +35,17 @@ class ToolError(Exception):
 
 
 def git(root, *args):
+    command = ["git", "-C", str(root), "--no-pager", *args]
+    if os.name != "nt":
+        # In a C locale with PYTHONUTF8=0, POSIX's filesystem codec can be ASCII.
+        # Git still consumes UTF-8 pathspec bytes; Windows uses native Unicode argv.
+        command = [arg.encode("utf-8") for arg in command]
     try:
         result = subprocess.run(
-            ["git", "-C", str(root), "--no-pager", *args],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=60,
+            command,
+            # Git blobs and NUL-delimited paths require binary transport. Every
+            # decode below explicitly uses UTF-8, never the Windows locale.
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=False, check=False, timeout=60,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise ToolError("Git unavailable or timed out") from exc
@@ -52,7 +58,7 @@ def resolve(root, value):
     # SHAs only. Ref names, ranges, flags and Git revision expressions are rejected.
     if not re.fullmatch(r"[0-9a-fA-F]{7,64}", value):
         raise ToolError("base/head must be hexadecimal commit IDs (at least 7 digits)")
-    return git(root, "rev-parse", "--verify", "--end-of-options", value + "^{commit}").decode().strip()
+    return git(root, "rev-parse", "--verify", "--end-of-options", value + "^{commit}").decode("utf-8").strip()
 
 
 def blob(root, sha, path):
@@ -64,10 +70,10 @@ def blob(root, sha, path):
     if len(metadata) != 3 or metadata[0] not in (b"100644", b"100755"):
         # Never follow symlinks, submodules or directories into an unchecked source.
         raise ToolError("changed review path is not a regular Git blob")
-    size = int(git(root, "cat-file", "-s", metadata[2].decode()))
+    size = int(git(root, "cat-file", "-s", metadata[2].decode("utf-8")))
     if size > MAX_BLOB:
         raise ToolError("changed source exceeds the 4 MiB review limit")
-    content = git(root, "cat-file", "blob", metadata[2].decode())
+    content = git(root, "cat-file", "blob", metadata[2].decode("utf-8"))
     if b"\0" in content:
         raise ToolError("changed review source contains binary data")
     return content.decode("utf-8")
@@ -199,6 +205,8 @@ def selected_nodes(text, kind):
             }:
                 selected.append(node)
         elif kind == "radius_api":
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "radius":
+                selected.append(node)
             if isinstance(node, ast.If) and any(
                 isinstance(t, ast.Attribute) and t.attr == "radius" for t in ast.walk(node.test)
             ):
@@ -208,6 +216,11 @@ def selected_nodes(text, kind):
                 targets = node.targets if isinstance(node, ast.Assign) else [node.target]
                 if any(isinstance(t, ast.Name) and (t.id in {"r_enc", "radius_enc"} or t.id.startswith("RADIUS_")) for t in targets):
                     selected.append(node)
+        elif kind == "radius_ties":
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                if any(isinstance(t, ast.Name) and t.id in {"r_enc", "radius_enc"} for t in targets):
+                    selected.extend(n for n in ast.walk(node.value) if isinstance(n, ast.Call))
         elif kind == "fields":
             if isinstance(node, ast.ClassDef) and node.name in {"RPPAddress", "RPPCanonicalAddress"}:
                 for field in node.body:
@@ -237,7 +250,7 @@ def specification_major(text):
 
 
 def check(root, base, head):
-    root = Path(git(root, "rev-parse", "--show-toplevel").decode().strip())
+    root = Path(git(root, "rev-parse", "--show-toplevel").decode("utf-8").strip())
     base, head = resolve(root, base), resolve(root, head)
     catalog = json.loads(DATA.read_text(encoding="utf-8"))
     rules = {r["rule_id"]: r for r in catalog["rules"]}
@@ -284,8 +297,7 @@ def check(root, base, head):
                         return event
         return diff[path][0]
 
-    core_specs = set(catalog["core_specs"])
-    substrate = catalog["substrate_globs"]
+    boundary_text_paths = set(catalog["boundary_text_paths"])
     core_globs = catalog["core_globs"]
     addresses = set(catalog["address_paths"])
     major_base = specification_major(read(base, "VERSION_POLICY.md"))
@@ -295,8 +307,7 @@ def check(root, base, head):
     for path, events in diff.items():
         if any(fnmatch.fnmatchcase(path, pattern) for pattern in catalog["vector_globs"]):
             add("VEC-1", events[0], "Golden-vector path changed; RADIX review required.")
-        is_core = path in core_specs or any(fnmatch.fnmatchcase(path, g) for g in core_globs)
-        is_substrate = any(fnmatch.fnmatchcase(path, g) for g in substrate)
+        is_core = path in boundary_text_paths or any(fnmatch.fnmatchcase(path, g) for g in core_globs)
         for event in events:
             if event.side != "+":
                 continue
@@ -304,28 +315,6 @@ def check(root, base, head):
                 applicable = (path.endswith(".md") and not path.startswith("tools/drift/")) if rule_id == "WORD-CLAIM-1" else is_core
                 if applicable and re.search(pattern, event.text, re.I):
                     add(rule_id, event)
-
-        if path.endswith(".md") and (path in core_specs or is_substrate):
-            old, new = read(base, path), read(head, path)
-            old_blocks = Counter(text for _, text in paragraphs(old))
-            for start, text in paragraphs(new):
-                if old_blocks[text]:
-                    old_blocks[text] -= 1
-                    continue
-                end = start + len(text.splitlines()) - 1
-                touched = [e for e in events if e.side == "+" and start <= e.line <= end]
-                # Deleted-only paragraphs are handled by the baseline/removal guards below.
-                if touched and PHYSICAL.search(text):
-                    if is_substrate:
-                        add("BND-F-2", touched[0])
-                    elif DEPENDENCY.search(text):
-                        add("BND-F-1", touched[0])
-            # Exact software MUST removal is independent of physical-term additions.
-            if path in core_specs:
-                for start, text in paragraphs(old):
-                    if "Software implementations MUST enforce equivalent TTL semantics per Shell tier." in text and text not in new:
-                        add("BND-F-1", first_event(path, "-", start, start + len(text.splitlines()) - 1),
-                            "Software-equivalence MUST passage removed or changed.")
 
         if path in addresses:
             old, new = read(base, path), read(head, path)
@@ -335,7 +324,7 @@ def check(root, base, head):
             if projection(old, "fields") != projection(new, "fields"):
                 add("BND-G-1", ast_event(path, "fields"), "Core address field schema changed.")
             if path == "rpp/address_canonical.py":
-                for rule_id, kind in [("VER-RADIUS-API", "radius_api"), ("VER-RADIUS-ENC", "radius_enc")]:
+                for rule_id, kind in [("VER-RADIUS-API", "radius_api"), ("VER-RADIUS-ENC", "radius_enc"), ("VER-RADIUS-TIES", "radius_ties")]:
                     if projection(old, kind) != projection(new, kind):
                         add(rule_id, ast_event(path, kind), "Radius contract AST changed; inspect the diff against both cited layers.")
 
@@ -354,25 +343,37 @@ def check(root, base, head):
         if path not in diff or (guard["rule_id"] == "VER-FORMAT-1" and bumped):
             continue
         old, new = read(base, path), read(head, path)
-        if old.count(text) > new.count(text):
-            start = old[:old.index(text)].count("\n") + 1
-            event = first_event(path, "-", start, start + text.count("\n"))
+        normalized = normalize(text)
+        if normalize(old).count(normalized) > normalize(new).count(normalized):
+            witnesses = [e for e in diff[path] if e.side == "-" and normalize(e.text)
+                         and normalize(e.text) in normalized]
+            event = witnesses[0] if witnesses else first_event(path, "-")
             add(guard["rule_id"], event, "Referenced source passage changed or removed.")
 
-    for baseline in catalog["baselines"]:
-        path, text = baseline["path"], baseline["text"]
-        if path not in diff:
-            continue
-        if hashlib.sha256(text.encode("utf-8")).hexdigest() != baseline["sha256"]:
-            raise ToolError("Boundary F baseline checksum mismatch")
-        old, new = read(base, path), read(head, path)
-        if old.count(text) > new.count(text):
-            start = old[:old.index(text)].count("\n") + 1
-            event = first_event(path, "-", start, start + text.count("\n"))
-            rule_id = "BND-F-1" if path in core_specs else "BND-F-2"
-            # Unclassified documents remain inventory-only, as required by TR.
-            if path in core_specs or any(fnmatch.fnmatchcase(path, g) for g in substrate):
-                add(rule_id, event, baseline["id"] + ": unresolved - steward decision (RADIX)")
+    try:
+        baseline_events = boundary_review(diff, read, base, head, catalog, add, first_event)
+    except (SyntaxError, RecursionError) as exc:
+        raise ToolError("changed in-scope Python source does not parse for passage extraction") from exc
+
+    def open_items(items):
+        result = []
+        for item in items:
+            changed = False
+            for passage in item["passages"]:
+                path, text = passage["path"], normalize(passage["text"])
+                if path not in diff:
+                    continue
+                if normalize(read(base, path)).count(text) > normalize(read(head, path)).count(text):
+                    events = [e for e in diff[path] if e.side == "-" and normalize(e.text)
+                              and normalize(e.text) in text]
+                    witness = events[0] if events else first_event(path, "-")
+                    add(item["rule_id"], witness, item["description"] + "; " + item["status"])
+                    changed = True
+            result.append(dict(item, change="changed" if changed else "unchanged"))
+        return result
+
+    steward_items = open_items(catalog["steward_items"])
+    advisories = open_items(catalog["advisories"])
 
     # Identical findings can arise through independent guards; retain distinct evidence.
     unique = {json.dumps(f, sort_keys=True, ensure_ascii=True): f for f in findings}
@@ -382,10 +383,17 @@ def check(root, base, head):
     counts = Counter(f["severity"].lower() for f in findings)
     return {
         "base": base, "head": head,
-        "catalog_sha256": hashlib.sha256(DATA.read_bytes()).hexdigest(),
+        "catalog_sha256": hashlib.sha256(json.dumps(
+            catalog, sort_keys=True, ensure_ascii=True, separators=(",", ":")
+        ).encode("utf-8")).hexdigest(),
         "findings": findings,
+        "baseline_events": baseline_events,
+        "steward_items": steward_items,
+        "advisories": advisories,
         "summary": {"high": counts["high"], "medium": counts["medium"], "low": counts["low"],
-                    "rules_run": len(rules), "rules_not_checkable": catalog["rules_not_checkable"]},
+                    "rules_run": len(rules), "rules_not_checkable": catalog["rules_not_checkable"],
+                    "open_baselines": len(catalog["baselines"]),
+                    "open_steward_items": len(steward_items), "open_advisories": len(advisories)},
     }
 
 
@@ -402,6 +410,25 @@ def markdown(report):
         lines += [f"## {f['severity']} {f['rule_id']} ({f['tag']})", "",
                   "<pre>" + html.escape(f"{f['path']}:{f['line']}\nSource: {f['source']}") + "</pre>", "",
                   "<pre>" + html.escape(f["evidence"]) + "</pre>", ""]
+    lines += ["## Open Boundary F baseline", "",
+              f"{summary['open_baselines']} open; all IMPOSED; unresolved - steward decision (RADIX).",
+              "Route: [RFC] via TR under GOVERNANCE.md:63-71. No entry is marked accepted.", ""]
+    if report["baseline_events"]:
+        lines += ["## Baseline movement and text changes", "",
+                  "Moves preserve normalized identity and do not count as drift findings.", ""]
+        for event in report["baseline_events"]:
+            lines += ["<pre>" + html.escape(json.dumps(event, sort_keys=True, ensure_ascii=False, indent=2)) + "</pre>", ""]
+    for key, title in [("steward_items", "Open steward items (unchanged)"),
+                       ("advisories", "Open wording/edge advisories (unchanged)")]:
+        lines += ["## " + title, "",
+                  "Unchanged items do not affect exit status; changed source passages appear as diff findings.", ""]
+        for item in report[key]:
+            if item["change"] != "unchanged":
+                continue
+            body = f"{item['rule_id']} {item['severity']} ({item['tag']})\n{item['description']}\n{item['status']}\n{item['route']}"
+            for source in item["passages"]:
+                body += f"\n{source['path']}:{source['line']}\n{source['text']}"
+            lines += ["<pre>" + html.escape(body) + "</pre>", ""]
     return "\n".join(lines)
 
 
