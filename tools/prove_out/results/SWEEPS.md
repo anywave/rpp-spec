@@ -1,0 +1,158 @@
+# Deterministic one-input sweeps
+
+All inputs are synthetic supplied values. These computations are policy/similarity/consistency
+quantities, not validated measures of a person, truth, or physical coherence. No clock, random
+source, model, network request, key generation or public-network operation is used.
+
+| Family | Changed input | Value | Result | Units | Decision |
+|---|---|---:|---:|---|---|
+| weighted_progress | engagement (other=0.5) | 0 | 254 | policy points /674 | binding=1;stage=2 |
+| weighted_progress | engagement (other=0.5) | 0.1 | 270 | policy points /674 | binding=1;stage=2 |
+| weighted_progress | engagement (other=0.5) | 0.2 | 287 | policy points /674 | binding=1;stage=2 |
+| weighted_progress | engagement (other=0.5) | 0.3 | 303 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | engagement (other=0.5) | 0.4 | 320 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | engagement (other=0.5) | 0.5 | 336 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | engagement (other=0.5) | 0.6 | 353 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | engagement (other=0.5) | 0.7 | 369 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | engagement (other=0.5) | 0.8 | 386 | policy points /674 | binding=1;stage=4 |
+| weighted_progress | engagement (other=0.5) | 0.9 | 402 | policy points /674 | binding=1;stage=4 |
+| weighted_progress | engagement (other=0.5) | 1 | 419 | policy points /674 | binding=1;stage=4 |
+| weighted_progress | completion (other=0.5) | 0 | 82 | policy points /674 | binding=0;stage=0 |
+| weighted_progress | completion (other=0.5) | 0.1 | 132 | policy points /674 | binding=0;stage=1 |
+| weighted_progress | completion (other=0.5) | 0.2 | 183 | policy points /674 | binding=1;stage=1 |
+| weighted_progress | completion (other=0.5) | 0.3 | 234 | policy points /674 | binding=1;stage=2 |
+| weighted_progress | completion (other=0.5) | 0.4 | 285 | policy points /674 | binding=1;stage=2 |
+| weighted_progress | completion (other=0.5) | 0.5 | 336 | policy points /674 | binding=1;stage=3 |
+| weighted_progress | completion (other=0.5) | 0.6 | 387 | policy points /674 | binding=1;stage=4 |
+| weighted_progress | completion (other=0.5) | 0.7 | 438 | policy points /674 | binding=1;stage=4 |
+| weighted_progress | completion (other=0.5) | 0.8 | 489 | policy points /674 | binding=1;stage=5 |
+| weighted_progress | completion (other=0.5) | 0.9 | 540 | policy points /674 | binding=1;stage=5 |
+| weighted_progress | completion (other=0.5) | 1 | 591 | policy points /674 | binding=1;stage=6 |
+| binding_stage | raw score | 0 | 0 | dimensionless score/674 | binding=0;stage=0 |
+| binding_stage | raw score | 96 | 0.142433234421 | dimensionless score/674 | binding=0;stage=0 |
+| binding_stage | raw score | 97 | 0.143916913947 | dimensionless score/674 | binding=0;stage=1 |
+| binding_stage | raw score | 136 | 0.20178041543 | dimensionless score/674 | binding=0;stage=1 |
+| binding_stage | raw score | 137 | 0.203264094955 | dimensionless score/674 | binding=1;stage=1 |
+| binding_stage | raw score | 138 | 0.204747774481 | dimensionless score/674 | binding=1;stage=1 |
+| binding_stage | raw score | 192 | 0.284866468843 | dimensionless score/674 | binding=1;stage=1 |
+| binding_stage | raw score | 193 | 0.286350148368 | dimensionless score/674 | binding=1;stage=2 |
+| binding_stage | raw score | 288 | 0.427299703264 | dimensionless score/674 | binding=1;stage=2 |
+| binding_stage | raw score | 289 | 0.428783382789 | dimensionless score/674 | binding=1;stage=3 |
+| binding_stage | raw score | 385 | 0.571216617211 | dimensionless score/674 | binding=1;stage=3 |
+| binding_stage | raw score | 386 | 0.572700296736 | dimensionless score/674 | binding=1;stage=4 |
+| binding_stage | raw score | 481 | 0.713649851632 | dimensionless score/674 | binding=1;stage=4 |
+| binding_stage | raw score | 482 | 0.715133531157 | dimensionless score/674 | binding=1;stage=5 |
+| binding_stage | raw score | 577 | 0.856083086053 | dimensionless score/674 | binding=1;stage=5 |
+| binding_stage | raw score | 578 | 0.857566765579 | dimensionless score/674 | binding=1;stage=6 |
+| binding_stage | raw score | 673 | 0.998516320475 | dimensionless score/674 | binding=1;stage=6 |
+| binding_stage | raw score | 674 | 1 | dimensionless score/674 | binding=1;stage=7 |
+| address_similarity | theta (others fixed) | 1 | 1 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 2 | 0.977777777778 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 3 | 0.955555555556 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 4 | 0.933333333333 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 5 | 0.911111111111 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 6 | 0.888888888889 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 7 | 0.866666666667 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 8 | 0.844444444444 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 9 | 0.822222222222 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 10 | 0.8 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 11 | 0.777777777778 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 12 | 0.755555555556 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 13 | 0.733333333333 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 14 | 0.711111111111 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 15 | 0.711111111111 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 16 | 0.733333333333 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 17 | 0.755555555556 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 18 | 0.777777777778 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 19 | 0.8 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 20 | 0.822222222222 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 21 | 0.844444444444 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 22 | 0.866666666667 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 23 | 0.888888888889 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 24 | 0.911111111111 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 25 | 0.933333333333 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 26 | 0.955555555556 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | theta (others fixed) | 27 | 0.977777777778 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 1 | 1 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 2 | 0.92 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 3 | 0.84 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 4 | 0.76 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 5 | 0.68 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | phi (others fixed) | 6 | 0.6 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | omega (others fixed) | 0 | 1 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | omega (others fixed) | 1 | 0.95 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | omega (others fixed) | 2 | 0.9 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | omega (others fixed) | 3 | 0.85 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | omega (others fixed) | 4 | 0.8 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0 | 1 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.1 | 0.99 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.2 | 0.98 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.3 | 0.97 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.4 | 0.96 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.5 | 0.95 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.6 | 0.94 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.7 | 0.93 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.8 | 0.92 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 0.9 | 0.91 | dimensionless 1-distance | no direct consent decision |
+| address_similarity | radius (others fixed) | 1 | 0.9 | dimensionless 1-distance | no direct consent decision |
+| somatic_index | hrv (others=0.5; smoothing off) | 0 | 3 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.1 | 4 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.2 | 5 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.3 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.4 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.5 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.6 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.7 | 9 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.8 | 9 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 0.9 | 10 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | hrv (others=0.5; smoothing off) | 1 | 11 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0 | 5 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.1 | 5 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.2 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.3 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.4 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.5 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.6 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.7 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.8 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 0.9 | 9 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | eeg (others=0.5; smoothing off) | 1 | 9 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.1 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.2 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.3 | 6 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.4 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.5 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.6 | 7 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.7 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.8 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 0.9 | 8 | integer /15 | input channels supplied; no sensor validation |
+| somatic_index | breath (others=0.5; smoothing off) | 1 | 9 | integer /15 | input channels supplied; no sensor validation |
+| complement_consistency | theta drift radians | 0 | 1 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.002 | 0.87639320225 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.004 | 0.7527864045 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.006 | 0.62917960675 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.008 | 0.505572809 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.01 | 0.38196601125 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.012 | 0.2583592135 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.014 | 0.13475241575 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.016 | 0.0111456180002 | dimensionless | coherent=1;anomalies=0 |
+| complement_consistency | theta drift radians | 0.018 | 0 | dimensionless | coherent=0;anomalies=1 |
+| complement_consistency | theta drift radians | 0.02 | 0 | dimensionless | coherent=0;anomalies=1 |
+| consent_input | caller coherence (other permissions fixed) | 0 | 0 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| consent_input | caller coherence (other permissions fixed) | 0.399999 | 0 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| consent_input | caller coherence (other permissions fixed) | 0.4 | 1 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| consent_input | caller coherence (other permissions fixed) | 0.400001 | 1 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| consent_input | caller coherence (other permissions fixed) | 0.847 | 1 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| consent_input | caller coherence (other permissions fixed) | 1 | 1 | allow=1/deny=0 | ethereal write threshold 0.4; not Ra 137/674 |
+| spin_site_simulation | simulated duration ns (same initial state) | 0 | 0.951056516295 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 10 | 0.860551522611 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 20 | 0.778659217806 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 30 | 0.70455999617 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 40 | 0.637512247785 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 50 | 0.576844936252 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 60 | 0.521950882726 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 70 | 0.472280689067 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 80 | 0.427337239284 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 90 | 0.386670724224 | simulated transverse magnitude | active=1;not measured hardware |
+| spin_site_simulation | simulated duration ns (same initial state) | 100 | 0.349874139737 | simulated transverse magnitude | active=1;not measured hardware |
