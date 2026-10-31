@@ -9,7 +9,6 @@ In mock mode: simulates HCS topic publish/subscribe with in-memory queues.
 In real mode: requires hedera-sdk-py and valid credentials.
 """
 
-import struct
 import time
 from collections import defaultdict
 from typing import Dict, List, Optional

@@ -12,7 +12,7 @@ dataclasses, enum, typing).
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import List, Optional
 
@@ -278,10 +278,8 @@ def make_routing_decision(
         RoutingDecision describing the action to take.
     """
     # Decode 28-bit address
-    shell    = (packet_address >> 26) & 0x3
     theta    = (packet_address >> 17) & 0x1FF
     phi      = (packet_address >>  8) & 0x1FF
-    harmonic =  packet_address        & 0xFF
 
     # Step 1: Consent gate
     if phi < local_node.phi_min:

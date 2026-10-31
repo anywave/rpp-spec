@@ -19,7 +19,6 @@ Section 7 so tests do not depend on the spec file path.
 import sys
 from pathlib import Path
 
-import pytest
 
 # ---------------------------------------------------------------------------
 # Ensure the rpp package is importable (mirrors conftest.py)
