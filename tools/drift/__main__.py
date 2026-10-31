@@ -26,6 +26,11 @@ def main():
         # Do not echo Git stderr or arbitrary target content (may contain secrets).
         print(f"drift: tool error: {exc}", file=sys.stderr)
         return 2
+    except (KeyError, TypeError):
+        # Belt-and-braces protection for metadata the engine could not consume.
+        # Do not print arbitrary catalog values or expose a traceback as drift.
+        print("drift: tool error: invalid coordinator metadata", file=sys.stderr)
+        return 2
     counts = report["summary"]
     print("drift: high={high} medium={medium} low={low}".format(**counts))
     print("open: baselines={open_baselines} steward_items={open_steward_items} advisories={open_advisories}; "

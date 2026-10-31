@@ -13,13 +13,27 @@ import re
 import subprocess
 
 from .boundary import review as boundary_review
-from .passages import normalize
+from .passages import digest, in_scope, normalize
 
 
 DATA = Path(__file__).with_name("catalog.json")
 SEVERITY = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
 MAX_BLOB = 4 * 1024 * 1024
 MAX_DIFF = 16 * 1024 * 1024
+SOURCE_REVISION = "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e"
+UNRESOLVED = "unresolved - steward decision (RADIX)"
+IMPLEMENTED_RULES = {
+    **{key: "HIGH" for key in (
+        "BND-A-1", "BND-B-1", "BND-C-1", "BND-E-1", "BND-G-1", "BND-F-1",
+        "VER-FORMAT-1", "VER-RADIUS-API", "VER-RADIUS-ENC", "VER-RADIUS-TIES",
+        "VEC-1", "NET-INV-1", "NET-INV-2",
+    )},
+    **{key: "MEDIUM" for key in (
+        "BND-F-2", "BND-F-BASELINE-REMOVED", "STEWARD-TTL-1", "STEWARD-T2-1",
+        "STEWARD-CLAIM-1", "STEWARD-RADIUS-DERIVATION",
+    )},
+    **{key: "LOW" for key in ("WORD-CLAIM-1", "WORD-RADIUS-1", "WORD-RADIUS-EDGE")},
+}
 PATTERNS = {
     "BND-A-1": r"\b(?:store\w*|persist\w*)\b.{0,80}\b(?:user data|encrypted blobs?|payload bytes)\b|\bbecome (?:a |an )?(?:filesystem|database)\b",
     "BND-B-1": r"\b(?:issu\w*|mint\w*|creat\w*)\b.{0,60}\b(?:accounts?|jwts?|identity tokens?|wallets?|cryptocurrency)\b",
@@ -34,8 +48,113 @@ class ToolError(Exception):
     """An incomplete review must exit 2, never appear clean."""
 
 
+def load_catalog(path=None):
+    """Reject incomplete metadata rather than claiming zero or unknown rules ran.
+
+    This engine implements the current 22-rule, frozen-source catalog. Extending
+    its rule vocabulary or source snapshot requires a reviewed engine change too.
+    """
+    try:
+        catalog_path = DATA if path is None else Path(path)
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError, TypeError) as exc:
+        raise ToolError("coordinator catalog is unreadable or invalid JSON") from exc
+
+    def require(condition):
+        if not condition:
+            raise ToolError("coordinator catalog schema or coverage is invalid")
+
+    def strings(item, keys):
+        require(isinstance(item, dict))
+        require(all(isinstance(item.get(key), str) and item[key].strip() for key in keys))
+
+    def string_list(key, count=None):
+        value = catalog.get(key)
+        require(isinstance(value, list) and bool(value))
+        require(all(isinstance(v, str) and bool(v.strip()) for v in value))
+        require(len(value) == len(set(value)))
+        if count is not None:
+            require(len(value) == count)
+
+    def passage(item):
+        strings(item, ("path", "text", "sha256"))
+        require(type(item.get("line")) is int and item["line"] > 0)
+        require(type(item.get("end")) is int and item["end"] >= item["line"])
+        require(re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) is not None)
+        require(digest(item["text"]) == item["sha256"])
+
+    require(isinstance(catalog, dict))
+    require(catalog.get("source_revision") == SOURCE_REVISION)
+    strings(catalog, ("normalization",))
+    require(type(catalog.get("rules_not_checkable")) is int and catalog["rules_not_checkable"] >= 0)
+    for key in ("core_globs", "address_paths", "vector_globs", "boundary_text_paths"):
+        string_list(key)
+    string_list("scanned_paths", 75)
+
+    rules = catalog.get("rules")
+    require(isinstance(rules, list) and len(rules) == len(IMPLEMENTED_RULES))
+    found = set()
+    for rule in rules:
+        strings(rule, ("rule_id", "source", "severity", "tag", "quote", "method", "positive", "negative"))
+        key = rule["rule_id"]
+        require(key in IMPLEMENTED_RULES and key not in found)
+        found.add(key)
+        require(rule["severity"] == IMPLEMENTED_RULES[key])
+        require(rule["tag"] == ("SOURCED" if key in {"VER-RADIUS-API", "VER-RADIUS-ENC"} else "IMPOSED"))
+    require(found == set(IMPLEMENTED_RULES))
+
+    guards = catalog.get("guards")
+    require(isinstance(guards, list) and bool(guards))
+    for guard in guards:
+        strings(guard, ("rule_id", "path", "text"))
+        require(guard["rule_id"] in IMPLEMENTED_RULES)
+
+    baselines = catalog.get("baselines")
+    require(isinstance(baselines, list) and len(baselines) == 243)
+    ids = set()
+    for entry in baselines:
+        passage(entry)
+        strings(entry, ("id", "kind", "rule_id", "tag", "status", "route"))
+        require(entry["id"] not in ids)
+        ids.add(entry["id"])
+        require(in_scope(entry["path"]) and entry["path"] in catalog["scanned_paths"])
+        require(entry["kind"] in {"paragraph", "list_item", "table_row", "code_fence", "comment", "docstring"})
+        require(entry["rule_id"] in {"BND-F-1", "BND-F-2"})
+        require(entry["tag"] == "IMPOSED" and entry["status"] == UNRESOLVED and entry["route"].startswith("[RFC]"))
+
+    anchors = catalog.get("software_must_anchors")
+    require(isinstance(anchors, list) and len(anchors) == 7)
+    anchor_ids = set()
+    for anchor in anchors:
+        passage(anchor)
+        key = (anchor["path"], anchor["line"])
+        require(key not in anchor_ids)
+        anchor_ids.add(key)
+
+    for group, expected in (
+        ("steward_items", {"STEWARD-TTL-1", "STEWARD-T2-1", "STEWARD-CLAIM-1", "STEWARD-RADIUS-DERIVATION"}),
+        ("advisories", {"WORD-RADIUS-EDGE", "WORD-RADIUS-1"}),
+    ):
+        items = catalog.get(group)
+        require(isinstance(items, list) and len(items) == len(expected))
+        ids = set()
+        for item in items:
+            strings(item, ("rule_id", "severity", "tag", "status", "route", "description"))
+            key = item["rule_id"]
+            require(key in expected and key not in ids)
+            ids.add(key)
+            require(item["severity"] == IMPLEMENTED_RULES[key] and item["tag"] == "IMPOSED")
+            require(item["status"] == UNRESOLVED and item["route"].startswith("[RFC]"))
+            require(isinstance(item.get("passages"), list) and bool(item["passages"]))
+            for source in item["passages"]:
+                passage(source)
+        require(ids == expected)
+    return catalog
+
+
 def git(root, *args):
-    command = ["git", "-C", str(root), "--no-pager", *args]
+    command = ["git", "-c", "core.quotePath=false", "-c", "color.ui=false",
+               "-c", "diff.suppressBlankEmpty=false", "-C", str(root), "--no-pager", *args]
     if os.name != "nt":
         # In a C locale with PYTHONUTF8=0, POSIX's filesystem codec can be ASCII.
         # Git still consumes UTF-8 pathspec bytes; Windows uses native Unicode argv.
@@ -86,10 +205,14 @@ class Change:
     line: int
     text: str
     evidence: str
+    # Atomic LF-line edit span: old_start, old_end, new_start, new_end; ends
+    # are exclusive. A pure insertion/deletion has an empty opposite span.
+    edit: tuple[int, int, int, int] | None = None
 
 
 def changes(root, base, head, catalog):
     paths = git(root, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
+                "--no-color", "--no-relative",
                 "--name-only", "-z", base, head, "--").split(b"\0")
     total = 0
     result = {}
@@ -104,12 +227,24 @@ def changes(root, base, head, catalog):
             # No configured content predicate applies, e.g. a historical PDF. Do
             # not pretend to interpret its bytes, nor allow it to break the scan.
             continue
+        # Every content-reviewed path, including WORD-only Markdown, must be
+        # regular UTF-8 text. Validate both sides before asking Git for a patch:
+        # binary attributes must not turn a failed inspection into a clean scan.
+        blob(root, base, path)
+        blob(root, head, path)
         patch = git(root, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
+                    "--no-color", "--no-relative", "--text", "--full-index",
+                    "--diff-algorithm=myers", "--no-indent-heuristic",
+                    "--inter-hunk-context=0", "--src-prefix=a/", "--dst-prefix=b/",
                     "--unified=3", base, head, "--", ":(literal)" + path)
         total += len(patch)
         if total > MAX_DIFF:
             raise ToolError("diff exceeds the 16 MiB review limit")
-        lines = patch.decode("utf-8").splitlines()
+        # Git numbers LF-delimited lines. Unicode U+2028/U+2029 and other
+        # characters handled by str.splitlines() remain part of the source line.
+        lines = patch.decode("utf-8").split("\n")
+        if lines and lines[-1] == "":
+            lines.pop()
         edits = []
         starts = [i for i, s in enumerate(lines) if s.startswith("@@ ")]
         for index, start in enumerate(starts):
@@ -118,21 +253,42 @@ def changes(root, base, head, catalog):
             match = re.match(r"@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@", hunk[0])
             if not match:
                 raise ToolError("unrecognized Git diff hunk")
-            old, new = map(int, match.groups())
+            # Function captions depend on attributes/config and are unnecessary
+            # evidence: retain the exact hunk range, not the optional caption.
+            hunk[0] = match.group(0)
+            old, new = (max(1, int(value)) for value in match.groups())
+            pending = []
+            edit_start = None
+
+            def flush_edit():
+                nonlocal edit_start
+                if pending:
+                    span = (edit_start[0], old, edit_start[1], new)
+                    for side, line_number, body, evidence in pending:
+                        edits.append(Change(path, side, line_number, body, evidence, span))
+                    pending.clear()
+                    edit_start = None
+
             for offset, text in enumerate(hunk[1:], 1):
                 # Exact diff excerpt around each event; deterministic and bounded.
                 excerpt = "\n".join([hunk[0], *hunk[max(1, offset - 3):offset + 4]])
                 if text.startswith("+"):
-                    edits.append(Change(path, "+", new, text[1:], excerpt))
+                    if edit_start is None:
+                        edit_start = (old, new)
+                    pending.append(("+", new, text[1:], excerpt))
                     new += 1
                 elif text.startswith("-"):
-                    edits.append(Change(path, "-", old, text[1:], excerpt))
+                    if edit_start is None:
+                        edit_start = (old, new)
+                    pending.append(("-", old, text[1:], excerpt))
                     old += 1
                 elif text.startswith(" "):
+                    flush_edit()
                     old += 1
                     new += 1
                 elif not text.startswith("\\"):
                     raise ToolError("unrecognized diff line")
+            flush_edit()
         # A binary/mode-only event still has path evidence for vector guards.
         result[path] = edits or [Change(path, "+", 0, "", "\n".join(lines[:8]))]
     return result
@@ -249,10 +405,22 @@ def specification_major(text):
     return int(match[1]) if match else None
 
 
+def parse_repository_root(output):
+    """Remove Git's record terminator, never whitespace in the actual pathname."""
+    value = output.decode("utf-8")
+    if value.endswith("\n"):
+        value = value[:-1]
+    if os.name == "nt" and value.endswith("\r"):
+        value = value[:-1]
+    if not value:
+        raise ToolError("Git did not report a repository root")
+    return Path(value)
+
+
 def check(root, base, head):
-    root = Path(git(root, "rev-parse", "--show-toplevel").decode("utf-8").strip())
+    root = parse_repository_root(git(root, "rev-parse", "--show-toplevel"))
     base, head = resolve(root, base), resolve(root, head)
-    catalog = json.loads(DATA.read_text(encoding="utf-8"))
+    catalog = load_catalog()
     rules = {r["rule_id"]: r for r in catalog["rules"]}
     diff = changes(root, base, head, catalog)
     findings = []

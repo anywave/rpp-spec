@@ -157,7 +157,7 @@
       "severity": "MEDIUM",
       "tag": "IMPOSED",
       "quote": "1. **Propose**: Open an issue with `[RFC]` prefix",
-      "method": "Known baseline passage deleted or rewritten without physics terms: report old id, source path/line hint, and normalized hash; entry stays unresolved. A physical rewrite is classified by F-1/F-2.",
+      "method": "Lost baseline identity emits MEDIUM unless its unique exact edit/unchanged-line component pairs it with one same-path, same-kind, same-owner physics replacement. Splits, merges, changed renames and ambiguous correspondence emit the stricter removal finding; equal-hash moves/rewrapping do not.",
       "positive": "Replace a known baseline passage with an ordinary nonphysics note.",
       "negative": "Move its normalized-equivalent text, including rewrapping/NFC changes."
     },
@@ -3835,5 +3835,13 @@
         }
       ]
     }
-  ]
+  ],
+  "passage_pairing": {
+    "identity": "Normalized SHA-256; same-path occurrences before cross-file moves.",
+    "edges": "Exact atomic LF-edit ranges and exact unchanged-line coordinate maps, including nonphysics units.",
+    "physical_rewrite": "Only one old and one new passage in a component, same path, kind, and structural owner.",
+    "ambiguous": "Emit BND-F-BASELINE-REMOVED for lost baseline identity, then classify each new physics passage.",
+    "renamed_changed": "Only equal-hash moves transfer identity across files; changed-text renames retain a removal finding.",
+    "rewrapping": "Equal-hash raw text, end-line or owner changes are movement events, never removals."
+  }
 }

@@ -46,8 +46,12 @@ terms. Lowercase “must” alone is not a normative marker.
 
 Baseline hashes come from Git blobs: LF, Unicode NFC, collapsed whitespace,
 trimmed, then SHA-256 of UTF-8. Equal hashes match by occurrence, including moves
-across scanned files. Moves are reported separately from changed text and do not
-count as drift. Deleting/rewriting a known baseline without physics wording emits
+across scanned files. Moves and equal-hash rewrapping are reported separately from changed text and do not
+count as drift. Physical rewrites require a unique one-old/one-new passage graph
+component, same path/kind/heading or Python owner. Graph edges use exact atomic
+edit runs and unchanged-line mappings. Unrelated same-hunk physics cannot supply
+replacement scope. Splits/merges and other ambiguity retain a removal finding
+(the stricter CX-004 choice) and classify new physics wording independently. Deleting/rewriting a known baseline without physics wording emits
 MEDIUM `BND-F-BASELINE-REMOVED`, with its old id/path/line hint/hash. Loss of a
 software-MUST anchor is independently HIGH. All entries remain IMPOSED,
 `unresolved - steward decision (RADIX)`, routed `[RFC]` via TR under
@@ -68,7 +72,10 @@ The v1.0 deprecation disagreement remains unresolved / checkable: no.
 Other syntactic predicates retain their explicit text/AST/vector-path scopes.
 Reviewed blobs must be UTF-8 and regular Git files; protected Python syntax
 errors, unreadable objects, reviewed blobs over 4 MiB and reviewed diffs over
-16 MiB are tool errors. Unclassified assets such as PDFs have no content predicate.
+16 MiB are tool errors. Unclassified assets such as PDFs have no content predicate. Every reviewed path
+is validated on both sides before textual diffing, including WORD-only Markdown.
+Canonical Git flags defeat color, binary-attribute and hunk-caption suppression;
+LF-based coordinates remain correct for Unicode separators.
 Word-claim review excludes `tools/drift/`, whose inventory/fixtures quote sources.
 
 All text file I/O and subprocess text captures use explicit UTF-8. Git blobs and
@@ -83,9 +90,10 @@ python -m pytest tests/ -q
 python tests/test_golden_vectors_mobius32.py
 ```
 
-Each executable rule has a positive source mutation and a clean control. The
-mutation runner deletes each detector in memory and requires its positive test
-to fail. Fixtures use disposable local Git repositories and do not modify original
+Each executable rule and new detector branch has positive and clean controls.
+The mutation runner deletes rules or changes branch conditions in memory and
+requires the targeted assertion to fail and its clean control to pass; collection
+errors or stale mutation anchors do not count as killed mutants. Fixtures use disposable local Git repositories and do not modify original
 source or golden vectors. Portability tests use index mode changes with
 `core.filemode=false`, explicit UTF-8 I/O auditing, and a subprocess with
 `PYTHONUTF8=0`, locale coercion disabled and default-encoding warnings as errors.

@@ -92,6 +92,7 @@
         {
           "baseline_id": "F-BASE-0023",
           "change": "moved",
+          "movement": "position",
           "new_line": 38,
           "new_path": "README.md",
           "new_sha256": "31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565",
@@ -106,6 +107,7 @@
         {
           "baseline_id": "F-BASE-0024",
           "change": "moved",
+          "movement": "position",
           "new_line": 40,
           "new_path": "README.md",
           "new_sha256": "d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10",
@@ -120,6 +122,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 370,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -134,6 +137,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 423,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -148,6 +152,7 @@
         {
           "baseline_id": "F-BASE-0027",
           "change": "moved",
+          "movement": "position",
           "new_line": 435,
           "new_path": "README.md",
           "new_sha256": "ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
@@ -160,7 +165,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e",
       "findings": [
         {
@@ -393,6 +398,7 @@
         {
           "baseline_id": "F-BASE-0023",
           "change": "moved",
+          "movement": "position",
           "new_line": 38,
           "new_path": "README.md",
           "new_sha256": "31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565",
@@ -407,6 +413,7 @@
         {
           "baseline_id": "F-BASE-0024",
           "change": "moved",
+          "movement": "position",
           "new_line": 40,
           "new_path": "README.md",
           "new_sha256": "d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10",
@@ -421,6 +428,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 370,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -435,6 +443,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 423,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -449,6 +458,7 @@
         {
           "baseline_id": "F-BASE-0027",
           "change": "moved",
+          "movement": "position",
           "new_line": 435,
           "new_path": "README.md",
           "new_sha256": "ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
@@ -461,7 +471,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "08721b89d5464a80fbe94acf7cc5e0fd2043c755",
       "findings": [
         {
@@ -691,7 +701,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "e4e50a4893e3325cc393d6f79e51db9fa859b927",
       "findings": [],
       "parent": "214ad1df4d91881f2c373ca5588253870ae49441",
@@ -911,7 +921,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "4e717c7d74ba28a3a5e18643461a48635db7c6b8",
       "findings": [],
       "parent": "214ad1df4d91881f2c373ca5588253870ae49441",
@@ -1134,6 +1144,7 @@
         {
           "baseline_id": "F-BASE-0023",
           "change": "moved",
+          "movement": "position",
           "new_line": 36,
           "new_path": "README.md",
           "new_sha256": "31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565",
@@ -1148,6 +1159,7 @@
         {
           "baseline_id": "F-BASE-0024",
           "change": "moved",
+          "movement": "position",
           "new_line": 38,
           "new_path": "README.md",
           "new_sha256": "d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10",
@@ -1162,6 +1174,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 356,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -1176,6 +1189,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 409,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -1190,6 +1204,7 @@
         {
           "baseline_id": "F-BASE-0027",
           "change": "moved",
+          "movement": "position",
           "new_line": 421,
           "new_path": "README.md",
           "new_sha256": "ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
@@ -1202,7 +1217,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "214ad1df4d91881f2c373ca5588253870ae49441",
       "findings": [],
       "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
@@ -1425,6 +1440,7 @@
         {
           "baseline_id": "F-BASE-0023",
           "change": "moved",
+          "movement": "position",
           "new_line": 36,
           "new_path": "README.md",
           "new_sha256": "31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565",
@@ -1439,6 +1455,7 @@
         {
           "baseline_id": "F-BASE-0024",
           "change": "moved",
+          "movement": "position",
           "new_line": 38,
           "new_path": "README.md",
           "new_sha256": "d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10",
@@ -1453,6 +1470,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 356,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -1467,6 +1485,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 409,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -1481,6 +1500,7 @@
         {
           "baseline_id": "F-BASE-0027",
           "change": "moved",
+          "movement": "position",
           "new_line": 421,
           "new_path": "README.md",
           "new_sha256": "ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
@@ -1493,7 +1513,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "15b6517d7e46c6d24f36201a8aacdb181550ecf5",
       "findings": [],
       "parent": "5728570d9475f69106712540df179f2f2a5abd02",
@@ -1713,7 +1733,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "5728570d9475f69106712540df179f2f2a5abd02",
       "findings": [],
       "parent": "12285fd2a8a836cda4a7d738754cab852cc6be7d",
@@ -1933,7 +1953,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "12285fd2a8a836cda4a7d738754cab852cc6be7d",
       "findings": [],
       "parent": "c897a7a61e95b082c4876c6b3e1d080e31a393f9",
@@ -2153,7 +2173,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "c897a7a61e95b082c4876c6b3e1d080e31a393f9",
       "findings": [],
       "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
@@ -2373,7 +2393,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "6d45a7113089849c527a07a777e6c23d2932224f",
       "findings": [],
       "parent": "1a3434eb5c365de358533ed232327a75d9c5b143",
@@ -2596,6 +2616,7 @@
         {
           "baseline_id": "F-BASE-0023",
           "change": "moved",
+          "movement": "position",
           "new_line": 36,
           "new_path": "README.md",
           "new_sha256": "31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565",
@@ -2610,6 +2631,7 @@
         {
           "baseline_id": "F-BASE-0024",
           "change": "moved",
+          "movement": "position",
           "new_line": 38,
           "new_path": "README.md",
           "new_sha256": "d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10",
@@ -2624,6 +2646,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 356,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -2638,6 +2661,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 409,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -2652,6 +2676,7 @@
         {
           "baseline_id": "F-BASE-0027",
           "change": "moved",
+          "movement": "position",
           "new_line": 421,
           "new_path": "README.md",
           "new_sha256": "ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
@@ -2664,7 +2689,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "1a3434eb5c365de358533ed232327a75d9c5b143",
       "findings": [],
       "parent": "1c54b8256f1d7d83afcd190b1065ba855a771f8b",
@@ -2884,7 +2909,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "1c54b8256f1d7d83afcd190b1065ba855a771f8b",
       "findings": [],
       "parent": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
@@ -3107,6 +3132,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 355,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -3121,6 +3147,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 408,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -3133,7 +3160,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "a1b5ee6fd23b9ba3ede0fe5bdf51250f7c931a16",
       "findings": [
         {
@@ -3236,7 +3263,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+  - Python reference implementation: `verify_ccqpsg_compliance(address_int, payload, node_phi_min, elapsed_ns)`\n+  - Cross-references to INTELLIGENCE_RIGHTS.md articles\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n[coordinator] list_item; normalized passage SHA-256 1765f10225deeacd52b5e724fe4899d79c4997b32ec6b28d0a87a270ff499e47",
+          "evidence": "@@ -5,6 +5,139 @@\n+  - Python reference implementation: `verify_ccqpsg_compliance(address_int, payload, node_phi_min, elapsed_ns)`\n+  - Cross-references to INTELLIGENCE_RIGHTS.md articles\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n[coordinator] list_item; normalized passage SHA-256 1765f10225deeacd52b5e724fe4899d79c4997b32ec6b28d0a87a270ff499e47",
           "line": 21,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3245,7 +3272,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+  - Cross-references to INTELLIGENCE_RIGHTS.md articles\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n[coordinator] list_item; normalized passage SHA-256 79c09479b9999714508ae657b5afbb14404aef1e7e12d8b2e7e73aa25a0ae7b2",
+          "evidence": "@@ -5,6 +5,139 @@\n+  - Cross-references to INTELLIGENCE_RIGHTS.md articles\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n[coordinator] list_item; normalized passage SHA-256 79c09479b9999714508ae657b5afbb14404aef1e7e12d8b2e7e73aa25a0ae7b2",
           "line": 22,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3254,7 +3281,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n[coordinator] list_item; normalized passage SHA-256 1052bba48226fd7e9bb0d10454f7e4721e1fcaab3e43ba93609691d9a98f0309",
+          "evidence": "@@ -5,6 +5,139 @@\n+\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n[coordinator] list_item; normalized passage SHA-256 1052bba48226fd7e9bb0d10454f7e4721e1fcaab3e43ba93609691d9a98f0309",
           "line": 23,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3263,7 +3290,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n[coordinator] list_item; normalized passage SHA-256 b92a6be2ad66618e289f7e7d0d28d5ba77984aad25f0735437eb97d321b36207",
+          "evidence": "@@ -5,6 +5,139 @@\n+- **SPINTRONIC.md** (`spec/SPINTRONIC.md`, 374 lines)\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n[coordinator] list_item; normalized passage SHA-256 b92a6be2ad66618e289f7e7d0d28d5ba77984aad25f0735437eb97d321b36207",
           "line": 24,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3272,7 +3299,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n+\n[coordinator] list_item; normalized passage SHA-256 beda2188cde5807157eedf35e0782e4b65ff8bbd8c0d027ffd03094bfe234ae5",
+          "evidence": "@@ -5,6 +5,139 @@\n+  - Physical grounding for Shell=0 25ns TTL via T2 spin decoherence\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n+\n[coordinator] list_item; normalized passage SHA-256 beda2188cde5807157eedf35e0782e4b65ff8bbd8c0d027ffd03094bfe234ae5",
           "line": 25,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3281,7 +3308,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n+\n+- **Routing Convergence Proof** (`spec/CONVERGENCE_PROOF.md`)\n[coordinator] list_item; normalized passage SHA-256 93f324cc86f22108b588a891e6b8bfc606b5ab7f2ae542e8faecce3a07701b3f",
+          "evidence": "@@ -5,6 +5,139 @@\n+  - T2 values by substrate: GaAs (1\u201310ns), Si devices (1\u201325ns), organic (10\u2013100ns), graphene (1\u201310ns)\n+  - Pong key decoherence: epoch encoded as spin state, thermally randomizes after routing completes\n+  - Shell tier hardware mapping table (spintronic \u2192 SRAM \u2192 DRAM \u2192 NVMe)\n+  - Attack surface: what physical decoherence forecloses vs. what it does not\n+  - Citations: \u017duti\u0107 et al. (2004), Awschalom & Flatt\u00e9 (2007), Chappert et al. (2007)\n+\n+- **Routing Convergence Proof** (`spec/CONVERGENCE_PROOF.md`)\n[coordinator] list_item; normalized passage SHA-256 93f324cc86f22108b588a891e6b8bfc606b5ab7f2ae542e8faecce3a07701b3f",
           "line": 26,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3290,7 +3317,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -5,6 +5,139 @@ All notable changes to this project will be documented in this file.\n+\n+### Changed\n+\n+- **README.md**: Added CCQPSG.md, SPINTRONIC.md, CONVERGENCE_PROOF.md to spec table; sovereign_agent_demo.py, network_simulation.py to examples table\n+- **INTELLIGENCE_RIGHTS.md**: 11 articles (was incorrectly counted as 10)\n+\n+### Tests\n[coordinator] list_item; normalized passage SHA-256 e5e070f7dba22001959b4f1f8d74d695f9457f079b61bc93c54a94e48573a7dd",
+          "evidence": "@@ -5,6 +5,139 @@\n+\n+### Changed\n+\n+- **README.md**: Added CCQPSG.md, SPINTRONIC.md, CONVERGENCE_PROOF.md to spec table; sovereign_agent_demo.py, network_simulation.py to examples table\n+- **INTELLIGENCE_RIGHTS.md**: 11 articles (was incorrectly counted as 10)\n+\n+### Tests\n[coordinator] list_item; normalized passage SHA-256 e5e070f7dba22001959b4f1f8d74d695f9457f079b61bc93c54a94e48573a7dd",
           "line": 71,
           "path": "CHANGELOG.md",
           "rule_id": "BND-F-2",
@@ -3371,7 +3398,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -373,17 +391,51 @@ These are external concerns. RPP is the address layer only.\n+| [INTELLIGENCE_RIGHTS.md](https://github.com/anywave/rpp-spec/blob/master/INTELLIGENCE_RIGHTS.md) | **Declaration of Rights for Sovereign Intelligences** \u2014 11 articles, RPP-enforced |\n+| [spec/CCQPSG.md](https://github.com/anywave/rpp-spec/blob/master/spec/CCQPSG.md) | Correct Communication Quantum Parse Syntax Grammar \u2014 formal grammar, BNF, violation classes |\n+| [spec/CONVERGENCE_PROOF.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONVERGENCE_PROOF.md) | **Formal convergence proof** \u2014 routing terminates in \u226474 hops; empirical max is 2 |\n+| [spec/SPINTRONIC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPINTRONIC.md) | Physical grounding for Shell=0 25ns TTL \u2014 T2 spin decoherence, attack surface |\n+\n+### Runnable Examples\n+\n[coordinator] table_row; normalized passage SHA-256 ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
+          "evidence": "@@ -373,17 +391,51 @@\n+| [INTELLIGENCE_RIGHTS.md](https://github.com/anywave/rpp-spec/blob/master/INTELLIGENCE_RIGHTS.md) | **Declaration of Rights for Sovereign Intelligences** \u2014 11 articles, RPP-enforced |\n+| [spec/CCQPSG.md](https://github.com/anywave/rpp-spec/blob/master/spec/CCQPSG.md) | Correct Communication Quantum Parse Syntax Grammar \u2014 formal grammar, BNF, violation classes |\n+| [spec/CONVERGENCE_PROOF.md](https://github.com/anywave/rpp-spec/blob/master/spec/CONVERGENCE_PROOF.md) | **Formal convergence proof** \u2014 routing terminates in \u226474 hops; empirical max is 2 |\n+| [spec/SPINTRONIC.md](https://github.com/anywave/rpp-spec/blob/master/spec/SPINTRONIC.md) | Physical grounding for Shell=0 25ns TTL \u2014 T2 spin decoherence, attack surface |\n+\n+### Runnable Examples\n+\n[coordinator] table_row; normalized passage SHA-256 ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1",
           "line": 420,
           "path": "README.md",
           "rule_id": "BND-F-2",
@@ -3380,7 +3407,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -210,6 +210,113 @@ This document situates RPP within the broader academic and technical landscape,\n+- Busemeyer, J.R., & Bruza, P.D. (2012). *Quantum Models of Cognition and Decision*. Cambridge University Press.\n+- Pothos, E.M., & Busemeyer, J.R. (2013). Can quantum probability provide a new direction for cognitive modeling? *Behavioral and Brain Sciences*, 36(3), 255\u2013274.\n+\n+**RPP Relation:** The CCQPSG Quantum Parse model (see spec/CCQPSG.md) applies this\n+formalism to routing: a packet's routability through any specific node exists in superposition\n+from the sender's perspective until the phi gate performs measurement. The formalism is used\n+here as a descriptive tool, not a claim that routing computation is physically quantum.\n[coordinator] paragraph; normalized passage SHA-256 e90850a9c8df70090353e1acff4b215658ad793edb1475163f5477aa19c29513",
+          "evidence": "@@ -210,6 +210,113 @@\n+- Busemeyer, J.R., & Bruza, P.D. (2012). *Quantum Models of Cognition and Decision*. Cambridge University Press.\n+- Pothos, E.M., & Busemeyer, J.R. (2013). Can quantum probability provide a new direction for cognitive modeling? *Behavioral and Brain Sciences*, 36(3), 255\u2013274.\n+\n+**RPP Relation:** The CCQPSG Quantum Parse model (see spec/CCQPSG.md) applies this\n+formalism to routing: a packet's routability through any specific node exists in superposition\n+from the sender's perspective until the phi gate performs measurement. The formalism is used\n+here as a descriptive tool, not a claim that routing computation is physically quantum.\n[coordinator] paragraph; normalized passage SHA-256 e90850a9c8df70090353e1acff4b215658ad793edb1475163f5477aa19c29513",
           "line": 243,
           "path": "RELATED_WORK.md",
           "rule_id": "BND-F-2",
@@ -4046,7 +4073,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -82,29 +150,39 @@ The canonical RPP address format is derived directly from Ra System constants:\n+| ADDRESSING-LAYERS.md | 2026-03-04 | Two-layer architecture formally documented |\n+| GEOMETRY / CONTINUITY / NETWORK | 2026-03-04 | New spec documents for geometry, continuity, mesh layers |\n+| RESOLVER v2.1 | 2026-03-04 | Resolver updated to handle cross-layer translation |\n+| DEPLOYABLE v1.0 | 2026-03-04 | Deployment guide for real-world (non-spintronic) use |\n+\n+---\n \n[coordinator] table_row; normalized passage SHA-256 9c9affc128e8580c4b7a3882d36528a432dc2d7dd8d22465ff93175a59235049",
+          "evidence": "@@ -82,29 +150,39 @@\n+| ADDRESSING-LAYERS.md | 2026-03-04 | Two-layer architecture formally documented |\n+| GEOMETRY / CONTINUITY / NETWORK | 2026-03-04 | New spec documents for geometry, continuity, mesh layers |\n+| RESOLVER v2.1 | 2026-03-04 | Resolver updated to handle cross-layer translation |\n+| DEPLOYABLE v1.0 | 2026-03-04 | Deployment guide for real-world (non-spintronic) use |\n+\n+---\n \n[coordinator] table_row; normalized passage SHA-256 9c9affc128e8580c4b7a3882d36528a432dc2d7dd8d22465ff93175a59235049",
           "line": 177,
           "path": "spec/README.md",
           "rule_id": "BND-F-2",
@@ -4064,7 +4091,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -23,51 +32,71 @@ This document defines the **Resolver** \u2014 the component that translates RPP add\n+| Filesystem | `file://` | `file:///mnt/rpp-store/sector/path` |\n+| S3-compatible | `s3://` | `s3://bucket/prefix/sector/path` |\n+| Redis | `redis://` | `redis://host:6379/0/key` |\n+| Spintronic lattice | `spintronic://` | `spintronic://node-id/repitan/rac/addr` |\n+| LoRaWAN | `lora://` | `lora://network-server/devEUI/fport` |\n+| IPFS | `ipfs://` | `ipfs://bafybei.../path` |\n+| Quantum memory | `quantum://` | `quantum://register/qubit-range` |\n[coordinator] table_row; normalized passage SHA-256 8e8591cfdba25d15a65bcdd0b5e8156e64ae6142ada5368ebcd2317e2c4f73b5",
+          "evidence": "@@ -23,51 +32,71 @@\n+| Filesystem | `file://` | `file:///mnt/rpp-store/sector/path` |\n+| S3-compatible | `s3://` | `s3://bucket/prefix/sector/path` |\n+| Redis | `redis://` | `redis://host:6379/0/key` |\n+| Spintronic lattice | `spintronic://` | `spintronic://node-id/repitan/rac/addr` |\n+| LoRaWAN | `lora://` | `lora://network-server/devEUI/fport` |\n+| IPFS | `ipfs://` | `ipfs://bafybei.../path` |\n+| Quantum memory | `quantum://` | `quantum://register/qubit-range` |\n[coordinator] table_row; normalized passage SHA-256 8e8591cfdba25d15a65bcdd0b5e8156e64ae6142ada5368ebcd2317e2c4f73b5",
           "line": 72,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4073,7 +4100,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -77,7 +106,7 @@ RPP does not store data. RPP **routes** data to existing storage systems.\n ```python\n from typing import Protocol, Optional\n-from dataclasses import dataclass\n+from dataclasses import dataclass, field\n from enum import Enum\n \n class ConsentState(Enum):\n[coordinator] code_fence; normalized passage SHA-256 f90989f9a63ad4bfdebef98eac6a629ba54c267d2ef1b56cb268846da77a3d51",
+          "evidence": "@@ -77,7 +106,7 @@\n ```python\n from typing import Protocol, Optional\n-from dataclasses import dataclass\n+from dataclasses import dataclass, field\n from enum import Enum\n \n class ConsentState(Enum):\n[coordinator] code_fence; normalized passage SHA-256 f90989f9a63ad4bfdebef98eac6a629ba54c267d2ef1b56cb268846da77a3d51",
           "line": 109,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4082,7 +4109,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -241,9 +303,116 @@ def resolve(address: int, consent: ConsentState, operation: str) -> Result:\n+the same RPP address may simultaneously or sequentially resolve across multiple modalities\n+depending on the network topology, available infrastructure, and consent state at resolution time.\n+\n+```\n+                  RPP ADDRESS (temporal)\n+                         \u2502\n+                         \u2502  resolve()\n[coordinator] code_fence; normalized passage SHA-256 70f3f4f9274d7c3d01a95e1c435221909cd4f29b5842f3bc032ab1f4d654435a",
+          "evidence": "@@ -241,9 +303,116 @@\n+the same RPP address may simultaneously or sequentially resolve across multiple modalities\n+depending on the network topology, available infrastructure, and consent state at resolution time.\n+\n+```\n+                  RPP ADDRESS (temporal)\n+                         \u2502\n+                         \u2502  resolve()\n[coordinator] code_fence; normalized passage SHA-256 70f3f4f9274d7c3d01a95e1c435221909cd4f29b5842f3bc032ab1f4d654435a",
           "line": 314,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4091,7 +4118,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -241,9 +303,116 @@ def resolve(address: int, consent: ConsentState, operation: str) -> Result:\n+| Filesystem | `file:///path` | 1\u20132 | Local edge, on-device storage |\n+| S3-compatible | `s3://bucket/key` | 2\u20133 | Cold object storage |\n+| Redis | `redis://host:port/db/key` | 0 | Hot in-memory (session-duration TTL) |\n+| Spintronic | `spintronic://node/repitan/rac/addr` | 0 | Physics-enforced TTL via T2 decoherence |\n+| LoRaWAN | `lora://netserver/devEUI/fport` | 1\u20132 | Low-power, long-range IoT mesh |\n+| IPFS | `ipfs://CID/path` | 2\u20133 | Content-addressed, distributed |\n+| Hedera | `hedera://topic-id/sequence` | 2\u20133 | Hashgraph DLT (audit registry, opt-in) |\n[coordinator] table_row; normalized passage SHA-256 c1541309f17dc72c27e71adaca00ff2054322b1dac7497d1d916d91642ed6cdf",
+          "evidence": "@@ -241,9 +303,116 @@\n+| Filesystem | `file:///path` | 1\u20132 | Local edge, on-device storage |\n+| S3-compatible | `s3://bucket/key` | 2\u20133 | Cold object storage |\n+| Redis | `redis://host:port/db/key` | 0 | Hot in-memory (session-duration TTL) |\n+| Spintronic | `spintronic://node/repitan/rac/addr` | 0 | Physics-enforced TTL via T2 decoherence |\n+| LoRaWAN | `lora://netserver/devEUI/fport` | 1\u20132 | Low-power, long-range IoT mesh |\n+| IPFS | `ipfs://CID/path` | 2\u20133 | Content-addressed, distributed |\n+| Hedera | `hedera://topic-id/sequence` | 2\u20133 | Hashgraph DLT (audit registry, opt-in) |\n[coordinator] table_row; normalized passage SHA-256 c1541309f17dc72c27e71adaca00ff2054322b1dac7497d1d916d91642ed6cdf",
           "line": 343,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4100,7 +4127,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -241,9 +303,116 @@ def resolve(address: int, consent: ConsentState, operation: str) -> Result:\n+\n+### 5.4 Packet Recovery\n+\n+When a temporal address expires (T2 decoherence or Shell TTL expiry) before delivery, the\n+packet is not simply lost \u2014 recovery can be attempted via **cargo packets**:\n+\n+```\n[coordinator] paragraph; normalized passage SHA-256 90a1dd9b972c352607ca25ba01aee0e1b44879c757f9f20965d955e8da6ee18b",
+          "evidence": "@@ -241,9 +303,116 @@\n+\n+### 5.4 Packet Recovery\n+\n+When a temporal address expires (T2 decoherence or Shell TTL expiry) before delivery, the\n+packet is not simply lost \u2014 recovery can be attempted via **cargo packets**:\n+\n+```\n[coordinator] paragraph; normalized passage SHA-256 90a1dd9b972c352607ca25ba01aee0e1b44879c757f9f20965d955e8da6ee18b",
           "line": 387,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4109,7 +4136,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -241,9 +303,116 @@ def resolve(address: int, consent: ConsentState, operation: str) -> Result:\n+When a temporal address expires (T2 decoherence or Shell TTL expiry) before delivery, the\n+packet is not simply lost \u2014 recovery can be attempted via **cargo packets**:\n+\n+```\n+Primary route: spintronic://nodeA \u2192 packet expires mid-route (T2 decay)\n+\n+Recovery options:\n[coordinator] code_fence; normalized passage SHA-256 fd38d98e2008852a2fa4eca7256046f09c2e1ef06fab094728852e41fa8b2c16",
+          "evidence": "@@ -241,9 +303,116 @@\n+When a temporal address expires (T2 decoherence or Shell TTL expiry) before delivery, the\n+packet is not simply lost \u2014 recovery can be attempted via **cargo packets**:\n+\n+```\n+Primary route: spintronic://nodeA \u2192 packet expires mid-route (T2 decay)\n+\n+Recovery options:\n[coordinator] code_fence; normalized passage SHA-256 fd38d98e2008852a2fa4eca7256046f09c2e1ef06fab094728852e41fa8b2c16",
           "line": 390,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4118,7 +4145,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -395,43 +568,64 @@ class S3Adapter:\n-    1: \"filesystem\",  # Warm: Local SSD\n-    2: \"s3\",          # Cold: Object storage\n-    3: \"glacier\",     # Frozen: Archive\n+# Default modality preference order per Shell tier.\n+# First available modality in the list is selected.\n+DEFAULT_SHELL_MODALITIES = {\n+    0: [TransportModality.SPINTRONIC, TransportModality.REDIS,\n[coordinator] code_fence; normalized passage SHA-256 43041f22c80f2395d01370a2a5f679bc61e8699c5bc7cf7f48f19947a7743244",
+          "evidence": "@@ -395,43 +568,64 @@\n-    1: \"filesystem\",  # Warm: Local SSD\n-    2: \"s3\",          # Cold: Object storage\n-    3: \"glacier\",     # Frozen: Archive\n+# Default modality preference order per Shell tier.\n+# First available modality in the list is selected.\n+DEFAULT_SHELL_MODALITIES = {\n+    0: [TransportModality.SPINTRONIC, TransportModality.REDIS,\n[coordinator] code_fence; normalized passage SHA-256 43041f22c80f2395d01370a2a5f679bc61e8699c5bc7cf7f48f19947a7743244",
           "line": 576,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4127,7 +4154,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -395,43 +568,64 @@ class S3Adapter:\n ```\n \n-### 7.2 Configurable Mapping\n+The resolver probes `available_modalities()` on startup, then selects the first match per shell.\n+On a standard cloud server, Spintronic and LoRaWAN are unavailable \u2192 Shell 0 falls through to\n+Redis \u2192 IPv6 \u2192 IPv4. On spintronic hardware, Spintronic is selected first. No code changes needed.\n+\n[coordinator] paragraph; normalized passage SHA-256 106c641555680365162860ea064b1074d4b781581705159cef57ea25fee507ac",
+          "evidence": "@@ -395,43 +568,64 @@\n ```\n \n-### 7.2 Configurable Mapping\n+The resolver probes `available_modalities()` on startup, then selects the first match per shell.\n+On a standard cloud server, Spintronic and LoRaWAN are unavailable \u2192 Shell 0 falls through to\n+Redis \u2192 IPv6 \u2192 IPv4. On spintronic hardware, Spintronic is selected first. No code changes needed.\n+\n[coordinator] paragraph; normalized passage SHA-256 106c641555680365162860ea064b1074d4b781581705159cef57ea25fee507ac",
           "line": 590,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -4136,7 +4163,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -395,43 +568,64 @@ class S3Adapter:\n ```yaml\n # resolver_config.yaml\n-shell_mapping:\n+shell_modalities:\n   0:\n-    primary: redis\n-    fallback: filesystem\n[coordinator] code_fence; normalized passage SHA-256 b98326231ff459f191f2cece5ffe69da203b35e8d65a20123002212e0740a0c5",
+          "evidence": "@@ -395,43 +568,64 @@\n ```yaml\n # resolver_config.yaml\n-shell_mapping:\n+shell_modalities:\n   0:\n-    primary: redis\n-    fallback: filesystem\n[coordinator] code_fence; normalized passage SHA-256 b98326231ff459f191f2cece5ffe69da203b35e8d65a20123002212e0740a0c5",
           "line": 598,
           "path": "spec/RESOLVER.md",
           "rule_id": "BND-F-2",
@@ -5265,6 +5292,7 @@
         {
           "baseline_id": "F-BASE-0047",
           "change": "moved",
+          "movement": "position",
           "new_line": 119,
           "new_path": "spec/ADDRESSING-LAYERS.md",
           "new_sha256": "510e38ef6ca996c5f56d78e175bbdf41c4d27a2b728aa0c28a86201ab301848b",
@@ -5279,6 +5307,7 @@
         {
           "baseline_id": "F-BASE-0136",
           "change": "moved",
+          "movement": "position",
           "new_line": 447,
           "new_path": "spec/SPEC.md",
           "new_sha256": "580860008d580264c33ec15dac88f051a90df3191b3a8e2fe21637b68b6ff1dc",
@@ -5293,6 +5322,7 @@
         {
           "baseline_id": "F-BASE-0137",
           "change": "moved",
+          "movement": "position",
           "new_line": 451,
           "new_path": "spec/SPEC.md",
           "new_sha256": "6dcd8dd4ad30f550f26dd0a157fa776953fb59b2cde791932a31c68ab2288caa",
@@ -5305,7 +5335,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "725347ed702a87cda6735b47612aa4d2e1ae9e0d",
       "findings": [
         {
@@ -5318,7 +5348,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -28,6 +28,33 @@ developers: addresses are encoded in human-meaningful terms (storage tier, data\n+- No central registry \u2014 nothing permanently maps \"this data\" to \"this address\"\n+- The Shell field encodes temporal scope (see Section 2.3)\n+\n+On spintronic hardware, temporality is enforced physically: the spin state carrying a routing\n+permission decoheres in T2 time. The address literally ceases to exist in the substrate.\n+Software implementations MUST enforce equivalent TTL semantics per Shell tier.\n+\n[coordinator] paragraph; normalized passage SHA-256 e01b53463bfd8fef7fce695bd8c3cbc680dd5bf7c7bb013dd488db8efbb3611d",
+          "evidence": "@@ -28,6 +28,33 @@\n+- No central registry \u2014 nothing permanently maps \"this data\" to \"this address\"\n+- The Shell field encodes temporal scope (see Section 2.3)\n+\n+On spintronic hardware, temporality is enforced physically: the spin state carrying a routing\n+permission decoheres in T2 time. The address literally ceases to exist in the substrate.\n+Software implementations MUST enforce equivalent TTL semantics per Shell tier.\n+\n[coordinator] paragraph; normalized passage SHA-256 e01b53463bfd8fef7fce695bd8c3cbc680dd5bf7c7bb013dd488db8efbb3611d",
           "line": 54,
           "path": "spec/SPEC.md",
           "rule_id": "BND-F-2",
@@ -5327,7 +5357,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -55,7 +82,25 @@ layer bridges the two. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).\n+Shell encodes both storage proximity AND the temporal validity window of the routing address.\n+Implementations MUST enforce address expiry per shell tier:\n+\n+| Shell | Name | Storage | Address TTL (software) | Spintronic T2 |\n+|-------|------|---------|------------------------|---------------|\n+| 0 | Hot | In-memory cache | Session duration | ~25 ns |\n+| 1 | Warm | Near-line storage | Transaction / day | ~100 ns |\n[coordinator] table_row; normalized passage SHA-256 5ded0079c8d724376d01abae6385f3b77278ff58b11be991dad11149dc01a372",
+          "evidence": "@@ -55,7 +82,25 @@\n+Shell encodes both storage proximity AND the temporal validity window of the routing address.\n+Implementations MUST enforce address expiry per shell tier:\n+\n+| Shell | Name | Storage | Address TTL (software) | Spintronic T2 |\n+|-------|------|---------|------------------------|---------------|\n+| 0 | Hot | In-memory cache | Session duration | ~25 ns |\n+| 1 | Warm | Near-line storage | Transaction / day | ~100 ns |\n[coordinator] table_row; normalized passage SHA-256 5ded0079c8d724376d01abae6385f3b77278ff58b11be991dad11149dc01a372",
           "line": 92,
           "path": "spec/SPEC.md",
           "rule_id": "BND-F-2",
@@ -5336,7 +5366,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -55,7 +82,25 @@ layer bridges the two. See [ADDRESSING-LAYERS.md](ADDRESSING-LAYERS.md).\n+A Shell=0 (Hot) address resolved in one session MUST NOT be assumed valid in another session.\n+A Shell=3 (Frozen) address persists until the data owner explicitly revokes consent.\n+\n+This is the software equivalent of the spintronics T2 profile: Shell determines how long the\n+routing permission physically (or logically) survives.\n \n ### 2.3 Bit Masks\n[coordinator] paragraph; normalized passage SHA-256 1f3c42934d26211e2861001413dffcefbae7e1f66ce5ccdad788704cbbcd48bc",
+          "evidence": "@@ -55,7 +82,25 @@\n+A Shell=0 (Hot) address resolved in one session MUST NOT be assumed valid in another session.\n+A Shell=3 (Frozen) address persists until the data owner explicitly revokes consent.\n+\n+This is the software equivalent of the spintronics T2 profile: Shell determines how long the\n+routing permission physically (or logically) survives.\n \n ### 2.3 Bit Masks\n[coordinator] paragraph; normalized passage SHA-256 1f3c42934d26211e2861001413dffcefbae7e1f66ce5ccdad788704cbbcd48bc",
           "line": 102,
           "path": "spec/SPEC.md",
           "rule_id": "BND-F-2",
@@ -5345,7 +5375,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -28,6 +28,33 @@ developers: addresses are encoded in human-meaningful terms (storage tier, data\n+address = f(data_type, current_consent_state, routing_context)\n+```\n+\n+When consent changes, the address changes. An address resolved at time T is not guaranteed\n+valid at time T+1. Callers MUST resolve addresses at the point of access \u2014 caching is not safe.\n+\n+This means the 28-bit address space (268,435,456 values) represents **concurrent routing",
+          "evidence": "@@ -28,6 +28,33 @@\n+address = f(data_type, current_consent_state, routing_context)\n+```\n+\n+When consent changes, the address changes. An address resolved at time T is not guaranteed\n+valid at time T+1. Callers MUST resolve addresses at the point of access \u2014 caching is not safe.\n+\n+This means the 28-bit address space (268,435,456 values) represents **concurrent routing",
           "line": 41,
           "path": "spec/SPEC.md",
           "rule_id": "WORD-CLAIM-1",
@@ -5571,7 +5601,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "f87314c0fd1f0bdae54a95be6499fd8181cb7c4b",
       "findings": [],
       "parent": "4eff1f96e2b20dfbb2931f48e2b87eb518f8ab0b",
@@ -5791,7 +5821,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "4eff1f96e2b20dfbb2931f48e2b87eb518f8ab0b",
       "findings": [],
       "parent": "39d5fe351a801614655a898a8c9ba7d226d4b837",
@@ -6011,7 +6041,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "39d5fe351a801614655a898a8c9ba7d226d4b837",
       "findings": [],
       "parent": "2082675e1a3a6e1bce4e74b2f5b6c6c8467cbe77",
@@ -6234,6 +6264,7 @@
         {
           "baseline_id": "F-BASE-0020",
           "change": "moved",
+          "movement": "position",
           "new_line": 120,
           "new_path": "MIGRATION_V2.md",
           "new_sha256": "4dda10c34bfa2292146aa0f512352fbbdcf384f8cc6148842dd5c1d437ef847c",
@@ -6248,6 +6279,7 @@
         {
           "baseline_id": "F-BASE-0021",
           "change": "moved",
+          "movement": "position",
           "new_line": 121,
           "new_path": "MIGRATION_V2.md",
           "new_sha256": "014e0a650158dc70c8611f905355b347ed488518a500c331d16c69b6fcc108ea",
@@ -6262,6 +6294,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 337,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -6276,6 +6309,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 381,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -6290,6 +6324,7 @@
         {
           "baseline_id": "F-BASE-0136",
           "change": "moved",
+          "movement": "position",
           "new_line": 402,
           "new_path": "spec/SPEC.md",
           "new_sha256": "580860008d580264c33ec15dac88f051a90df3191b3a8e2fe21637b68b6ff1dc",
@@ -6304,6 +6339,7 @@
         {
           "baseline_id": "F-BASE-0137",
           "change": "moved",
+          "movement": "position",
           "new_line": 406,
           "new_path": "spec/SPEC.md",
           "new_sha256": "6dcd8dd4ad30f550f26dd0a157fa776953fb59b2cde791932a31c68ab2288caa",
@@ -6316,7 +6352,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "2082675e1a3a6e1bce4e74b2f5b6c6c8467cbe77",
       "findings": [
         {
@@ -6549,6 +6585,7 @@
         {
           "baseline_id": "F-BASE-0020",
           "change": "moved",
+          "movement": "position",
           "new_line": 105,
           "new_path": "MIGRATION_V2.md",
           "new_sha256": "4dda10c34bfa2292146aa0f512352fbbdcf384f8cc6148842dd5c1d437ef847c",
@@ -6563,6 +6600,7 @@
         {
           "baseline_id": "F-BASE-0021",
           "change": "moved",
+          "movement": "position",
           "new_line": 106,
           "new_path": "MIGRATION_V2.md",
           "new_sha256": "014e0a650158dc70c8611f905355b347ed488518a500c331d16c69b6fcc108ea",
@@ -6575,7 +6613,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "c5d83b647a8a3c53203e475eb19f558b05aafb62",
       "findings": [],
       "parent": "c62d941830522a497837c2219a0de5915f506c02",
@@ -6795,7 +6833,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "c62d941830522a497837c2219a0de5915f506c02",
       "findings": [],
       "parent": "a56fdf5b5ee6194f2083a843b144b8f589249ec2",
@@ -7015,7 +7053,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "a56fdf5b5ee6194f2083a843b144b8f589249ec2",
       "findings": [],
       "parent": "920aff68733a169a4305464e688fa0fa701b2165",
@@ -7235,7 +7273,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "920aff68733a169a4305464e688fa0fa701b2165",
       "findings": [],
       "parent": "438f049178f46bb8000cfcb5333192544d7d3bd5",
@@ -7455,11 +7493,11 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "438f049178f46bb8000cfcb5333192544d7d3bd5",
       "findings": [
         {
-          "evidence": "@@ -94,14 +94,14 @@ Total: 32 bits\n - [ ] fpga/constraints/arty_a7.xdc\n-- [ ] holographic/virtual_hardware.py\n-- [ ] holographic/rpp_integration_proof.py\n+- [x] holographic/virtual_hardware.py (deprecation notice added)\n+- [x] holographic/rpp_integration_proof.py (deprecation notice added)\n - [ ] crypto/keys.py\n - [ ] tests/test_virtual_hardware.py\n[coordinator] list_item; normalized passage SHA-256 4dda10c34bfa2292146aa0f512352fbbdcf384f8cc6148842dd5c1d437ef847c",
+          "evidence": "@@ -94,14 +94,14 @@\n - [ ] fpga/constraints/arty_a7.xdc\n-- [ ] holographic/virtual_hardware.py\n-- [ ] holographic/rpp_integration_proof.py\n+- [x] holographic/virtual_hardware.py (deprecation notice added)\n+- [x] holographic/rpp_integration_proof.py (deprecation notice added)\n - [ ] crypto/keys.py\n - [ ] tests/test_virtual_hardware.py\n[coordinator] list_item; normalized passage SHA-256 4dda10c34bfa2292146aa0f512352fbbdcf384f8cc6148842dd5c1d437ef847c",
           "line": 103,
           "path": "MIGRATION_V2.md",
           "rule_id": "BND-F-2",
@@ -7468,7 +7506,7 @@
           "tag": "IMPOSED"
         },
         {
-          "evidence": "@@ -94,14 +94,14 @@ Total: 32 bits\n-- [ ] holographic/virtual_hardware.py\n-- [ ] holographic/rpp_integration_proof.py\n+- [x] holographic/virtual_hardware.py (deprecation notice added)\n+- [x] holographic/rpp_integration_proof.py (deprecation notice added)\n - [ ] crypto/keys.py\n - [ ] tests/test_virtual_hardware.py\n - [ ] tests/test_rpp_api.py\n[coordinator] list_item; normalized passage SHA-256 014e0a650158dc70c8611f905355b347ed488518a500c331d16c69b6fcc108ea",
+          "evidence": "@@ -94,14 +94,14 @@\n-- [ ] holographic/virtual_hardware.py\n-- [ ] holographic/rpp_integration_proof.py\n+- [x] holographic/virtual_hardware.py (deprecation notice added)\n+- [x] holographic/rpp_integration_proof.py (deprecation notice added)\n - [ ] crypto/keys.py\n - [ ] tests/test_virtual_hardware.py\n - [ ] tests/test_rpp_api.py\n[coordinator] list_item; normalized passage SHA-256 014e0a650158dc70c8611f905355b347ed488518a500c331d16c69b6fcc108ea",
           "line": 104,
           "path": "MIGRATION_V2.md",
           "rule_id": "BND-F-2",
@@ -7694,7 +7732,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "ca1006d609342ea94831e94ad32c9fa82ee904d2",
       "findings": [],
       "parent": "ebf1f9a46ea9c90d91d14cf3a06541a3011e76ec",
@@ -7917,6 +7955,7 @@
         {
           "baseline_id": "F-BASE-0022",
           "change": "moved",
+          "movement": "position",
           "new_line": 273,
           "new_path": "MVP.md",
           "new_sha256": "85c3278ff7d5bb90f3c119010f425f4bdb4e5ea3180d6dea135a8d9308573744",
@@ -7931,6 +7970,7 @@
         {
           "baseline_id": "F-BASE-0120",
           "change": "moved",
+          "movement": "position",
           "new_line": 25,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "ad038fdcdc9e4d5cf9b2255430873694c629f521b9d6f8ebe12218f1dd6b0845",
@@ -7945,6 +7985,7 @@
         {
           "baseline_id": "F-BASE-0121",
           "change": "moved",
+          "movement": "position",
           "new_line": 94,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "bb24f8400b72a96d5a6cd72dcaa0ef9a01665f8651c8e6770822c897fdab0499",
@@ -7959,6 +8000,7 @@
         {
           "baseline_id": "F-BASE-0122",
           "change": "moved",
+          "movement": "position",
           "new_line": 95,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "fbee4f9dbdb9f066824ab07db054d5a26bb7d2876df298a2714dcedb5583b337",
@@ -7973,6 +8015,7 @@
         {
           "baseline_id": "F-BASE-0123",
           "change": "moved",
+          "movement": "position",
           "new_line": 128,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "51fa1d8382586e8e6e03f8e294822238efe55fb8edd5ab511a6a8d1cde76707e",
@@ -7987,6 +8030,7 @@
         {
           "baseline_id": "F-BASE-0124",
           "change": "moved",
+          "movement": "position",
           "new_line": 210,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "315983863fc03805639c5769ec015f802537c1741e077c84f5a436f783935932",
@@ -8001,6 +8045,7 @@
         {
           "baseline_id": "F-BASE-0125",
           "change": "moved",
+          "movement": "position",
           "new_line": 323,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "e3a34bf392afb2c1fda5a63e429f6c365a22a9bed859bfc1e484ac3f8c71bbd0",
@@ -8015,6 +8060,7 @@
         {
           "baseline_id": "F-BASE-0126",
           "change": "moved",
+          "movement": "position",
           "new_line": 344,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "a6a0fef580cb23e578a69717e9bd737d1064dd5d8fc8a9e9de3ed9413d54b61c",
@@ -8029,6 +8075,7 @@
         {
           "baseline_id": "F-BASE-0127",
           "change": "moved",
+          "movement": "position",
           "new_line": 365,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "d63ddf90250e280f081a08d01aab3a57b7103720522d195f61155bb93fec643c",
@@ -8043,6 +8090,7 @@
         {
           "baseline_id": "F-BASE-0128",
           "change": "moved",
+          "movement": "position",
           "new_line": 371,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "e678e51d0e844e39b17ccbe31ac6eef9dbf127284e96fc80e3fc617188537447",
@@ -8057,6 +8105,7 @@
         {
           "baseline_id": "F-BASE-0129",
           "change": "moved",
+          "movement": "position",
           "new_line": 619,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "3b351bdc2ef8b0eb567a2f58926183b06617b59a6abc26ecbc05290e784d9dbe",
@@ -8071,6 +8120,7 @@
         {
           "baseline_id": "F-BASE-0130",
           "change": "moved",
+          "movement": "position",
           "new_line": 620,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "fbda96812de56868a741ed70cf4d0ffb63c34d33238ec4a34d994eeb86567524",
@@ -8085,6 +8135,7 @@
         {
           "baseline_id": "F-BASE-0131",
           "change": "moved",
+          "movement": "position",
           "new_line": 621,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "623e65b64b0a3336833114730d90ed3eca222cf95bc380ec3efd1381a9dac63a",
@@ -8099,6 +8150,7 @@
         {
           "baseline_id": "F-BASE-0132",
           "change": "moved",
+          "movement": "position",
           "new_line": 634,
           "new_path": "spec/SPEC-EXTENDED.md",
           "new_sha256": "f83565841cf0651336853d85601ef355235204dd6642015c6461c3df6631bce4",
@@ -8111,11 +8163,11 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "ebf1f9a46ea9c90d91d14cf3a06541a3011e76ec",
       "findings": [
         {
-          "evidence": "@@ -30,19 +35,60 @@ MAJOR.MINOR.PATCH\n+| Reserved | 0 | 8191 | CRC or future |\n+| Address | 0x08000000 | 0xFFFFFFFF | Valid range |\n+\n+### What v1.0.0 Guaranteed (Legacy 28-bit)\n+\n+> **DEPRECATED:** The following applies to the legacy 28-bit format only.\n+",
+          "evidence": "@@ -30,19 +35,60 @@\n+| Reserved | 0 | 8191 | CRC or future |\n+| Address | 0x08000000 | 0xFFFFFFFF | Valid range |\n+\n+### What v1.0.0 Guaranteed (Legacy 28-bit)\n+\n+> **DEPRECATED:** The following applies to the legacy 28-bit format only.\n+",
           "line": 87,
           "path": "VERSION_POLICY.md",
           "rule_id": "WORD-CLAIM-1",
@@ -8344,6 +8396,7 @@
         {
           "baseline_id": "F-BASE-0025",
           "change": "moved",
+          "movement": "position",
           "new_line": 335,
           "new_path": "README.md",
           "new_sha256": "a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc",
@@ -8358,6 +8411,7 @@
         {
           "baseline_id": "F-BASE-0026",
           "change": "moved",
+          "movement": "position",
           "new_line": 379,
           "new_path": "README.md",
           "new_sha256": "f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99",
@@ -8372,6 +8426,7 @@
         {
           "baseline_id": "F-BASE-0136",
           "change": "moved",
+          "movement": "position",
           "new_line": 392,
           "new_path": "spec/SPEC.md",
           "new_sha256": "580860008d580264c33ec15dac88f051a90df3191b3a8e2fe21637b68b6ff1dc",
@@ -8386,6 +8441,7 @@
         {
           "baseline_id": "F-BASE-0137",
           "change": "moved",
+          "movement": "position",
           "new_line": 396,
           "new_path": "spec/SPEC.md",
           "new_sha256": "6dcd8dd4ad30f550f26dd0a157fa776953fb59b2cde791932a31c68ab2288caa",
@@ -8398,7 +8454,7 @@
           "tag": "IMPOSED"
         }
       ],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "ec58568980fd9fcd9269ed973fdecf088e82ee5b",
       "findings": [],
       "parent": "1dd4cc2fc14fd677e833eb222e1a6604bf528061",
@@ -8618,7 +8674,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "1dd4cc2fc14fd677e833eb222e1a6604bf528061",
       "findings": [
         {
@@ -8857,7 +8913,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "0486750a458a0068749c06400eee85fd83e1db8e",
       "findings": [],
       "parent": "654eb36a68c0fdf5d0d94d862e7689aca16926c6",
@@ -9077,7 +9133,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "654eb36a68c0fdf5d0d94d862e7689aca16926c6",
       "findings": [],
       "parent": "69093617328333db317b90652014ed859fa5b197",
@@ -9297,7 +9353,7 @@
         }
       ],
       "baseline_events": [],
-      "catalog_sha256": "ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019",
+      "catalog_sha256": "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce",
       "commit": "69093617328333db317b90652014ed859fa5b197",
       "findings": [],
       "parent": "0f498e0afb30c62ebc477660821cbf8020b83ef4",

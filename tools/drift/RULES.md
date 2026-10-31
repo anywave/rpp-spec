@@ -72,8 +72,17 @@ comment delimiters and fence delimiters belong to their passage text. Case is pr
 Match passages by hash, preferring same-path occurrences before cross-file moves. The line is a
 hint, not identity. Equal-hash moves/rewrapping do not create drift findings; moves are reported in
 `baseline_events` separately from changed/removed text. Duplicates are matched by occurrence count.
-Different hashes are never matched by similarity. A changed baseline's candidate replacement is
-linked only by an exact Git hunk identity; this is conservative bookkeeping, not semantic inference.
+Different hashes are never matched by similarity. Replacement uses an exact bipartite graph of
+atomic Git edit runs (split at unchanged context) and unchanged LF-line coordinate mappings.
+ALL parsed old/new units participate, including nonphysics units. A physical replacement requires
+one old and one new passage in the component with the same path, kind, and structural owner.
+The owner is the Markdown heading hierarchy or Python enclosing class/function names; it is not
+inferred from meaning. Another physics passage in the same hunk can never supply replacement scope.
+
+**IMPOSED conservative choices (CX-004 A2):** split/merge or multi-unit components, changed-text
+renames, changed owners and kind changes retain the removal finding and independently classify
+new physics wording. Exact-hash moves remain exempt, including cross-file renames; equal-hash
+rewrapping/end-line/owner changes are reported as moved even when the start line is unchanged.
 
 Every baseline entry remains IMPOSED, **unresolved - steward decision (RADIX)**, routed `[RFC]`
 via TR under GOVERNANCE.md:63–71. DECISIONS.md is absent at the source revision. Every run prints
@@ -83,6 +92,11 @@ The four separate MEDIUM steward items below are not Boundary F rules. On every 
 open count in `summary.open_steward_items` and list unchanged items under “Open steward items
 (unchanged)”. Unchanged items do **not** affect exit status (TR Q2). A changed cited passage is a
 normal finding at its own severity. The two unchanged LOW advisory groups are displayed separately.
+
+Canonical Git diff flags ignore color/prefix/algorithm/function-caption settings and force text
+only after BOTH sides of every reviewed source path have passed regular-file, UTF-8/NUL and size
+validation. A binary attribute cannot suppress a text predicate. Git lines are split on LF only,
+not Unicode line separators. These requirements also apply to WORD-only Markdown paths.
 
 Exit 0 means no HIGH/MEDIUM **diff findings**; 1 means HIGH/MEDIUM diff findings; 2 means tool error
 or incomplete review. CI remains advisory for all outcomes. Findings sort HIGH, MEDIUM, LOW, then
@@ -131,7 +145,7 @@ The True/-0.0 guard and negative-zero URI mismatch are a separate LOW item, not 
 ## Executable rules and positive/negative fixtures
 
 Every rule has one explicit source mutation and one clean control in tests/test_checker.py.
-The mutation runner suppresses one detector in memory and requires its positive assertion to fail.
+The mutation runner suppresses each rule and mutates new detector branches in memory; it requires the targeted positive assertion to fail and its clean control to pass. Stale anchors, collection errors and setup failures do not count as killed mutants.
 It does not mutate production or target files.
 
 | rule_id | Verbatim source | Source file:line | Severity | checkable | tag | Predicate / scope | Drift fixture | Clean control |
@@ -151,7 +165,7 @@ It does not mutate production or target files.
 | NET-INV-2 | 2. **Backbone coverage:** All 8 theta sectors MUST have &gt;= 3 Hot nodes at all times. | spec/NETWORK.md:721 | HIGH | yes | IMPOSED | Invariant source paragraph changes/removes or THETA_SECTORS/MIN_HOT_NODES_PER_SECTOR assignment AST changes in rpp/network.py. Runtime topology availability is not checked. | Change MIN_HOT_NODES_PER_SECTOR from 3 to 1. | Change an unrelated network constant. |
 | WORD-CLAIM-1 | security audit, and nothing in this repository should be read as a security guarantee. In particular, an RPP | SECURITY.md:24 | LOW | yes | IMPOSED | Added Markdown line contains guaranteed, quantum-secure (one separator), or unhackable. This is an IMPOSED wording-review candidate; existence of a shown basis needs judgement. | Add &#96;RPP is unhackable&#96; to a document. | Add &#96;No independent security audit&#96; to a document. |
 | WORD-RADIUS-1 | &#124; Radius &#124; 0 &#124; 255 &#124; Normalized 0-1 &#124; | VERSION_POLICY.md:83 | LOW | yes | IMPOSED | Changed normalized steward/advisory source passage is a diff finding; unchanged item is displayed separately without affecting exit status. | Edit the cited source passage. | Edit an unrelated source passage. |
-| BND-F-BASELINE-REMOVED | 1. **Propose**: Open an issue with &#96;[RFC]&#96; prefix | GOVERNANCE.md:67 | MEDIUM | yes | IMPOSED | Known baseline passage deleted or rewritten without physics terms: report old id, source path/line hint, and normalized hash; entry stays unresolved. A physical rewrite is classified by F-1/F-2. | Replace a known baseline passage with an ordinary nonphysics note. | Move its normalized-equivalent text, including rewrapping/NFC changes. |
+| BND-F-BASELINE-REMOVED | 1. **Propose**: Open an issue with &#96;[RFC]&#96; prefix | GOVERNANCE.md:67 | MEDIUM | yes | IMPOSED | Lost baseline identity emits MEDIUM unless its unique exact edit/unchanged-line component pairs it with one same-path, same-kind, same-owner physics replacement. Splits, merges, changed renames and ambiguous correspondence emit the stricter removal finding; equal-hash moves/rewrapping do not. | Replace a known baseline passage with an ordinary nonphysics note. | Move its normalized-equivalent text, including rewrapping/NFC changes. |
 | VER-RADIUS-TIES |         r_enc = round(self.radius * 255) &amp; 0xFF # 8 bits | spec/RPP-CANONICAL-v2.md:239 | HIGH | yes | IMPOSED | IMPOSED Python round half-to-even clause for the v2 encoder. Encoder AST or source quantization-expression change requires review; vectors 1/510→0, 5/510→2, 0.5→128. | Replace round(radius*255) with int(radius*255+0.5). | Change only an encoder comment. |
 | STEWARD-TTL-1 | &#124; 0 &#124; Hot &#124; In-memory cache &#124; Session duration &#124; ~25 ns &#124; | spec/SPEC.md:94 | MEDIUM | yes | IMPOSED | Changed normalized steward/advisory source passage is a diff finding; unchanged item is displayed separately without affecting exit status. | Edit the cited source passage. | Edit an unrelated source passage. |
 | STEWARD-T2-1 | 2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be ≤ 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation. | spec/SPINTRONIC.md:288 | MEDIUM | yes | IMPOSED | Changed normalized steward/advisory source passage is a diff finding; unchanged item is displayed separately without affecting exit status. | Edit the cited source passage. | Edit an unrelated source passage. |

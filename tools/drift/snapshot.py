@@ -79,7 +79,7 @@ def revise_catalog(root):
          "Add a physical invariant sentence to a root Markdown document.",
          "Change only quantum/coherence/hardware wording without a listed physics term.")
     rule("BND-F-BASELINE-REMOVED", "GOVERNANCE.md", 67, "MEDIUM",
-         "Known baseline passage deleted or rewritten without physics terms: report old id, source path/line hint, and normalized hash; entry stays unresolved. A physical rewrite is classified by F-1/F-2.",
+         "Lost baseline identity emits MEDIUM unless its unique exact edit/unchanged-line component pairs it with one same-path, same-kind, same-owner physics replacement. Splits, merges, changed renames and ambiguous correspondence emit the stricter removal finding; equal-hash moves/rewrapping do not.",
          "Replace a known baseline passage with an ordinary nonphysics note.",
          "Move its normalized-equivalent text, including rewrapping/NFC changes.")
     rule("VER-RADIUS-API", "spec/RPP-CANONICAL-v2.md", 229, "HIGH",

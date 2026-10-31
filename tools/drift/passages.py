@@ -1,7 +1,7 @@
 """Passage extraction and lexical Boundary F predicates from TR's verified ruling."""
 
 import ast
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import io
 import re
@@ -48,6 +48,7 @@ class Passage:
     end: int
     kind: str
     text: str
+    context: tuple = ()
 
     @property
     def sha256(self):
@@ -118,8 +119,32 @@ def extract(path, text):
     if not in_scope(path):
         return []
     if path.endswith(".py"):
-        return python_passages(path, text)
-    return list(markdown_passages(path, text))
+        passages = python_passages(path, text)
+        scopes = [n for n in ast.walk(ast.parse(text))
+                  if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))]
+        result = []
+        for passage in passages:
+            owners = sorted((n for n in scopes if n.lineno <= passage.line <= n.end_lineno),
+                            key=lambda n: (-(n.end_lineno - n.lineno), n.lineno, n.name))
+            result.append(replace(passage, context=tuple(type(n).__name__ + ":" + n.name for n in owners)))
+        return result
+    passages = list(markdown_passages(path, text))
+    headings, contexts, fence = [], {}, None
+    for n, line in enumerate(text.replace("\r\n", "\n").replace("\r", "\n").split("\n"), 1):
+        marker = re.match(r"^\s*(`{3,}|~{3,})", line)
+        if marker:
+            if fence is None:
+                fence = (marker[1][0], len(marker[1]))
+            elif marker[1][0] == fence[0] and len(marker[1]) >= fence[1]:
+                fence = None
+        elif fence is None:
+            heading = re.match(r"^\s{0,3}(#{1,6})\s+(.*)$", line)
+            if heading:
+                level = len(heading[1])
+                headings = [(depth, value) for depth, value in headings if depth < level]
+                headings.append((level, normalize(heading[2])))
+        contexts[n] = tuple(f"{depth}:{value}" for depth, value in headings)
+    return [replace(p, context=contexts.get(p.line, ())) for p in passages]
 
 
 def classify(passage):
