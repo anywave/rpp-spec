@@ -1,0 +1,274 @@
+VCD info: dumpfile spiral_ra_test.vcd opened for output.
+
+============================================================
+ herenceEvaluator_Ra - Full Sweep
+============================================================
+Sweeping entropy (0-31) x complecount (0-7)...
+
+entropy | comple | score | norm | H/M/L | valid
+--------|--------|-------|------|-------|------
+    0   |   0    |    0  |   0  |  L  |   0
+    0   |   1    |  290  |  43  |  L  |   0
+    0   |   2    |  581  |  86  |  H  |   1
+    0   |   3    |  872  | 129  |  H  |   1
+    0   |   4    |  138  |  20  |  L  |   0
+    0   |   5    |  429  |  63  |  M  |   1
+    0   |   6    |  720  | 106  |  H  |   1
+    0   |   7    |  1011  | 150  |  H  |   1
+    4   |   0    |   83  |  12  |  L  |   0
+    4   |   1    |  373  |  55  |  M  |   1
+    4   |   2    |  664  |  98  |  H  |   1
+    4   |   3    |  955  | 141  |  H  |   1
+    4   |   4    |  221  |  32  |  L  |   0
+    4   |   5    |  512  |  76  |  H  |   1
+    4   |   6    |  803  | 119  |  H  |   1
+    4   |   7    |   70  |  10  |  L  |   0
+    8   |   0    |  166  |  24  |  L  |   0
+    8   |   1    |  456  |  67  |  M  |   1
+    8   |   2    |  747  | 110  |  H  |   1
+    8   |   3    |   14  |   2  |  L  |   0
+    8   |   4    |  304  |  45  |  M  |   1
+    8   |   5    |  595  |  88  |  H  |   1
+    8   |   6    |  886  | 131  |  H  |   1
+    8   |   7    |  153  |  22  |  L  |   0
+   12   |   0    |  250  |  37  |  L  |   0
+   12   |   1    |  540  |  80  |  H  |   1
+   12   |   2    |  831  | 123  |  H  |   1
+   12   |   3    |   98  |  14  |  L  |   0
+   12   |   4    |  388  |  57  |  M  |   1
+   12   |   5    |  679  | 100  |  H  |   1
+   12   |   6    |  970  | 143  |  H  |   1
+   12   |   7    |  237  |  35  |  L  |   0
+   16   |   0    |  333  |  49  |  M  |   1
+   16   |   1    |  623  |  92  |  H  |   1
+   16   |   2    |  914  | 135  |  H  |   1
+   16   |   3    |  181  |  26  |  L  |   0
+   16   |   4    |  471  |  69  |  M  |   1
+   16   |   5    |  762  | 113  |  H  |   1
+   16   |   6    |   29  |   4  |  L  |   0
+   16   |   7    |  320  |  47  |  M  |   1
+   20   |   0    |  416  |  61  |  M  |   1
+   20   |   1    |  706  | 104  |  H  |   1
+   20   |   2    |  997  | 147  |  H  |   1
+   20   |   3    |  264  |  39  |  L  |   0
+   20   |   4    |  554  |  82  |  H  |   1
+   20   |   5    |  845  | 125  |  H  |   1
+   20   |   6    |  112  |  16  |  L  |   0
+   20   |   7    |  403  |  59  |  M  |   1
+   24   |   0    |  500  |  74  |  H  |   1
+   24   |   1    |  790  | 117  |  H  |   1
+   24   |   2    |   57  |   8  |  L  |   0
+   24   |   3    |  348  |  51  |  M  |   1
+   24   |   4    |  638  |  94  |  H  |   1
+   24   |   5    |  929  | 137  |  H  |   1
+   24   |   6    |  196  |  29  |  L  |   0
+   24   |   7    |  487  |  72  |  M  |   1
+   28   |   0    |  583  |  86  |  H  |   1
+   28   |   1    |  873  | 129  |  H  |   1
+   28   |   2    |  140  |  20  |  L  |   0
+   28   |   3    |  431  |  63  |  M  |   1
+   28   |   4    |  721  | 107  |  H  |   1
+   28   |   5    |  1012  | 150  |  H  |   1
+   28   |   6    |  279  |  41  |  L  |   0
+   28   |   7    |  570  |  84  |  H  |   1
+[PASS] Max coherence (E=31, C=7) >= 4.0
+  Max score:  632 (expected ~670)
+[PASS]   Min coherence (E=0, C=0) < 1.0
+[FAIL]   Mid coherence should be medium
+
+============================================================
+ recise vs Approximate Comparison
+============================================================
+E= 0 C=0: Approx=  0 Precise=  0 Diff=   0
+E= 0 C=2: Approx=581 Precise=144 Diff= 437
+E= 0 C=4: Approx=138 Precise=288 Diff= 150
+E= 0 C=6: Approx=720 Precise= 16 Diff= 704
+E= 8 C=0: Approx=166 Precise= 41 Diff= 125
+E= 8 C=2: Approx=747 Precise=185 Diff= 562
+E= 8 C=4: Approx=304 Precise=329 Diff=  25
+E= 8 C=6: Approx=886 Precise= 57 Diff= 829
+E=16 C=0: Approx=333 Precise= 82 Diff= 251
+E=16 C=2: Approx=914 Precise=227 Diff= 687
+E=16 C=4: Approx=471 Precise=371 Diff= 100
+E=16 C=6: Approx= 29 Precise= 99 Diff=  70
+E=24 C=0: Approx=500 Precise=124 Diff= 376
+E=24 C=2: Approx= 57 Precise=268 Diff= 211
+E=24 C=4: Approx=638 Precise=412 Diff= 226
+E=24 C=6: Approx=196 Precise=140 Diff=  56
+
+============================================================
+ calarTrigger_Ra - Duration Tests
+============================================================
+Testing scalar trigger: radius=150, threshold=100, duration=4
+Cycle | Counter | Above | Triggered | Stable
+   0  |      1    |   1   |     0     |   0
+   1  |      2    |   1   |     0     |   0
+   2  |      3    |   1   |     0     |   0
+   3  |      4    |   1   |     0     |   0
+   4  |      4    |   1   |     1     |   0
+   5  |      4    |   1   |     1     |   0
+   6  |      4    |   1   |     1     |   0
+   7  |      4    |   1   |     1     |   0
+   8  |      4    |   1   |     1     |   0
+   9  |      4    |   1   |     1     |   0
+[PASS]  Scalar triggered after duration
+
+Dropping radius below threshold...
+[PASS]   Scalar reset when radius drops
+[PASS]  Counter reset when radius drops
+
+============================================================
+ larTrigger_Ra - Fluctuation Test
+============================================================
+[PASS] igger after fluctuation recovery
+
+============================================================
+  FallbackResolver_Ra - XOR Logic
+============================================================
+Primary: theta=12 phi=3 omega=2 radius=128
+[PASS]        No trigger passes primary
+Fallback: theta= 9 phi=0 omega=3 radius=128
+[PASS]             Fallback active flag
+
+============================================================
+ FallbackResolver_Ra - Wrap Tests
+============================================================
+Theta wrap: 26 XOR 7 =  2 (wrapped)
+[PASS]            Theta wraps correctly
+Phi wrap: 5 XOR 7 = 2 (wrapped)
+[PASS]               Phi in valid range
+
+============================================================
+ tArbitrator_Ra - Decision Matrix
+============================================================
+coh_v | sca_t | state | fb | pma | allowed | use_fb | use_pma | decision
+------|-------|-------|----|----|---------|--------|---------|----------
+  0   |   0   |  00   |  0 |  0  |    1    |   0    |    0    |    000
+  0   |   0   |  01   |  0 |  0  |    0    |   0    |    0    |    011
+  0   |   0   |  10   |  0 |  0  |    0    |   0    |    0    |    011
+  0   |   0   |  11   |  0 |  0  |    0    |   0    |    0    |    100
+  1   |   0   |  00   |  0 |  0  |    1    |   0    |    0    |    000
+  1   |   0   |  01   |  0 |  0  |    1    |   0    |    0    |    000
+  1   |   0   |  10   |  0 |  0  |    0    |   0    |    0    |    011
+  1   |   0   |  11   |  0 |  0  |    0    |   0    |    0    |    100
+  0   |   1   |  00   |  0 |  0  |    1    |   0    |    0    |    000
+  0   |   1   |  01   |  0 |  0  |    0    |   0    |    0    |    011
+  0   |   1   |  10   |  0 |  0  |    0    |   0    |    0    |    011
+  0   |   1   |  11   |  0 |  0  |    0    |   0    |    0    |    100
+  1   |   1   |  00   |  0 |  0  |    1    |   0    |    0    |    000
+  1   |   1   |  01   |  0 |  0  |    1    |   0    |    0    |    000
+  1   |   1   |  10   |  0 |  0  |    0    |   0    |    0    |    011
+  1   |   1   |  11   |  0 |  0  |    0    |   0    |    0    |    100
+  0   |   0   |  00   |  1 |  0  |    1    |   1    |    0    |    001
+  0   |   0   |  01   |  1 |  0  |    0    |   0    |    0    |    011
+  0   |   0   |  10   |  1 |  0  |    0    |   0    |    0    |    011
+  0   |   0   |  11   |  1 |  0  |    0    |   0    |    0    |    100
+  1   |   0   |  00   |  1 |  0  |    1    |   0    |    0    |    000
+  1   |   0   |  01   |  1 |  0  |    1    |   0    |    0    |    000
+  1   |   0   |  10   |  1 |  0  |    0    |   0    |    0    |    011
+  1   |   0   |  11   |  1 |  0  |    0    |   0    |    0    |    100
+  0   |   1   |  00   |  1 |  0  |    1    |   1    |    0    |    001
+  0   |   1   |  01   |  1 |  0  |    0    |   0    |    0    |    011
+  0   |   1   |  10   |  1 |  0  |    0    |   0    |    0    |    011
+  0   |   1   |  11   |  1 |  0  |    0    |   0    |    0    |    100
+  1   |   1   |  00   |  1 |  0  |    1    |   0    |    0    |    000
+  1   |   1   |  01   |  1 |  0  |    1    |   0    |    0    |    000
+  1   |   1   |  10   |  1 |  0  |    0    |   0    |    0    |    011
+  1   |   1   |  11   |  1 |  0  |    0    |   0    |    0    |    100
+  0   |   0   |  00   |  0 |  1  |    1    |   0    |    0    |    000
+  0   |   0   |  01   |  0 |  1  |    0    |   0    |    0    |    011
+  0   |   0   |  10   |  0 |  1  |    0    |   0    |    0    |    011
+  0   |   0   |  11   |  0 |  1  |    0    |   0    |    0    |    100
+  1   |   0   |  00   |  0 |  1  |    1    |   0    |    1    |    010
+  1   |   0   |  01   |  0 |  1  |    1    |   0    |    1    |    010
+  1   |   0   |  10   |  0 |  1  |    0    |   0    |    0    |    011
+  1   |   0   |  11   |  0 |  1  |    0    |   0    |    0    |    100
+  0   |   1   |  00   |  0 |  1  |    1    |   0    |    0    |    000
+  0   |   1   |  01   |  0 |  1  |    0    |   0    |    0    |    011
+  0   |   1   |  10   |  0 |  1  |    0    |   0    |    0    |    011
+  0   |   1   |  11   |  0 |  1  |    0    |   0    |    0    |    100
+  1   |   1   |  00   |  0 |  1  |    1    |   0    |    1    |    010
+  1   |   1   |  01   |  0 |  1  |    1    |   0    |    1    |    010
+  1   |   1   |  10   |  0 |  1  |    0    |   0    |    0    |    011
+  1   |   1   |  11   |  0 |  1  |    0    |   0    |    0    |    100
+  0   |   0   |  00   |  1 |  1  |    1    |   1    |    0    |    001
+  0   |   0   |  01   |  1 |  1  |    0    |   0    |    0    |    011
+  0   |   0   |  10   |  1 |  1  |    0    |   0    |    0    |    011
+  0   |   0   |  11   |  1 |  1  |    0    |   0    |    0    |    100
+  1   |   0   |  00   |  1 |  1  |    1    |   0    |    1    |    010
+  1   |   0   |  01   |  1 |  1  |    1    |   0    |    1    |    010
+  1   |   0   |  10   |  1 |  1  |    0    |   0    |    0    |    011
+  1   |   0   |  11   |  1 |  1  |    0    |   0    |    0    |    100
+  0   |   1   |  00   |  1 |  1  |    1    |   1    |    0    |    001
+  0   |   1   |  01   |  1 |  1  |    0    |   0    |    0    |    011
+  0   |   1   |  10   |  1 |  1  |    0    |   0    |    0    |    011
+  0   |   1   |  11   |  1 |  1  |    0    |   0    |    0    |    100
+  1   |   1   |  00   |  1 |  1  |    1    |   0    |    1    |    010
+  1   |   1   |  01   |  1 |  1  |    1    |   0    |    1    |    010
+  1   |   1   |  10   |  1 |  1  |    0    |   0    |    0    |    011
+  1   |   1   |  11   |  1 |  1  |    0    |   0    |    0    |    100
+[PASS] ULL_CONSENT + coherent = allowed
+[PASS]              SUSPENDED = blocked
+[PASS]              EMERGENCY = blocked
+[PASS] IMINISHED + incoherent = blocked
+[PASS]  DIMINISHED + coherent = allowed
+
+============================================================
+ tHeaderParser - Field Extraction
+============================================================
+Header: 0x61500000deadbeef1234e5a503aa1a2b55ff
+Parsed fields:
+  theta=12 phi=1 omega=2 radius=128
+  packet_id=0xdeadbeef origin_ref=0x1234
+  verbal=1 somatic=12 ancestral=2 temporal=1
+  entropy=20 complecount=5 payload= 3
+  fallback=0xaa window_id=0x1a2b target=0x55 crc=0xff
+  consent_state=00 needs_fallback=0 has_pma=1
+[PASS]                 Theta extraction
+[FAIL]                   Phi extraction
+[PASS]                 Omega extraction
+[PASS]                Radius extraction
+[PASS]               Entropy extraction
+[PASS]           Complecount extraction
+[PASS]             Window ID extraction
+[PASS]                     Has PMA link
+[PASS]      Full consent (high somatic)
+
+============================================================
+ aderParser - Consent State Tests
+============================================================
+[PASS]         Low somatic -> SUSPENDED
+[PASS]  somatic no verbal -> DIMINISHED
+[PASS]  Mid somatic with verbal -> FULL
+[PASS]   High entropy -> needs_fallback
+
+============================================================
+      Integration - Full Pipeline
+============================================================
+
+Scenario 1: Normal routing
+  Coherence score:  208, valid: 1
+  Route allowed: 1, decision: 000
+[PASS]        Scenario 1: Route allowed
+
+Scenario 2: Fallback triggered
+  Coherence score:  562, valid: 1
+  Needs fallback: 1, use_fallback: 0
+[PASS] Scenario 2: Fallback path active
+
+Scenario 3: PMA-linked routing
+  Has PMA: 1, PMA hit: 1, use_pma: 1
+[PASS]       Scenario 3: PMA route used
+
+============================================================
+                     TEST SUMMARY
+============================================================
+Total tests:          32
+Passed:               30
+Failed:                2
+
+***           2 TESTS FAILED ***
+
+Waveform written to: spiral_ra_test.vcd
+View with: gtkwave spiral_ra_test.vcd
+hardware/verilog/spiral_testbench_ra.v:625: $finish called at 2126000 (1ps)

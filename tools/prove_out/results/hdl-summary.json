@@ -1,0 +1,18 @@
+{
+  "approximate_hdl_completion_decreases": 63,
+  "binding_mismatches_at_configured_137": {
+    "approximate_valid": 61,
+    "exact_valid": 0,
+    "lut_valid": 35
+  },
+  "completion_flag_mismatches": 31,
+  "exact_hdl_completion_decreases": 0,
+  "lut_hdl_completion_decreases": 32,
+  "points": 256,
+  "python_score_completion_decreases": 0,
+  "score_mismatches": {
+    "approximate_hdl": 255,
+    "exact_hdl": 0,
+    "lut_hdl": 245
+  }
+}
