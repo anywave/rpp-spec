@@ -3,7 +3,9 @@
 RPP source revision: `0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e` in `/workspace/cx004-prove-out`.
 Latest authoritative inbox read before acting: `d9214588220854667692ad5614d355763360133d`,
 `codex/inbox/rpp-spec.md`, including CX-003 and CX-004. No RPP or ra-system source was edited.
-No model, randomness, keys, transaction or remote write was used.
+The experiments call no LLM or embedding model and use fixed inputs; the numerical
+simulation models are identified below. No secret, transaction or remote write beyond
+the authorized branch push is used.
 
 ## Executed hardware findings
 
