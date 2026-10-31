@@ -1,97 +1,103 @@
-# Revision round 1 — validation record
+# CX-004 Part A — final validation and READY record
 
-Implementation revision: `5424e95d4db56d3ca0c6cb892f243d1c4755d548`. Frozen specification/baseline revision: `0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e`.
-Authority: TR inbox `anywave/trellis-channel`, `main`, `codex/inbox/rpp-spec.md`, observed
-commit `7735c29f33e25188c8adc9a76561dc1ebf4a3522` (verified answer #2 and Q1/Q2). Only tooling and outbox files changed.
-Application source, original tests, spec, address layouts, consent header and golden vectors
-remain unchanged. Previously published outbox `CX-001-001.md` remains unchanged.
+**READY** at validated implementation `1bc6efd9ffdc19ede929d11a2394d5c9357be1b7`. The following documentation commit adds this
+record, PR handoff and CX-004-001; code/catalog are unchanged by that commit. Source/baseline
+revision remains `0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e`. Authority is the CX-004 inbox at `d9214588220854667692ad5614d355763360133d`.
+READY describes the reviewed coordinator implementation; TR still needs green required hosted
+checks at the merge candidate and owns every merge. No hosted result for this new head is invented.
 
-Commands ran from `/workspace/rpp-spec` with the retained Python 3.12 environment:
+## Exact commands and observed results
 
-| Exact command | Observed result |
+All commands ran from /workspace/rpp-spec with the retained Python 3.12 environment.
+
+| Command | Result |
 |---|---|
-| `python -m pytest tools/drift/tests/ -q -o addopts=` | 168 passed |
-| `python -m tools.drift.mutation_check` | SUMMARY killed=22 survived=0 |
-| `python -m pytest tests/ -q` | 1256 passed, 1 pre-existing legacy-format deprecation warning |
-| `python tests/test_golden_vectors_mobius32.py` | SUMMARY pass=5 fail=0 |
-| `python -m tools.drift.snapshot` | SUMMARY scanned_paths=75 open_baselines=243 open_steward_items=4 open_advisories=2 |
-| `python -m tools.drift.history --master 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --output-dir tools/drift` | SUMMARY commits=30 high=13 medium=209 low=3 |
-| `git diff --cached --check` | exit 0 before implementation commit |
+| `python -m pytest tools/drift/tests/ -q -o addopts=` | **269 passed** |
+| `python -m tools.drift.mutation_check` | **SUMMARY killed=40 survived=0 rule_mutants=22 branch_mutants=18**; **CONTROLS passed=40 failed=0** |
+| `python -m tools.drift.snapshot` | **scanned_paths=75 open_baselines=243 open_steward_items=4 open_advisories=2** |
+| `python -m tools.drift.history --master 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --output-dir tools/drift` | **commits=30 high=13 medium=209 low=3** |
+| `PYTHONPATH=/workspace/rpp-spec python -m pytest tests/ -q` | **1256 passed**, 1 pre-existing warning |
+| `PYTHONPATH=/workspace/rpp-spec python tests/test_golden_vectors_mobius32.py` | **SUMMARY pass=5 fail=0** |
+| `python /tmp/cx001-readiness-repro/repro.py` | **cases=2 passed=2 failed=0**, exit 0 |
+| `git diff --check` and staged/diff checks | exit 0 |
 
-The snapshot reconstruction precedes the final source-survey render; catalog metadata also
-records 2,281 full-meaning source-survey units. That count is not executable rule coverage.
-Every one of the 22 executable rules has positive and clean-control fixtures; deleting each
-detector in memory makes its positive assertion fail. No production source is mutated.
+The 30-commit counts are **unchanged** from CX-001-002 (13/209/3, delta 0/0/0). The historical
+ranges do not contain the new adversarial interaction; the new tests do. Canonical evidence and
+catalog identity changed as documented, not the historical count. Merges use first parent and
+can repeat changes. Complete evidence is in HISTORY.md/history.json; no historical source was fixed.
 
-Existing pytest-asyncio fixture-loop-scope notices remain visible. Warnings were not suppressed.
+Every existing rule now has a positive **and** clean mutation target; 18 algorithm/Git/schema/path
+branches have the same paired evidence. A kill requires exactly the targeted AssertionError failure
+and a passing clean control; stale mutation anchors, collection errors and setup errors are rejected.
+Trusted coordinator code is mutated only in memory, never target or production files on disk.
+All new tests name mutations that would make their assertions fail.
 
-## Windows portability evidence and limits
+## A1/A2 passage correction and imposed choices
 
-All file text I/O and subprocess text captures use explicit UTF-8. Git blob/path captures remain
-explicit binary (`text=False`), decoded explicitly as UTF-8 to preserve Git blob bytes. POSIX
-Git argv uses UTF-8 bytes under an ASCII filesystem codec; Windows keeps native Unicode argv.
-The executable-bit fixture uses `git update-index --chmod=+x` with `core.filemode=false`.
+Exact normalized hashes pair first (same path before cross-file moves). Otherwise replacement is a
+unique one-old/one-new connected component from atomic Git edit spans and unchanged LF-line maps,
+with matching path, passage kind and structural owner. All units, including nonphysics ones,
+participate; another passage in a hunk cannot lend physics/normative/qualifier scope. Heading
+hierarchies and Python class/function names define structural owners, not semantic similarity.
 
-The regression test launches the actual checker and history writers with `PYTHONUTF8=0`,
-`-X utf8=0`, locale coercion disabled, C locale and default-encoding warnings promoted to errors.
-It exercises a Unicode filename and UTF-8 report/history text. A static audit covers all tooling
-text reads/writes and subprocess capture modes. Another test confirms catalog CRLF/JSON formatting
-does not change report identity. These tests ran in Linux; native Windows 11/Python 3.13 was not run
-in this cloud environment. TR can rerun the same commands on Windows; no Windows result is invented.
+IMPOSED stricter choices: split/merge or multi-unit components, kind/owner changes and changed-text
+renames retain removal findings and classify new physics wording separately. Equal-hash rewrapping
+and owner/end-line changes are moved events, even with unchanged start line. No baseline is accepted.
+The graph uses indexed exact coordinates and star unions for the same components without quadratic
+all-pairs joins. These implementation details do not add a new semantic matching heuristic.
 
-## Verified semantics exercised
+The committed matrix is in tests/test_boundary_interactions.py: **30 A2 parameter cases plus four
+in-process I/O controls, 34 passed**. Additional path/Git tests and 39 catalog-error cases bring the
+full suite to 269. All seven software-MUST anchors remain independently HIGH when lost.
 
-- Passage-based Boundary F scope and exact physics/normative/qualifier lists; no file-based
-  core/substrate classification. Markdown fences/list items/table rows and Python comments/
-  docstrings are distinct. Arbitrary executable string values are excluded.
-- Complete frozen scan: 75 paths and all 243 matching passages, reconstructed from Git blobs.
-  LF, NFC, collapsed whitespace, trimmed UTF-8 SHA-256 identity; line is a hint. Moves and
-  whitespace-only rewrapping remain separate from changed text, including cross-file moves.
-- All seven software-MUST anchors are guarded. Baseline removal/nonphysics rewriting produces
-  MEDIUM BND-F-BASELINE-REMOVED with old id/path/hint/hash; anchor loss independently stays HIGH.
-- Open baseline count 243, separate MEDIUM steward count 4, LOW advisory-group count 2. All
-  remain unresolved for RADIX, routed [RFC] via TR. Unchanged items do not dirty the exit status;
-  changed cited passages are normal diff findings.
-- v2 radius API and encoded contracts are SOURCED. The half-to-even clause is IMPOSED and has
-  all three requested vectors: 1/510→0, 5/510→2, 0.5→128. GEOMETRY minor radius/Mobius32 are
-  outside that scope; parl is separately checkable: no. All six LOW wording sites and the
-  True/-0.0/negative-zero URI advisory are recorded without editing their sources.
+## A4 adversarial self-review
 
-## Two identical-input runs
+Reviewed the complete 0a12c8d..1bc6efd9ffdc19ede929d11a2394d5c9357be1b7 diff and final source. No remaining concrete material defect was
+found in the scoped review after addressing:
+
+- same-hunk replacement borrowing; split/merge/type/owner ambiguity; normalized cross-file identity;
+- Git color and binary diff attributes that could suppress findings; LF-only line parsing,
+  canonical prefixes/algorithm/captions and atomic edit coordinates;
+- WORD-only Markdown paths bypassing regular-file/NUL/UTF-8/size checks;
+- malformed/zero-rule catalogs returning false clean or wrong status, unresolved-status and
+  SOURCED/IMPOSED invariants, stable canonical catalog identity;
+- valid repository paths with trailing whitespace; literal, spaced and Unicode paths; symlinks;
+- statuses 0/1/2, stale-report cleanup, severity/id/path/line ordering, escaped evidence;
+- drift.yml's read-only permissions, pinned actions, full fetch and nonpersistent credentials.
+
+The drift workflow remains intentionally advisory and exposes tool errors in its summary. Part B
+restores the separate main CI lint gate. Application source, original tests, spec, layouts, header,
+vectors, constants and published CX-001 outboxes remain unchanged on this branch.
+
+## Identical-input runs
 
 ```bash
-python -m tools.drift check --base 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --head 5424e95d4db56d3ca0c6cb892f243d1c4755d548 --output-dir /tmp/cx001-round1-run-one
-python -m tools.drift check --base 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --head 5424e95d4db56d3ca0c6cb892f243d1c4755d548 --output-dir /tmp/cx001-round1-run-two
-sha256sum /tmp/cx001-round1-run-one/drift-report.json /tmp/cx001-round1-run-two/drift-report.json /tmp/cx001-round1-run-one/drift-report.md /tmp/cx001-round1-run-two/drift-report.md
-cmp /tmp/cx001-round1-run-one/drift-report.json /tmp/cx001-round1-run-two/drift-report.json
-cmp /tmp/cx001-round1-run-one/drift-report.md /tmp/cx001-round1-run-two/drift-report.md
+python -m tools.drift check --base 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --head 1bc6efd9ffdc19ede929d11a2394d5c9357be1b7 --output-dir /tmp/cx004-a3-run-one
+python -m tools.drift check --base 0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e --head 1bc6efd9ffdc19ede929d11a2394d5c9357be1b7 --output-dir /tmp/cx004-a3-run-two
+sha256sum /tmp/cx004-a3-run-one/drift-report.json /tmp/cx004-a3-run-two/drift-report.json /tmp/cx004-a3-run-one/drift-report.md /tmp/cx004-a3-run-two/drift-report.md
+cmp /tmp/cx004-a3-run-one/drift-report.json /tmp/cx004-a3-run-two/drift-report.json
+cmp /tmp/cx004-a3-run-one/drift-report.md /tmp/cx004-a3-run-two/drift-report.md
 ```
 
-Both check runs: exit 0, diff high=0 medium=0 low=0; rules_run=22, rules_not_checkable=2281;
-open_baselines=243, open_steward_items=4, open_advisories=2. Both cmp commands returned 0.
+Both checks exit 0, diff high=0 medium=0 low=0, 22 rules, 2281 full-meaning survey units;
+243 baseline entries, 4 steward items and 2 advisory groups remain unresolved. Both cmp commands exit 0.
 
-| File | First SHA-256 | Second SHA-256 |
+| File | Run 1 SHA-256 | Run 2 SHA-256 |
 |---|---|---|
-| drift-report.json | 9599653757c54ed3a727ebc2273291795501908b5c133e9f2020c2a992f152a9 | 9599653757c54ed3a727ebc2273291795501908b5c133e9f2020c2a992f152a9 |
-| drift-report.md | ed17025111a6669b4f9d820f39bbc40dcd0fe7af565798a35ec291834b29791d | ed17025111a6669b4f9d820f39bbc40dcd0fe7af565798a35ec291834b29791d |
+| JSON | beee977a6c3589d05365fd0ed5475757b81900861d04d37616d24f094acea007 | beee977a6c3589d05365fd0ed5475757b81900861d04d37616d24f094acea007 |
+| Markdown | e22ae9b29deb19a2545029166ee0c6399c662a770d85ee8ff3bbb104b02460be | e22ae9b29deb19a2545029166ee0c6399c662a770d85ee8ff3bbb104b02460be |
 
-Canonical catalog SHA-256: `ddf33ab9f33c6adc02486a3d99247f84627ab86c4cb1aa2f3696140d32172019`. Canonical JSON makes this identity
-independent of the catalog worktree's CRLF/LF or pretty-print layout. The reviewed head is the
-implementation commit before this validation record and outbox report are added; changing the
-reviewed range changes commit metadata and therefore its report hashes.
+Canonical catalog identity: `b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce`. The pinned input head precedes the
+report/documentation commit; reviewing another head changes its metadata/hashes as expected.
 
-## Historical findings and remaining limitations
+## Not run / TR repeat
 
-[HISTORY.md](HISTORY.md) lists every HIGH/MEDIUM with its commit; [history.json](history.json)
-retains full evidence, baseline events and unresolved items. The last 30 reachable commits include
-merges, each against its first parent; counts can repeat merged changes and are not unique defects.
-No historical target code was run and no historical finding was fixed.
+Native Windows 11/Python 3.13 and hosted CI at the new head were not run here. TR should repeat
+all commands in the results table on Windows, plus the two pinned-range check/cmp runs. Two actual
+POSIX trailing-space/CR-directory integration cases skip on Windows with explicit filesystem
+reasons; their pure root-parser controls remain cross-platform, including the 40-mutation check.
+No new Windows count is asserted. Existing legacy-format and pytest-asyncio notices stay visible.
 
-Hosted Actions was not observed. FPGA/Verilog, Haskell/Clash, LaTeX and live substrate/network
-integrations were not run: this revision changes standalone static tooling only. The existing
-advisory read-only CI workflow remains unchanged. No api.github.com access, environment settings
-change, lattice write, new PR, PR comment or PR-body update was performed by Codex.
-
-No unanswered stop-and-ask remains. The four steward topics, two advisory groups and lifecycle
-precedence remain unresolved as directed; no entry was accepted or silently closed. TR owns PR #4's
-body update and any later RFC/steward decisions.
+The radius derivation, four steward items, lifecycle issue and 243 baseline claims stay with RADIX.
+Part C's physical/biological claims are not endorsed by simulations. No merge, new PR, API call,
+environment change or lattice post is performed; TR opens the two new draft PRs and updates PR #4.
