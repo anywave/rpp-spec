@@ -170,9 +170,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # Advisory: ruff reports 307 pre-existing findings (mostly style) in rpp/ and tests/.
-    # They do not affect the tests, which are the evidence; do not let them hide those results.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -184,7 +181,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ruff
+          python -m pip install ruff==0.14.10
 
       - name: Run Ruff
         run: |

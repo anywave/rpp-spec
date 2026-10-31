@@ -448,6 +448,7 @@ class TestVerifyContinuityChain:
         prev_link_hash = hashlib.sha256(first_link).digest()
         fake_link = hashlib.sha256(prev_link_hash + state_hash_tampered).digest()
         # This "passes" because verify_continuity_chain uses the current state_vector.
+        assert verify_continuity_chain(csp, fake_link) is True
         # The key invariant: if origin link was based on original state, an attacker
         # who changes state_vector CAN'T fake a valid origin link for the new state.
         original_state_hash = hashlib.sha256(b"original").digest()

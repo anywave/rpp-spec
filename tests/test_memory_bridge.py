@@ -7,7 +7,6 @@ Each test redirects MEMORY_ROOT to a pytest tmp_path so the live
 
 import json
 import time
-from pathlib import Path
 
 import pytest
 
@@ -477,8 +476,8 @@ class TestIntegration:
         assert any(m["content"] == "persistent" for m in mems)
 
     def test_shell_2_and_3_both_accepted(self, bridge):
-        a2 = bridge.remember("daily", phi=200, shell=2)
-        a3 = bridge.remember("monthly", phi=200, shell=3)
+        bridge.remember("daily", phi=200, shell=2)
+        bridge.remember("monthly", phi=200, shell=3)
         assert len(bridge.recall_all(requesting_phi=511)) == 2
 
     def test_corrupted_json_skipped_gracefully(self, bridge):

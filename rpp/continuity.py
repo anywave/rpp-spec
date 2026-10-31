@@ -18,7 +18,7 @@ confirmed does the origin release. If the crossing fails, the wagon returns
 
 import hashlib
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import List, Optional, Tuple
 
