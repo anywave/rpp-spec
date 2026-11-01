@@ -69,7 +69,7 @@ class GateTests(unittest.TestCase):
             self.assertEqual(bool(self.check('permissions')), fails)
 
     def test_slice_cap_rejects_file_line_binary_and_merge_bypasses(self):
-        """Kills 11-file, 401-line, binary and ignored-merge counting mutations."""
+        """Kills 11-file, 401-line, binary, ignored-merge and both-parent counting mutations."""
         self.assertEqual(gate.slice_counts('200\t200\ta b\0', set()), (1, 400))
         self.write('limit', 'x\n' * 400)
         head = self.commit('exactly 400')
@@ -93,6 +93,13 @@ class GateTests(unittest.TestCase):
         self.write('merge-resolution', 'x\n' * 401)
         self.commit('merge')
         self.assertTrue(self.check('slices', gate.git('rev-parse', 'HEAD').strip()))
+        gate.git('checkout', '-qb', 'small-side', self.base)
+        self.write('small', 'x\n')
+        self.commit('small side')
+        gate.git('checkout', '-q', 'master')
+        self.base = gate.git('rev-parse', 'HEAD').strip()
+        gate.git('-c', 'commit.gpgsign=false', 'merge', '--no-ff', '-qm', 'small merge', 'small-side')
+        self.assertEqual(self.check('slices', gate.git('rev-parse', 'HEAD').strip()), [])
 
     def test_readable_rejects_added_header_like_and_message_mutations_but_allows_removal(self):
         """Kills omitted default-ignorables/header/literal-path/line-break/message and removed-text rejection mutations."""

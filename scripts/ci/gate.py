@@ -122,10 +122,15 @@ def slice_counts(records, allow):
     return files, lines
 
 
+def commit_diff(commit, *options):
+    parents = git('show', '-s', '--format=%P', commit).split()
+    return git('diff', '--no-renames', *options, parents[0], commit) if parents else git('diff-tree', '--root', '--no-commit-id', '-r', '--no-renames', *options, commit)
+
+
 def slices(root, base, head, allow):
     errors = []
     for commit in commits(base, head):
-        records = git('diff-tree', '--root', '--no-commit-id', '-m', '--first-parent', '--numstat', '-z', '-r', '--no-renames', commit)
+        records = commit_diff(commit, '--numstat', '-z')
         files, lines = slice_counts(records, allow)
         if files > 10 or lines > 400:
             errors.append(f'{commit}: files={files} lines={lines}; cap=10/400 (binary=401)')
@@ -180,7 +185,7 @@ def travel(root, base, head, allow):
         return []
     errors = []
     for commit in commits(base, head):
-        paths = git('diff-tree', '--root', '--no-commit-id', '-m', '--first-parent', '--name-only', '-z', '-r', commit).split('\0')[:-1]
+        paths = commit_diff(commit, '--name-only', '-z').split('\0')[:-1]
         if any(Path(path).suffix in SOURCE and not test_path(path) for path in paths) and not re.search(r'(?m)^no-test:[ \t]*\S[^\n]*$', message(commit)):
             errors.append(f'{commit}: source changed without PR test file or no-test: reason')
     return errors
