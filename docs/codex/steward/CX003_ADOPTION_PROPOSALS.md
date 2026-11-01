@@ -6,8 +6,9 @@ Apply only the decision RADIX selects and rerun the finite evidence.
 
 ## Add explicit named quantity APIs
 
-Recommended default: additive APIs; preserve existing behavior until consumers
-explicitly select the new named domain. The new module copies the already tested
+Recommended default: retain the experiments pending provenance and steward review.
+If RADIX chooses adoption, use additive APIs and preserve existing behavior until
+consumers explicitly select the new named domain. The new module copies the already tested
 reference definitions verbatim, with its module description changed to describe
 the adopted scope. Add targeted core tests from the proposal tests upon adoption.
 

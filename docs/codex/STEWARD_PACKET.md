@@ -259,8 +259,8 @@ differences. For completion, if the derived score is selected, acceptance is
 ### Exact E1 proposals after an adoption/authority answer
 
 The following is reproduced from E1's `tools/prove_out/CX005_PROPOSALS.md`.
-Its additive-API recommendation describes *how* to adopt if RADIX opts in;
-the interim default in this packet remains experiments pending the input contract.
+Its interim default is to retain experiments pending the input contract;
+the additive-API patch describes how to adopt if RADIX opts in.
 An option to keep legacy profiles makes no executable edit and retains explicit
 profile-specific limitations. The standalone copy is
 [CX003_ADOPTION_PROPOSALS.md](steward/CX003_ADOPTION_PROPOSALS.md).
@@ -273,8 +273,9 @@ Apply only the decision RADIX selects and rerun the finite evidence.
 
 #### Add explicit named quantity APIs
 
-Recommended default: additive APIs; preserve existing behavior until consumers
-explicitly select the new named domain. The new module copies the already tested
+Recommended default: retain the experiments pending provenance and steward review.
+If RADIX chooses adoption, use additive APIs and preserve existing behavior until
+consumers explicitly select the new named domain. The new module copies the already tested
 reference definitions verbatim, with its module description changed to describe
 the adopted scope. Add targeted core tests from the proposal tests upon adoption.
 
