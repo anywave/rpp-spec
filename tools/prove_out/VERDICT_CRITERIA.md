@@ -106,3 +106,21 @@ D1 is already decided as explicit alternatives (DECISIONS.md:19-56), not an
 open radius blocker. D5 keeps optional named quantities as experiments and
 adopts no generic readout (DECISIONS.md:94-100). No website change, generic
 profile adoption or physical claim is authorized by these experiments.
+
+## Additive coverage amendment, before the newly identified bindings run
+
+Independent source review identified a second canonical RTL implementation:
+hardware/verilog/rpp_canonical.v contains rpp_coherence_calculator,
+rpp_theta_to_sector and rpp_sector_adjacency. It is an additional binding,
+not an alias for the consolidated modules above. Apply the same ordinary
+domains, exact binding-specific arithmetic checks, diagnostic byte/255
+comparison and no-post-hoc-tolerance rule independently to both implementations.
+Compare both sector maps and graphs; do not pool their agreement counts.
+
+The separate SpinSite.coherence simulation returns sqrt(mx^2 + my^2) from
+model state, with exponential decay under its declared no-drive conditions.
+Existing simulation experiments are replayed as model evidence only. They do
+not identify the historical 0.847 readout or establish a device measurement.
+Its legacy v1_to_v2 helper hardcodes a shell projection; characterize that
+helper explicitly rather than call it a named-policy D1 migration API.
+This amendment adds coverage without changing any earlier acceptance threshold.
