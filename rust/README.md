@@ -4,6 +4,11 @@
 The name is provisional and publishing is disabled; PL/FP may rename it. The
 workspace pins Rust **1.85.1** and commits its lockfile.
 
+CX-008 adds the unpublished `rpp-control` fixed-frame codec and `rpp-link`
+adapter interface crates to this workspace. [ESP32 adapter guidance](ESP32.md)
+describes their features, host simulation, provisional frame and board gaps.
+The module and Python-parity details below describe `rpp-core`.
+
 The ESP32 readiness check builds the library for
 `riscv32imc-unknown-none-elf`, a bare-metal RISC-V target used for ESP32-C3
 integration. This is a library cross-compile check, not a board run or a firmware

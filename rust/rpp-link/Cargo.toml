@@ -1,0 +1,17 @@
+[package]
+name = "rpp-link"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Heap-free link readings and typed adapter hooks with host-only overlay simulation"
+
+[features]
+default = ["std"]
+std = ["alloc", "rpp-core/std"]
+alloc = ["dep:rpp-core", "rpp-core/alloc"]
+
+[dependencies]
+rpp-control = { path = "../rpp-control", version = "=0.1.0", default-features = false }
+rpp-core = { path = "../rpp-core", version = "=0.1.0", optional = true, default-features = false }
