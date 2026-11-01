@@ -344,7 +344,10 @@ The original 28-bit address format (SPEC.md) used:
    - `theta_v2 = (theta_v1 * 27) // 512 + 1`
    - `phi_v2 = (phi_v1 * 6) // 512 + 1`
    - `harmonic_v2 = (harmonic_v1 * 5) // 256`
-   - `radius_v2 = 0.5` (default)
+   - `radius_v2 = 0.5` under the explicitly selected `neutral-radius` policy.
+     This does not preserve the v1 shell. The alternative `shell-projection`
+     policy uses `radius_v2 = shell_v1 / 3.0`. A migration API must require the
+     caller to name its policy; neither mapping is a universal default.
 
 2. v2.0 addresses expand to v1.0 compatibility by:
    - `theta_v1 = (theta_v2 - 1) * 19`  (approximate)

@@ -273,8 +273,9 @@ def compute_liminal_timeout(shell: int) -> int:
     Timeouts are shell-derived and not configurable per crossing (Protocol
     Invariant 4 from spec/CONTINUITY.md Section 10).
 
-    For Shell 0, the returned value is the physical T2 spintronic decoherence
-    time — not a soft deadline. The state literally ceases to exist after this.
+    For Shell 0, the reference software timeout is 25 ns.
+    This function returns a policy deadline; it does not establish physical erasure.
+    Device-specific enforcement requires independent characterization.
 
     Args:
         shell: Shell tier integer 0-3.

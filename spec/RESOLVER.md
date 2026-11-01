@@ -735,6 +735,73 @@ def resolve_with_degradation(address: int, consent: ConsentState) -> Result:
 }
 ```
 
+**Section 11.3 status — proposed/informative (RADIX, 2026-10-31):**
+The following optional profile is a review proposal, not an adopted
+normative resolver contract or an implementation/conformance claim. Its
+MUST/MAY language states proposed requirements for a future approved
+profile. Deployment, parameter choices and interoperability remain
+separately reviewed; the existing resolver behavior is unchanged.
+
+### 11.3 Optional Authenticated Multi-Channel Overlay Profile
+
+An implementation MAY resolve an RPP address through an existing encrypted
+overlay. The RPP address identifies the requested destination; an authenticated
+binding from the existing identity layer identifies the authorized overlay peer.
+Discovery and automatic tunnel formation MUST NOT create membership, carry an
+admission grant, replace a consent action, or bypass current consent and trust
+checks. The same checks apply to every direct, relay and underlay path.
+
+The overlay MUST reuse an existing reviewed tunnel protocol and implementation;
+this profile defines no cipher, handshake or key exchange. Peers MAY discover
+endpoints and form direct tunnels among already authorized members, or use an
+authorized relay when no direct path exists. Non-IP carriers require an explicit
+compatible adapter; a Bluetooth URI alone does not establish tunnel capability.
+
+Path selection MUST first filter by current authorization, consent, adapter
+capability, fresh availability and circuit state. It MUST then use timestamped
+latency, loss and jitter readings under a declared measurement/ranking profile
+with a deterministic tie break. The profile MUST state freshness, hysteresis,
+probe and circuit-breaker policies. No eligible path yields an explicit
+NO_CHANNEL result. An alternate path MAY be retried only before the operation's
+first emitted token; after that boundary, automatic replay MUST NOT occur.
+Every attempt and terminal outcome MUST retain a meter row, including denial,
+failure, partial delivery and no-path outcomes. Existing tried_modalities MUST
+retain the attempted modality history across direct and relay fallback.
+
+Implementations MUST distinguish three application traffic classes:
+
+- Data uses the best measured eligible path for the authorized operation.
+- Control contains only small signed ALIVE, MEMBER-CHANGED, STOP, PAUSE,
+  ROUTE-AROUND or RESUME notices in a closed, bounded envelope. It MUST NOT carry
+  START, grants, consent, keys, models, prompt text or answer text. Bluetooth MAY
+  provide an independent control path; independence MUST be assessed by failure
+  domain, not by URI or modality name alone. MEMBER-CHANGED invalidates/rechecks
+  membership and cannot admit a peer. RESUME cannot start an operation, undo
+  STOP/revocation or restore consent; current authorization is checked again.
+- Billboards contain signed scoped facts/rules with exactly the semantic fields
+  {machine, kind, fact, since, until, receipt}. Signature/issuer verification is
+  performed by an existing reviewed mechanism. Implementations MUST validate
+  issuer authority, receipt binding, type/size limits, kind allowlist and replay
+  state, and apply a fact only while since <= now < until. Expiry MUST be checked
+  on arrival and every application; caching or relaying cannot extend until.
+  A billboard cannot change agent instructions, execute code, expand authority,
+  create a grant, bypass consent or override STOP/revocation. The adopted profile
+  MUST specify time/skew handling, replay persistence and conflict precedence;
+  an unspecified conflict is rejected and reported.
+
+These traffic rules do not provision credentials or alter the consent header,
+address formats, Shell TTLs, published constants or existing trust decisions.
+
+
+**Informative reuse direction:** use existing Tailscale clients with
+self-hosted Headscale and an authorized DERP relay for IP underlays
+(LAN, Wi-Fi and internet). Use an existing platform GATT API only for
+bounded signed control under the same consent/trust checks; this does not
+provide a Bluetooth data tunnel. Assess Reticulum later for LoRa/non-IP
+adapters after its license, backend and deployment profile are reviewed.
+No tunnel, cipher, handshake or key exchange is implemented by this text.
+
+
 ---
 
 ## 12. Version History

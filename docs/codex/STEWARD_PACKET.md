@@ -1,4 +1,35 @@
-# CX-005 v2 steward packet — recommendations awaiting RADIX
+# Steward packet — CX-006 dispositions and retained proposal history
+
+## Current disposition: RADIX “go”, 2026-10-31
+
+The CX-006 card in `anywave/trellis-channel` at `9d8dca46` releases the answers
+below. [DECISIONS.md](../../DECISIONS.md) records each as an `[RFC]` under
+`GOVERNANCE.md:63–71`. The material after “Historical CX-005 packet” is retained
+proposal/evidence history; its earlier “awaiting”, “unapplied” and “unresolved”
+statements describe the earlier task, not the current disposition table.
+
+| Item | Released answer | CX-006 disposition |
+|---|---|---|
+| D1 | explicit-alternatives | Apply option 3; record the future named-policy contract and shell 0–3 examples. |
+| D2 | reference-25ns | Apply option 1's existing software-deadline wording. |
+| D3 | experimental | Apply option 3; no device conformance/attestation is established. |
+| D4 | software-docstring | Apply the docstring-only policy-deadline correction. |
+| D5 | experiments | Keep optional profile-tagged quantities in tools; no core adoption or generic readout. |
+| D6 | expectation-fix | Already merged in #8; the numeric repair is separate approved work. |
+| D7 | review-proposal + reuse | Insert the exact proposal as informative/proposed text and the released reuse direction; no implementation. |
+| B1–B6 | annotate | Create the exact 243-line per-ID review register; no acceptance or extra source rewrite. |
+| A1 | clarify | Apply all six prescribed API-value/encoded-byte wording sites. |
+| A2 | separate-proposal | Retain the separate core proposal; behavior unchanged. |
+| RTL scaling/overflow | approve repair | Dedicated RTL branch; no RTL changes on this documentation branch. |
+
+The frozen catalog and source manifest remain unchanged at **243 / 4 / 2 open**.
+A released editorial ruling and a `review-pending` registry annotation do not
+recatalog or accept a baseline. This limited scope leaves other historical
+passages for later review; it does not claim the entire specification is now
+coherent. Existing software-MUST anchors remain protected.
+
+## Historical CX-005 packet
+
 
 Authority: TR's CX-005 v2 card, `anywave/trellis-channel` at `9193abbb`,
 `codex/inbox/rpp-spec.md`; RPP base `95c67ef`. This packet changes no specification,

@@ -67,12 +67,14 @@ The following are **immutable** for all 2.x.x versions:
 #### Encoding/Decoding
 | Guarantee | Formula |
 |-----------|---------|
-| Encoding | `(theta << 27) \| ((phi-1) << 24) \| (harmonic << 21) \| (radius << 13) \| reserved` |
+| Encoding | `(theta << 27) \| ((phi-1) << 24) \| (harmonic << 21) \| (r_enc << 13) \| reserved` |
 | Theta decoding | `(address >> 27) & 0x1F` |
 | Phi decoding | `((address >> 24) & 0x07) + 1` |
 | Harmonic decoding | `(address >> 21) & 0x07` |
-| Radius decoding | `(address >> 13) & 0xFF` |
+| Radius decoding | `r_enc = (address >> 13) & 0xFF; radius = r_enc / 255.0` |
 | Reserved decoding | `address & 0x1FFF` |
+
+The normalized API radius is encoded as `r_enc = round(radius * 255) & 0xFF`.
 
 #### Value Ranges
 | Field | Minimum | Maximum | Notes |
@@ -80,7 +82,7 @@ The following are **immutable** for all 2.x.x versions:
 | Theta | 1 | 27 | 27 Repitans |
 | Phi | 1 | 6 | 6 RAC levels |
 | Harmonic | 0 | 4 | 5 Omega tiers |
-| Radius | 0 | 255 | Normalized 0-1 |
+| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0–1 |
 | Reserved | 0 | 8191 | CRC or future |
 | Address | 0x08000000 | 0xFFFFFFFF | Valid range |
 

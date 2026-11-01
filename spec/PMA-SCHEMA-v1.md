@@ -113,7 +113,7 @@ This is the exact 32-bit encoding from RPP-CANONICAL-v2:
 | [31:27] | θ (theta) | 1-27 Repitan |
 | [26:24] | φ (phi) | 0-5 (RAC1-RAC6) |
 | [23:21] | h (omega) | 0-4 Omega tier |
-| [20:13] | r (radius) | 0-255 (normalized) |
+| [20:13] | r (radius) | Encoded byte 0–255; API radius 0–1 |
 | [12:0] | reserved | 0 |
 
 ### 3.4 consent_state [2 bits]

@@ -91,7 +91,7 @@ Implementations MUST enforce address expiry per shell tier:
 
 | Shell | Name | Storage | Address TTL (software) | Spintronic T2 |
 |-------|------|---------|------------------------|---------------|
-| 0 | Hot | In-memory cache | Session duration | ~25 ns |
+| 0 | Hot | In-memory cache | 25 ns reference software TTL | ~25 ns device-profile target |
 | 1 | Warm | Near-line storage | Transaction / day | ~100 ns |
 | 2 | Cold | Archive | Agreement / month | ~400 ns |
 | 3 | Frozen | Deep archive | Until explicit revocation | ~1,600 ns |

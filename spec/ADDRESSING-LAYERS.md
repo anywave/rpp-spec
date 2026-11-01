@@ -111,7 +111,7 @@ address = (shell << 26) | (theta << 17) | (phi << 8) | harmonic
 | θ (Theta) | 5 | 1–27 | Ra Repitan index (semantic sector at substrate level) |
 | φ (Phi) | 3 | 1–6 | RAC Level (access sensitivity at resonance tier) |
 | h (Harmonic) | 3 | 0–4 | Omega Format (coherence tier: RED → BLUE) |
-| r (Radius) | 8 | 0–255 | Intensity scalar (Ankh-normalized emergence strength) |
+| r (Radius) | 8 | 0–255 | Encoded byte 0–255; API intensity scalar 0–1 |
 | Reserved/CRC | 13 | 0–8191 | Integrity checking or routing hints |
 
 ### When to use v2.0
@@ -131,7 +131,7 @@ analogous to DNS resolution: the name is unambiguous at its own layer, but the r
 ### Approximate Mapping (informational)
 
 ```python
-def semantic_to_transport(shell, theta, phi, harmonic):
+def semantic_to_transport_shell_projection(shell, theta, phi, harmonic):
     """
     Translate v1.0 Semantic Interface address to v2.0 Transport/Resonance format.
     This is a lossy projection — v2.0 represents a resonance tier approximation.
@@ -139,7 +139,7 @@ def semantic_to_transport(shell, theta, phi, harmonic):
     theta_v2 = max(1, min(27, (theta * 27) // 512 + 1))   # 9-bit → Repitan 1-27
     phi_v2 = max(1, min(6, (phi * 6) // 512 + 1))          # 9-bit → RAC 1-6
     harmonic_v2 = min(4, (harmonic * 5) // 256)             # 8-bit → Omega 0-4
-    radius_v2 = shell / 3.0                                  # Shell → normalized radius
+    radius_v2 = shell / 3.0  # Explicit shell-projection policy; not neutral-radius
     return theta_v2, phi_v2, harmonic_v2, radius_v2
 
 def transport_to_semantic(theta_v2, phi_v2, harmonic_v2, radius_v2):
