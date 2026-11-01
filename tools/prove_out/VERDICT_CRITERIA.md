@@ -124,3 +124,11 @@ not identify the historical 0.847 readout or establish a device measurement.
 Its legacy v1_to_v2 helper hardcodes a shell projection; characterize that
 helper explicitly rather than call it a named-policy D1 migration API.
 This amendment adds coverage without changing any earlier acceptance threshold.
+
+Before the main affinity sweep, its declared output bound is made explicit:
+ordinary Python affinity lies within [0,1], with mathematical minimum
+1 - (0.30 * 13 / 13.5 + 0.40 + 0.20 + 0.10) = 1/90, not an attainable zero.
+Binary64 values are reported without redefining the cross-binding criterion.
+The duplicated sector decoder in rpp_canonical.v is a separate label-producing
+path: compare decoded full words and their irrelevant fields as well as the
+standalone theta helper. Helper agreement cannot stand in for decoder evidence.
