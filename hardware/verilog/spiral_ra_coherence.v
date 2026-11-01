@@ -29,205 +29,83 @@
 
 
 // =============================================================================
-// CoherenceEvaluator_Ra (Ra-Derived Formula)
+// Exact shared policy score for the finite header input domain
 // =============================================================================
-// Computes coherence using the canonical Ra formula:
-//   coherence = (φ × E) + (𝔄 × C)
-// Where:
-//   E = phase_entropy_index / 31 (5-bit normalized to 0.0-1.0)
-//   C = complecount_trace / 7    (3-bit normalized to 0.0-1.0)
-//
-// Fixed-point implementation uses ×256 scaling for intermediate values
+// Matches Python's separately truncated terms:
+//   floor(GREEN_PHI_X100 * entropy / 31) + floor(ANKH_X100 * complecount / 7).
+// Constant unsigned division avoids reciprocal approximation and product loss.
+// Published constants and public wrapper ports remain unchanged.
 
-module CoherenceEvaluator_Ra (
-    // Inputs from consent header
-    input  wire [4:0]  phase_entropy_index,  // 0-31
-    input  wire [2:0]  complecount_trace,    // 0-7
-
-    // Threshold (×100 scale, e.g., 420 = 4.2, 510 = 5.1)
-    input  wire [9:0]  coherence_threshold,
-
-    // Outputs
-    output wire [9:0]  coherence_score,      // ×100 scale (0-673 max)
-    output wire [7:0]  coherence_normalized, // 0-255 scale
-    output wire        coherence_valid,
-    output wire        high_coherence,       // score >= 5.0 (500)
-    output wire        medium_coherence,     // score >= 3.0 (300)
-    output wire        low_coherence         // score < 3.0 (300)
+module CoherenceScoreRaExact (
+    input  wire [4:0] phase_entropy_index,
+    input  wire [2:0] complecount_trace,
+    output wire [9:0] score
 );
-
-    // =========================================================================
-    // Normalization (Fixed-Point Math)
-    // =========================================================================
-    // E = entropy / 31: multiply by 256, divide by 31 ≈ multiply by 8.26
-    // For better precision: (entropy × 826) >> 8 gives E×100
-    // C = complecount / 7: multiply by 256, divide by 7 ≈ multiply by 36.57
-    // For better precision: (complecount × 3657) >> 8 gives C×100
-
-    // E×100 = (phase_entropy_index × 100) / 31
-    // Use: (entropy × 3277) >> 10 ≈ entropy × 3.201 ≈ (entropy/31)×100 × 0.99
-    // Simpler: (entropy × 100) / 31 - need division
-    // Alternative: LUT or approximation
-
-    // For synthesis-friendly implementation, use multiplication and shift:
-    // E_scaled = (entropy × 826) >> 8  → gives E×100 with ~1% error
-    // C_scaled = (complecount × 1429) >> 8 → gives C×100 with ~1% error
-
-    wire [12:0] e_intermediate;  // entropy × 826 (max: 31×826 = 25606)
-    wire [12:0] c_intermediate;  // complecount × 1429 (max: 7×1429 = 10003)
-
-    assign e_intermediate = {8'b0, phase_entropy_index} * 13'd826;
-    assign c_intermediate = {10'b0, complecount_trace} * 13'd1429;
-
-    // Shift right 8 to get ×100 scale
-    wire [7:0] e_x100 = e_intermediate[12:5];  // Simplified: >>5 for scaling
-    wire [7:0] c_x100 = c_intermediate[12:5];
-
-    // Recalculate with proper scaling:
-    // E×100 = entropy × 100 / 31 ≈ entropy × 3.226
-    // Using integer: (entropy × 3226) >> 10 = entropy × 3.15 (close enough)
-    // Better: (entropy × 103) >> 5 = entropy × 3.22
-
-    wire [11:0] e_calc = {7'b0, phase_entropy_index} * 12'd103; // max: 31×103 = 3193
-    wire [11:0] c_calc = {9'b0, complecount_trace} * 12'd457;   // max: 7×457 = 3199 (C×100×3.2)
-
-    wire [6:0] E_x100 = e_calc[11:5];  // E × 100, range 0-99
-    wire [6:0] C_x100 = c_calc[11:5];  // C × 100, range 0-99
-
-    // =========================================================================
-    // Ra Coherence Formula: score = (φ × E) + (𝔄 × C)
-    // =========================================================================
-    // score×100 = (165 × E) + (509 × C)
-    // where E,C are 0.0-1.0, so we use E_x100, C_x100 which are 0-100
-    // score_x10000 = (165 × E_x100) + (509 × C_x100)
-    // score_x100 = score_x10000 / 100
-
-    wire [15:0] phi_term = `GREEN_PHI_X100 * {9'b0, E_x100};   // max: 165×99 = 16335
-    wire [15:0] ankh_term = `ANKH_X100 * {9'b0, C_x100};       // max: 509×99 = 50391
-
-    wire [16:0] score_x10000 = {1'b0, phi_term} + {1'b0, ankh_term};  // max: 66726
-
-    // Divide by 100 to get score×100
-    // Approximation: >> 7 is divide by 128, close to /100
-    // Better: use actual division or LUT
-    // For now: (score_x10000 × 41) >> 12 ≈ /100
-
-    wire [22:0] div_intermediate = score_x10000 * 23'd41;
-    wire [9:0]  raw_score = div_intermediate[21:12];  // score×100
-
-    // =========================================================================
-    // Alternative Direct Calculation (More Accurate)
-    // =========================================================================
-    // coherence = (1.618 × entropy/31) + (5.089 × complecount/7)
-    // Max coherence = 1.618 + 5.089 = 6.707
-    // At ×100: max = 671
-    //
-    // Direct formula with integer math:
-    // score_x100 = (1618 × entropy) / 31 / 10 + (5089 × complecount) / 7 / 10
-    //            = (1618 × entropy) / 310 + (5089 × complecount) / 70
-
-    wire [15:0] term_phi  = 16'd1618 * {11'b0, phase_entropy_index};  // max: 1618×31 = 50158
-    wire [15:0] term_ankh = 16'd5089 * {13'b0, complecount_trace};    // max: 5089×7 = 35623
-
-    // Divide: /310 ≈ ×107 >> 15, /70 ≈ ×937 >> 16
-    // Simpler approximation: /310 ≈ >>8, /70 ≈ >>6 (rough)
-    // More accurate: multiply by reciprocal
-
-    wire [23:0] phi_div  = term_phi * 24'd211;   // ×211/65536 ≈ /310
-    wire [23:0] ankh_div = term_ankh * 24'd936;  // ×936/65536 ≈ /70
-
-    wire [9:0] score_phi  = phi_div[23:14];   // Result after >>14
-    wire [9:0] score_ankh = ankh_div[23:14];
-
-    wire [9:0] final_score = score_phi + score_ankh;
-
-    // =========================================================================
-    // Output Assignments
-    // =========================================================================
-
-    assign coherence_score = final_score;
-
-    // Normalize to 0-255 scale (max raw ≈ 671)
-    // normalized = (score × 255) / 671 ≈ (score × 38) >> 8
-    wire [17:0] norm_calc = {8'b0, final_score} * 18'd38;
-    assign coherence_normalized = norm_calc[15:8];
-
-    // Threshold comparison
-    assign coherence_valid = (final_score >= coherence_threshold);
-
-    // Classification thresholds
-    assign high_coherence   = (final_score >= 10'd500);  // >= 5.0
-    assign medium_coherence = (final_score >= 10'd300) && (final_score < 10'd500);  // 3.0-5.0
-    assign low_coherence    = (final_score < 10'd300);   // < 3.0
-
+    // Maximum products: 165*31=5115 (13 bits), 509*7=3563 (12 bits).
+    wire [12:0] entropy_product = `GREEN_PHI_X100 * phase_entropy_index;
+    wire [11:0] completion_product = `ANKH_X100 * complecount_trace;
+    wire [7:0] entropy_term = entropy_product / 13'd31;
+    wire [8:0] completion_term = completion_product / 12'd7;
+    // Each division truncates before addition; the maximum sum is 674.
+    assign score = {2'b0, entropy_term} + {1'b0, completion_term};
 endmodule
 
 
 // =============================================================================
-// CoherenceEvaluator_Ra_Precise (LUT-Based)
+// CoherenceEvaluator_Ra (public combinational binding)
 // =============================================================================
-// Uses lookup tables for precise division, matching Python exactly
+// The historical reciprocal implementation is replaced by the exact policy.
+
+module CoherenceEvaluator_Ra (
+    input  wire [4:0] phase_entropy_index,
+    input  wire [2:0] complecount_trace,
+    input  wire [9:0] coherence_threshold,
+    output wire [9:0] coherence_score,      // 0-674 policy points
+    output wire [7:0] coherence_normalized,
+    output wire       coherence_valid,
+    output wire       high_coherence,
+    output wire       medium_coherence,
+    output wire       low_coherence
+);
+    wire [9:0] final_score;
+    CoherenceScoreRaExact policy_score (
+        .phase_entropy_index(phase_entropy_index),
+        .complecount_trace(complecount_trace),
+        .score(final_score)
+    );
+    assign coherence_score = final_score;
+
+    // Existing normalization and output gate expressions are unchanged.
+    wire [17:0] norm_calc = {8'b0, final_score} * 18'd38;
+    assign coherence_normalized = norm_calc[15:8];
+    assign coherence_valid = (final_score >= coherence_threshold);
+    assign high_coherence   = (final_score >= 10'd500);
+    assign medium_coherence = (final_score >= 10'd300) && (final_score < 10'd500);
+    assign low_coherence    = (final_score < 10'd300);
+endmodule
+
+
+// =============================================================================
+// CoherenceEvaluator_Ra_Precise (public compatibility binding)
+// =============================================================================
+// Retain the public module name; rounded normalized LUTs cannot reproduce the
+// policy's per-term floor at every input, so share the exact integer score path.
 
 module CoherenceEvaluator_Ra_Precise (
-    input  wire [4:0]  phase_entropy_index,
-    input  wire [2:0]  complecount_trace,
-    input  wire [9:0]  coherence_threshold,
-
-    output wire [9:0]  coherence_score,
-    output wire        coherence_valid
+    input  wire [4:0] phase_entropy_index,
+    input  wire [2:0] complecount_trace,
+    input  wire [9:0] coherence_threshold,
+    output wire [9:0] coherence_score,
+    output wire       coherence_valid
 );
-
-    // LUT for E×1000 = (entropy × 1000) / 31
-    // Index: entropy (0-31), Output: E×1000
-    reg [9:0] e_lut [0:31];
-
-    // LUT for C×1000 = (complecount × 1000) / 7
-    // Index: complecount (0-7), Output: C×1000
-    reg [9:0] c_lut [0:7];
-
-    initial begin
-        // E = entropy / 31, scaled ×1000
-        e_lut[0]  = 10'd0;    e_lut[1]  = 10'd32;   e_lut[2]  = 10'd65;
-        e_lut[3]  = 10'd97;   e_lut[4]  = 10'd129;  e_lut[5]  = 10'd161;
-        e_lut[6]  = 10'd194;  e_lut[7]  = 10'd226;  e_lut[8]  = 10'd258;
-        e_lut[9]  = 10'd290;  e_lut[10] = 10'd323;  e_lut[11] = 10'd355;
-        e_lut[12] = 10'd387;  e_lut[13] = 10'd419;  e_lut[14] = 10'd452;
-        e_lut[15] = 10'd484;  e_lut[16] = 10'd516;  e_lut[17] = 10'd548;
-        e_lut[18] = 10'd581;  e_lut[19] = 10'd613;  e_lut[20] = 10'd645;
-        e_lut[21] = 10'd677;  e_lut[22] = 10'd710;  e_lut[23] = 10'd742;
-        e_lut[24] = 10'd774;  e_lut[25] = 10'd806;  e_lut[26] = 10'd839;
-        e_lut[27] = 10'd871;  e_lut[28] = 10'd903;  e_lut[29] = 10'd935;
-        e_lut[30] = 10'd968;  e_lut[31] = 10'd1000;
-
-        // C = complecount / 7, scaled ×1000
-        c_lut[0] = 10'd0;     c_lut[1] = 10'd143;   c_lut[2] = 10'd286;
-        c_lut[3] = 10'd429;   c_lut[4] = 10'd571;   c_lut[5] = 10'd714;
-        c_lut[6] = 10'd857;   c_lut[7] = 10'd1000;
-    end
-
-    // Read from LUTs
-    wire [9:0] E_x1000 = e_lut[phase_entropy_index];
-    wire [9:0] C_x1000 = c_lut[complecount_trace];
-
-    // score×100 = (φ×E + 𝔄×C)×100 = (1.618×E + 5.089×C)×100
-    //           = (1618×E_x1000 + 5089×C_x1000) / 10000
-
-    wire [20:0] phi_term  = 21'd1618 * {11'b0, E_x1000};   // max: 1618×1000 = 1618000
-    wire [21:0] ankh_term = 22'd5089 * {12'b0, C_x1000};   // max: 5089×1000 = 5089000
-
-    wire [22:0] sum = {2'b0, phi_term} + {1'b0, ankh_term};  // max: 6707000
-
-    // Divide by 10000: use ×107 >> 20 approximation
-    // Or ×7 >> 16 (rougher)
-    // Best: ×6554 >> 26 (exact for powers of 2)
-    // Simpler: ×1 >> 13.29 ≈ ×13 >> 17
-
-    wire [26:0] div_calc = sum * 27'd13;
-    wire [9:0]  score = div_calc[26:17];  // Result after >>17
-
+    wire [9:0] score;
+    CoherenceScoreRaExact policy_score (
+        .phase_entropy_index(phase_entropy_index),
+        .complecount_trace(complecount_trace),
+        .score(score)
+    );
     assign coherence_score = score;
     assign coherence_valid = (score >= coherence_threshold);
-
 endmodule
 
 

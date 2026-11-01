@@ -1,6 +1,7 @@
-"""Run the RA testbench, four failure mutations and an unapplied RTL experiment.
+"""Run the RA testbench and four failure mutations.
 
 Only disposable output copies are mutated. No protocol implementation is edited.
+The historical shift-only diagnostic runs only for the retired reciprocal source.
 """
 
 import argparse
@@ -131,6 +132,10 @@ def main() -> None:
         raise AssertionError("failure-exit mutation survived the status assertion")
     print("killed failure-exit-removed failed=1 exit=0 (failure-status contract detects mutant)")
     print("mutations killed=4 survived=0 clean_controls=1 failed_controls=0")
+
+    if "module CoherenceScoreRaExact (" in rtl:
+        print("exact score pipeline: historical shift-only proposal retained as CX-005 evidence, not applied")
+        return
 
     # Proposed scaling edit only: this counterexample is not an adopted repair.
     # A reciprocal coefficient /65536 requires >>16, but the 24-bit product also

@@ -65,7 +65,7 @@ module spiral_testbench_ra;
     );
 
     // =========================================================================
-    // DUT Signals - CoherenceEvaluator_Ra_Precise (LUT-based)
+    // DUT Signals - CoherenceEvaluator_Ra_Precise (exact compatibility binding)
     // =========================================================================
     wire [9:0]  coh_precise_score;
     wire        coh_precise_valid;
@@ -311,35 +311,35 @@ module spiral_testbench_ra;
         // Verify key coherence points
         coh_entropy = 31; coh_complecount = 7; coh_threshold = 10'd400;
         #10;
-        check_result("Max coherence (E=31, C=7) >= 4.0", coh_valid);
-        $display("  Max score: %d (expected ~670)", coh_score);
+        // Mutation: truncating a product or changing the score scale must fail.
+        check_result("Max score is 674 and high", coh_score == 10'd674 && coh_valid && coh_high);
+        $display("  Max score: %d (expected 674)", coh_score);
 
         coh_entropy = 0; coh_complecount = 0; coh_threshold = 10'd100;
         #10;
-        check_result("Min coherence (E=0, C=0) < 1.0", !coh_valid);
+        check_result("Min score is zero and low", coh_score == 0 && !coh_valid && coh_low);
 
         coh_entropy = 15; coh_complecount = 3; coh_threshold = 10'd300;
         #10;
         // Mutation: changing this expectation back to medium must fail.
-        // The weighted Python reference is 297 (<300); this approximate RTL is 160.
-        check_result("E15 C3 belongs to low band", coh_low && !coh_medium && !coh_high);
+        // The separately truncated weighted policy gives 297 (<300).
+        check_result("E15 C3 belongs to low band", coh_score == 10'd297 && coh_low && !coh_medium && !coh_high);
 
         // Mutation: changing medium_coherence to always false must fail.
-        // Implementation smoke probe only: the shipped RTL reports the medium band.
-        // Its observed 450 depends on erroneous shifts/product truncation.
-        // This check does not validate the formula or cross-binding agreement.
+        // This exact policy vector is 369 and lies in the medium band.
+        // Mutation: restoring the retired reciprocal score (450) must fail.
         coh_entropy = 15; coh_complecount = 4; coh_threshold = 10'd300;
         #10;
-        check_result("E15 C4 belongs to medium band", coh_medium && !coh_low && !coh_high);
+        check_result("E15 C4 belongs to medium band", coh_score == 10'd369 && coh_medium && !coh_low && !coh_high);
 
-        // Compare precise vs approximate
-        print_section("Precise vs Approximate Comparison");
+        // Compare exact public combinational bindings
+        print_section("Exact Public Bindings Comparison");
         for (i = 0; i <= 31; i = i + 8) begin
             for (j = 0; j <= 7; j = j + 2) begin
                 coh_entropy = i;
                 coh_complecount = j;
                 #10;
-                $display("E=%2d C=%1d: Approx=%3d Precise=%3d Diff=%d",
+                $display("E=%2d C=%1d: Comb=%3d Compat=%3d Diff=%d",
                     i, j, coh_score, coh_precise_score,
                     (coh_score > coh_precise_score) ?
                         (coh_score - coh_precise_score) :

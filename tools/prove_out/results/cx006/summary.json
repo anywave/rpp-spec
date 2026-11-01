@@ -1,0 +1,217 @@
+{
+  "after": {
+    "adjacent_pairs": {
+      "completion": 224,
+      "entropy": 248
+    },
+    "band_mismatches": 0,
+    "decreases": {
+      "combinational": {
+        "completion": 0,
+        "entropy": 0
+      },
+      "compatibility": {
+        "completion": 0,
+        "entropy": 0
+      },
+      "registered": {
+        "completion": 0,
+        "entropy": 0
+      }
+    },
+    "normalization_expression_mismatches": 0,
+    "points": 3072,
+    "score_mismatches": {
+      "combinational": 0,
+      "compatibility": 0,
+      "registered": 0
+    },
+    "threshold_mismatches": {
+      "combinational": 0,
+      "compatibility": 0,
+      "registered": 0
+    }
+  },
+  "artifact_sha256": {
+    "after-scores.csv": "e4f2129f3901877e984bcbd380920836eb3722d905faf226937305c4b2d7fbc0",
+    "before-scores.csv": "c5f3b8894ca2ebe8bc079c14ad8237aa05a6b399701f4ac4671e773910457945",
+    "width-and-shift-only-scores.csv": "da5a29848a24a02988745c36ebc97062faccb24cb484f0b565097055ef74edd7"
+  },
+  "base": "275a115",
+  "before": {
+    "adjacent_pairs": {
+      "completion": 224,
+      "entropy": 248
+    },
+    "band_mismatches": 2220,
+    "decreases": {
+      "combinational": {
+        "completion": 63,
+        "entropy": 5
+      },
+      "compatibility": {
+        "completion": 32,
+        "entropy": 0
+      },
+      "registered": {
+        "completion": 0,
+        "entropy": 0
+      }
+    },
+    "normalization_expression_mismatches": 0,
+    "points": 3072,
+    "score_mismatches": {
+      "combinational": 3060,
+      "compatibility": 2940,
+      "registered": 0
+    },
+    "threshold_mismatches": {
+      "combinational": 967,
+      "compatibility": 345,
+      "registered": 0
+    }
+  },
+  "clean_controls": 3,
+  "failed_controls": 0,
+  "killed": 3,
+  "mutations": {
+    "combined-floor": {
+      "adjacent_pairs": {
+        "completion": 224,
+        "entropy": 248
+      },
+      "band_mismatches": 12,
+      "decreases": {
+        "combinational": {
+          "completion": 0,
+          "entropy": 0
+        },
+        "compatibility": {
+          "completion": 0,
+          "entropy": 0
+        },
+        "registered": {
+          "completion": 0,
+          "entropy": 0
+        }
+      },
+      "normalization_expression_mismatches": 0,
+      "points": 3072,
+      "score_mismatches": {
+        "combinational": 1080,
+        "compatibility": 1080,
+        "registered": 0
+      },
+      "threshold_mismatches": {
+        "combinational": 2,
+        "compatibility": 2,
+        "registered": 0
+      }
+    },
+    "completion-product-truncation": {
+      "adjacent_pairs": {
+        "completion": 224,
+        "entropy": 248
+      },
+      "band_mismatches": 1152,
+      "decreases": {
+        "combinational": {
+          "completion": 32,
+          "entropy": 0
+        },
+        "compatibility": {
+          "completion": 32,
+          "entropy": 0
+        },
+        "registered": {
+          "completion": 0,
+          "entropy": 0
+        }
+      },
+      "normalization_expression_mismatches": 0,
+      "points": 3072,
+      "score_mismatches": {
+        "combinational": 1152,
+        "compatibility": 1152,
+        "registered": 0
+      },
+      "threshold_mismatches": {
+        "combinational": 312,
+        "compatibility": 312,
+        "registered": 0
+      }
+    },
+    "incorrect-shift": {
+      "adjacent_pairs": {
+        "completion": 224,
+        "entropy": 248
+      },
+      "band_mismatches": 2232,
+      "decreases": {
+        "combinational": {
+          "completion": 63,
+          "entropy": 5
+        },
+        "compatibility": {
+          "completion": 63,
+          "entropy": 5
+        },
+        "registered": {
+          "completion": 0,
+          "entropy": 0
+        }
+      },
+      "normalization_expression_mismatches": 0,
+      "points": 3072,
+      "score_mismatches": {
+        "combinational": 3060,
+        "compatibility": 3060,
+        "registered": 0
+      },
+      "threshold_mismatches": {
+        "combinational": 968,
+        "compatibility": 968,
+        "registered": 0
+      }
+    }
+  },
+  "source_sha256": {
+    "after_rtl": "062742faca4b70439f7d53498f2776e12ee91a6b373fb91660e97e6fe80d3066",
+    "before_rtl": "71120c90b4798cf024dd5281132b158c881029c3f5205a7892ddafe710a0d2cb",
+    "registered": "bfc5ad823d345acf1f1483e64775ab9412194984acbfd1fdff503963a8883e6e"
+  },
+  "survived": 0,
+  "width_and_shift_only": {
+    "adjacent_pairs": {
+      "completion": 224,
+      "entropy": 248
+    },
+    "band_mismatches": 12,
+    "decreases": {
+      "combinational": {
+        "completion": 0,
+        "entropy": 0
+      },
+      "compatibility": {
+        "completion": 32,
+        "entropy": 0
+      },
+      "registered": {
+        "completion": 0,
+        "entropy": 0
+      }
+    },
+    "normalization_expression_mismatches": 0,
+    "points": 3072,
+    "score_mismatches": {
+      "combinational": 2568,
+      "compatibility": 2940,
+      "registered": 0
+    },
+    "threshold_mismatches": {
+      "combinational": 9,
+      "compatibility": 345,
+      "registered": 0
+    }
+  }
+}
