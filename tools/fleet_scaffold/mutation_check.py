@@ -1,4 +1,4 @@
-"""Execute eleven bounded fleet path-policy and boundary mutants in Rust copies.
+"""Execute thirteen bounded fleet path-policy and boundary mutants in Rust copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -108,10 +108,24 @@ MUTATIONS = (
     ),
     Mutation(
         "non_clock_invalid_input_mislabeled", "rpp-fleet", "rpp-fleet/src/resolver.rs",
-        "} else {\n            FleetResolveError::InvalidInput\n        }",
-        "} else {\n            FleetResolveError::ClockRollback\n        }",
-        Test("lib", "resolver::tests::malformed_core_input_at_current_clock_is_not_clock_rollback"),
+        "Status::InvalidInput => return Err(FleetResolveError::InvalidInput),\n            Status::NoChannel => {",
+        "Status::InvalidInput => return Err(FleetResolveError::ClockRollback),\n            Status::NoChannel => {",
+        Test("lib", "resolver::tests::current_tick_with_malformed_core_input_remains_invalid_input"),
         Test("lib", "identity::tests::explicit_binding_preserves_core_encoding_and_checks_full_identity"),
+    ),
+    Mutation(
+        "data_rollback_guard_bypassed", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        ") -> Result<DataResolution, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if tick < self.policy.clock() {",
+        ") -> Result<DataResolution, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if false && tick < self.policy.clock() {",
+        Test("clock", "rollback_tick_with_valid_input_is_rejected_without_spending_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "control_rollback_after_path_validation", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        ") -> Result<ControlResolution<'frame>, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if tick < self.policy.clock() {",
+        ") -> Result<ControlResolution<'frame>, FleetResolveError> {\n        // Mutant: inspect the path before checking rollback.\n        if path == TrafficPath::Data {\n            return Err(FleetResolveError::ControlOnDataPath);\n        }\n        if tick < self.policy.clock() {",
+        Test("clock", "rollback_tick_with_invalid_input_is_checked_first_and_preserves_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
     ),
     Mutation(
         "sentinel_reading_bypass", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
@@ -230,8 +244,8 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
-    if len(MUTATIONS) != 11:
-        raise RuntimeError("eleven fleet policy and boundary mutations must be configured")
+    if len(MUTATIONS) != 13:
+        raise RuntimeError("thirteen fleet policy and boundary mutations must be configured")
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name
