@@ -83,8 +83,11 @@ file explicitly protects the new byte-hashed registry with `-text`.
 ## Exact unsuppressed drift findings
 
 Implementation run: `275a115..f75c6bdf6938bb0267299e1aa0c4107107525cc6`.
-The final-head run is repeated after committing this validation and PR body;
-those files have no configured content predicate and do not quiet these findings.
+The repeated run at `d7451f31f1d45398f218bfda80e35f1ae77d8848`, including
+the decision-record supplement, PR body, validation and checkout attribute,
+again returns **exit 1 / 2 HIGH / 12 MEDIUM / 6 LOW**. The table uses this
+last run's line hints. A documentation-only recording commit follows; its
+final-head drift run is repeated before handoff. No finding is quieted.
 Line numbers below are the tool's base/head hints, as returned, rather than
 silently rewritten to current line numbers. Full JSON/Markdown reports are
 written only to the supplied scratch directory.
@@ -93,7 +96,7 @@ written only to the supplied scratch directory.
 |---|---|---|---|
 | HIGH | `VER-FORMAT-1` | `VERSION_POLICY.md:70` | A1 changes frozen encoding/range-note wording; fields, shifts and constants are unchanged. |
 | HIGH | `VER-FORMAT-1` | `VERSION_POLICY.md:83` | A1 changes frozen encoding/range-note wording; fields, shifts and constants are unchanged. |
-| MEDIUM | `BND-F-2` | `DECISIONS.md:71` | D3 experimental-device wording or its RFC source citation is a report-only changed/new passage. |
+| MEDIUM | `BND-F-2` | `DECISIONS.md:78` | D3 experimental-device wording or its RFC source citation is a report-only changed/new passage. |
 | MEDIUM | `BND-F-2` | `spec/SPINTRONIC.md:288` | D3 experimental-device wording or its RFC source citation is a report-only changed/new passage. |
 | MEDIUM | `BND-F-2` | `spec/SPINTRONIC.md:311` | D3 experimental-device wording or its RFC source citation is a report-only changed/new passage. |
 | MEDIUM | `BND-F-BASELINE-REMOVED` | `rpp/continuity.py:276` | F-BASE-0038: D2/D4 removes physics wording from the cited passage; frozen entry remains unresolved. |
