@@ -57,14 +57,16 @@ def test_production_python_contract_reports_complete_domains_and_separate_sentin
     assert result["reserved_theta31_similarity"] > 1 and result["null_self_similarity"] == 0.7
 
 
-def test_terminal_affinity_row_preserves_each_binding_contract_and_exact_disagreement(terminal):
-    """Failing mutation: conceal either binding's exact endpoint disagreement with Python."""
-    result = verdict.analyze_affinity(verdict.affinity_rows(terminal))
+def test_terminal_affinity_row_preserves_each_binding_contract_and_exact_disagreement(terminal, monkeypatch):
+    """Failing mutations: alias canonical/consolidated arithmetic or hide either endpoint disagreement with Python."""
+    monkeypatch.setattr(verdict, "AFF_DOMAIN", {KEY, (12, 5, 4, 255)})
+    rows = verdict.affinity_rows(terminal + "AFF,12,5,4,255,5,5,1,0,6,6,1,0\n")
+    result = verdict.analyze_affinity(rows)
     verdict.require_affinity(result)
-    assert result["points"] == 1 and result["adjacent_driver_pairs"] == 0
+    assert result["points"] == 2 and result["adjacent_driver_pairs"] == 1
     assert result["minimum_python"] == 1 - (0.30 * (13 / 13.5) + 0.40 + 0.20 + 0.10)
     assert result["minimum_rtl_byte"] == {"consolidated": 0, "canonical": 0}
-    assert all(value["exact_scaled_disagreements"] == 1 for value in result["bindings"].values())
+    assert all(value["exact_scaled_disagreements"] == 2 for value in result["bindings"].values())
 
 
 @pytest.mark.parametrize("mutation", ("missing", "duplicate", "malformed", "unknown-value", "outside"))

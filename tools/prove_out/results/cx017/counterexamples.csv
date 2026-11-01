@@ -1,0 +1,17 @@
+claim,input,python,rtl
+consolidated-sector-sentinel,theta=0,INVERSE,CORE
+consolidated-sector-sentinel,theta=28,META,CORE
+consolidated-sector-adjacency,WITNESS->DREAM,0,1
+consolidated-sector-adjacency,DREAM->WITNESS,0,1
+consolidated-sector-adjacency,GUARDIAN->SHADOW,0,1
+consolidated-sector-adjacency,SHADOW->GUARDIAN,0,1
+canonical-sector-sentinel,theta=0,INVERSE,CORE
+canonical-sector-sentinel,theta=28,META,CORE
+decoder-sector-sentinel,theta=0,INVERSE,CORE
+decoder-sector-sentinel,theta=28,META,SHADOW
+lossy-theta,v1 theta64,Memory,v2 theta4 GENE; reverse theta56 Gene
+lossy-phi,v1 phi128,128,RAC2; informational reverse phi85
+Python affinity equals RTL byte/255,"(13, 5, 4, 255)",0.011111111111111183,consolidated=0/255; canonical=0/255
+Python affinity equals RTL byte/255,"(13, 0, 0, 0)",0.71111111111111114,consolidated=179/255; canonical=177/255
+Python affinity equals RTL byte/255,"(0, 5, 0, 0)",0.59999999999999998,consolidated=154/255; canonical=154/255
+registered completion equals derived Python completion,entropy=0 completion=7,False,True
