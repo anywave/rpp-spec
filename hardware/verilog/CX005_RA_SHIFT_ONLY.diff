@@ -1,0 +1,12 @@
+--- a/hardware/verilog/spiral_ra_coherence.v
++++ b/hardware/verilog/spiral_ra_coherence.v
+@@ -136,7 +136,7 @@ module CoherenceEvaluator_Ra (
+     wire [23:0] phi_div  = term_phi * 24'd211;   // ×211/65536 ≈ /310
+     wire [23:0] ankh_div = term_ankh * 24'd936;  // ×936/65536 ≈ /70
+
+-    wire [9:0] score_phi  = phi_div[23:14];   // Result after >>14
+-    wire [9:0] score_ankh = ankh_div[23:14];
++    wire [9:0] score_phi  = phi_div[23:16];   // Result after >>16
++    wire [9:0] score_ankh = ankh_div[23:16];
+
+     wire [9:0] final_score = score_phi + score_ankh;

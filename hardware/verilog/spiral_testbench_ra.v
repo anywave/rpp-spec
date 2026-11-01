@@ -10,7 +10,10 @@
 //   5. ScalarTrigger_Ra
 //   6. Integration scenarios
 //
-// Run with: iverilog -o spiral_ra_tb.vvp spiral_testbench_ra.v spiral_ra_coherence.v spiral_consent.v spiral_consolidated.v && vvp spiral_ra_tb.vvp
+// Run from this directory:
+// iverilog -g2012 -s spiral_testbench_ra -o spiral_ra_tb.vvp spiral_testbench_ra.v spiral_ra_coherence.v spiral_consent.v
+// vvp spiral_ra_tb.vvp
+// spiral_consolidated.v duplicates the parsers in spiral_consent.v; do not add both.
 
 `timescale 1ns / 1ps
 
@@ -317,7 +320,17 @@ module spiral_testbench_ra;
 
         coh_entropy = 15; coh_complecount = 3; coh_threshold = 10'd300;
         #10;
-        check_result("Mid coherence should be medium", coh_medium);
+        // Mutation: changing this expectation back to medium must fail.
+        // The weighted Python reference is 297 (<300); this approximate RTL is 160.
+        check_result("E15 C3 belongs to low band", coh_low && !coh_medium && !coh_high);
+
+        // Mutation: changing medium_coherence to always false must fail.
+        // Implementation smoke probe only: the shipped RTL reports the medium band.
+        // Its observed 450 depends on erroneous shifts/product truncation.
+        // This check does not validate the formula or cross-binding agreement.
+        coh_entropy = 15; coh_complecount = 4; coh_threshold = 10'd300;
+        #10;
+        check_result("E15 C4 belongs to medium band", coh_medium && !coh_low && !coh_high);
 
         // Compare precise vs approximate
         print_section("Precise vs Approximate Comparison");
@@ -478,8 +491,10 @@ module spiral_testbench_ra;
         print_section("ConsentHeaderParser - Field Extraction");
 
         // Build test header:
-        // Bytes 0-3: RPP Address = theta:12, phi:3, omega:2, radius:128, reserved:0
-        //   = 0b01100_011_010_10000000_0000000000000 = 0x61500000
+        // Bytes 0-3: RPP Address = theta:12, encoded phi:1 (RAC level 2),
+        //   omega:2, radius:128, reserved:0
+        //   = 0b01100_001_010_10000000_0000000000000 = 0x61500000
+        // Parser outputs the stored three-bit phi, not the decoded RAC level.
         // Bytes 4-7: Packet ID = 0xDEADBEEF
         // Bytes 8-9: Origin Ref = 0x1234
         // Byte 10: verbal=1, somatic=12(0.75), ancestral=2, temporal=1
@@ -512,7 +527,8 @@ module spiral_testbench_ra;
             hdr_consent_state, hdr_needs_fallback, hdr_has_pma);
 
         check_result("Theta extraction", hdr_theta == 5'd12);
-        check_result("Phi extraction", hdr_phi == 3'd3);
+        // Mutation: expecting raw phi 3 for this unchanged header must fail.
+        check_result("Encoded phi extraction", hdr_phi == 3'd1);
         check_result("Omega extraction", hdr_omega == 3'd2);
         check_result("Radius extraction", hdr_radius == 8'd128);
         check_result("Entropy extraction", hdr_entropy == 5'd20);
@@ -622,6 +638,10 @@ module spiral_testbench_ra;
         $display("View with: gtkwave spiral_ra_test.vcd");
 
         #100;
+        // Mutation: removing this fatal branch must be caught by the runner.
+        if (fail_count != 0) begin
+            $fatal(1, "RA testbench failed");
+        end
         $finish;
     end
 
