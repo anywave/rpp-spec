@@ -224,3 +224,12 @@ class TrustedGateTests(unittest.TestCase):
         head = self.commit()
         with self.assertRaisesRegex(ValueError, 'Git output exceeds 8 MiB'):
             self.runner.git_bytes('show', f'{head}:large.bin')
+
+    def test_crlf_checkout_still_executes_canonical_base_source(self):
+        """Kills rejecting a Windows checkout of semantically identical BASE Python."""
+        self.write('README.md', 'head\n')
+        head = self.commit()
+        self.checkout_base()
+        for path in ('scripts/ci/gate.py', 'scripts/ci/trusted_gate.py'):
+            self.write(path, (self.root / path).read_bytes().replace(b'\n', b'\r\n'))
+        self.assertEqual(self.runner.run(self.base, head)['findings'], 0)

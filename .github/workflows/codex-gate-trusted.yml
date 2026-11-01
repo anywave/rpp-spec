@@ -1,0 +1,34 @@
+name: codex-gate-trusted
+on: pull_request_target
+permissions:
+  contents: read
+concurrency:
+  group: codex-gate-trusted-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  base-code:
+    name: codex-gate-trusted
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Only BASE code/dependencies run. HEAD is fetched as objects and parsed
+      # as data; never checked out, imported, installed or sourced. No secrets;
+      # the contents-read token is never persisted for PR-controlled code.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Install BASE dependencies
+        run: |
+          python -I -m pip install --only-binary=:all: --require-hashes -r scripts/ci/requirements.txt
+      - name: Check HEAD objects with BASE code
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python -I scripts/ci/trusted_gate.py --base "$BASE_SHA" --head "$HEAD_SHA" --pr "$PR_NUMBER" --output "$RUNNER_TEMP/codex-gate-trusted.json"

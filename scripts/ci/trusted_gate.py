@@ -47,7 +47,7 @@ def prepare(base, head, pr):
         entry = git_bytes('ls-tree', base, '--', path).split()
         if not entry or entry[0] not in {b'100644', b'100755'} or not stat.S_ISREG(target.lstat().st_mode):
             raise ValueError(f'{path}: regular BASE code required')
-        if target.read_bytes() != git_bytes('cat-file', 'blob', f'{base}:{path}'):
+        if target.read_bytes().replace(b'\r\n', b'\n') != git_bytes('cat-file', 'blob', f'{base}:{path}').replace(b'\r\n', b'\n'):
             raise ValueError(f'{path}: code differs from BASE')
     if not re.fullmatch(r'[0-9a-fA-F]{40}', head):
         raise ValueError('head must be a full commit SHA')

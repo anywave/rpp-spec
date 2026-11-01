@@ -1,0 +1,2 @@
+# TR fills this BASE-side list with exact Name <email> identities after review.
+# Empty denies all gate changes. Git identity labels are not signature proofs.
