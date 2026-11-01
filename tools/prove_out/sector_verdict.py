@@ -56,11 +56,12 @@ def ordinary_index(theta):
 
 
 def python_checks():
-    rows = []
+    rows, probes = [], {"v1": 0, "v2": 0}
     for theta in range(512):
         require(from_components(0, theta, 0, 0).sector_name == V1[theta // 64], "legacy sector boundary")
         for field, limit in (("shell", 4), ("phi", 512), ("harmonic", 256)):
             for value in range(limit):
+                probes["v1"] += 1
                 values = dict(shell=0, theta=theta, phi=0, harmonic=0)
                 values[field] = value
                 address = from_components(**values)
@@ -72,15 +73,17 @@ def python_checks():
         for field, values in (("phi", range(1, 7)), ("omega", range(5)),
                               ("radius", (v / 255 for v in range(256))), ("reserved", range(8192))):
             for value in values:
+                probes["v2"] += 1
                 fields = dict(theta=theta, phi=1, omega=0, radius=0.0, reserved=0)
                 fields[field] = value
                 require(RPPAddress(**fields).sector.value == index, "canonical irrelevant field")
         rows.append(("canonical-v2-theta27", theta, index, V2[index]))
     require([r[2] for r in rows[:512]] == sorted(r[2] for r in rows[:512]), "legacy bin direction")
     require([r[2] for r in rows[512:]] == sorted(r[2] for r in rows[512:]), "canonical bin direction")
-    return dict(v1_theta_inputs=512, v1_bins=dict(Counter(r[3] for r in rows[:512])),
-                v2_theta_inputs=27, v2_bins=dict(Counter(r[3] for r in rows[512:])),
-                irrelevant_field_probes={"v1": 512 * (4 + 512 + 256), "v2": 27 * (6 + 5 + 256 + 8192)},
+    require(probes == {"v1": 395264, "v2": 228393}, "incomplete Python irrelevance probes")
+    return dict(v1_theta_inputs=sum(r[0] == "semantic-v1-theta8" for r in rows), v1_bins=dict(Counter(r[3] for r in rows[:512])),
+                v2_theta_inputs=sum(r[0] == "canonical-v2-theta27" for r in rows), v2_bins=dict(Counter(r[3] for r in rows[512:])),
+                irrelevant_field_probes=probes,
                 factorization="2^28 valid v1 words factor through the 9-bit theta field; not brute-force enumeration"), rows
 
 

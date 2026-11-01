@@ -151,9 +151,10 @@ def orientation(text):
 
 
 def python_checks():
-    wrong = 0
+    wrong = points = 0
     for e in range(101):
         for c in range(101):
+            points += 1
             value = compute_coherence_score(e / 100, c / 100)
             wrong += value != int(165 * (e / 100)) + int(509 * (c / 100)) or not 0 <= value <= 674
             if e:
@@ -161,11 +162,12 @@ def python_checks():
             if c:
                 wrong += value < compute_coherence_score(e / 100, (c - 1) / 100)
     base = python_affinity((13, 5, 4, 255))
-    irrelevant = sum(python_affinity((13, 5, 4, 255), reserved) != base for reserved in range(8192))
-    if wrong or irrelevant:
+    reserved_values = [python_affinity((13, 5, 4, 255), reserved) for reserved in range(8192)]
+    irrelevant = sum(value != base for value in reserved_values)
+    if wrong or irrelevant or points != 10201 or len(reserved_values) != 8192:
         raise AssertionError("Python formula/driver/irrelevance contract failed")
-    return {"ra_fraction_points": 10201, "ra_formula_driver_failures": wrong,
-            "affinity_reserved_probes": 8192, "affinity_irrelevance_failures": irrelevant,
+    return {"ra_fraction_points": points, "ra_formula_driver_failures": wrong,
+            "affinity_reserved_probes": len(reserved_values), "affinity_irrelevance_failures": irrelevant,
             "reserved_theta31_similarity": coherence(RPPAddress(1, 1, 0, 0.0), RPPAddress(31, 1, 0, 0.0)),
             "null_self_similarity": coherence(RPPAddress(0, 1, 0, 0.0), RPPAddress(0, 1, 0, 0.0))}
 
