@@ -1,4 +1,4 @@
-"""Run BASE policy over HEAD objects as data; owner identities are Git claims."""
+"""Run BASE policy over HEAD objects as data; verify owner SSH signatures."""
 import argparse
 import fnmatch
 import importlib.util
@@ -87,20 +87,46 @@ def export_metadata(directory, head):
         target.write_bytes(git_bytes('cat-file', 'blob', digest.decode()))
 
 
+def gate_path(path):
+    name = path.rsplit('/', 1)[-1]
+    return path in {'scripts/ci', '.github'} or path.startswith(('scripts/ci/', '.github/')) or name.startswith('codex-gate') or name in {'pyproject.toml', 'setup.cfg', 'pip.conf', '.python-version', 'sitecustomize.py', 'usercustomize.py'} or any(fnmatch.fnmatchcase(name, pattern) for pattern in ('requirements*.txt', '*.pth'))
+
+
+def verify_owner(commit, signers, revocations):
+    if int(git_bytes('cat-file', '-s', commit)) > 1024 * 1024:
+        raise ValueError('commit object exceeds 1 MiB')
+    headers = git_bytes('cat-file', 'commit', commit).split(b'\n\n', 1)[0].split(b'\n')
+    signatures = [line for line in headers if line.startswith(b'gpgsig ')]
+    if signatures != [b'gpgsig -----BEGIN SSH SIGNATURE-----']:
+        return False
+    command = ['git', '-c', 'gpg.format=ssh', '-c', 'gpg.ssh.program=ssh-keygen', '-c', f'gpg.ssh.allowedSignersFile={signers}', '-c', f'gpg.ssh.revocationFile={revocations}', '-c', 'gpg.minTrustLevel=fully', 'verify-commit', '--raw', commit]
+    try:
+        return subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def owner_findings(base, head):
     ancestor = git_bytes('merge-base', base, head).decode().strip()
-    paths = [path.decode('utf-8') for path in git_bytes('diff', '--no-renames', '--name-only', '-z', ancestor, head).split(b'\0') if path]
-    protected = [path for path in paths if path == 'scripts/ci' or path.startswith('scripts/ci/') or path == '.github' or path.startswith('.github/') or Path(path).name.startswith('codex-gate') or fnmatch.fnmatchcase(Path(path).name, 'requirements*.txt')]
-    if not protected:
-        return []
+    commits = git_bytes('rev-list', '--reverse', '--max-count=129', f'{ancestor}..{head}').decode().splitlines()
+    if len(commits) > 128:
+        raise ValueError('PR history exceeds 128 commits')
     owners = base_lines(base, OWNERS)
-    if any(not re.fullmatch(r'[^<>\r\n]+ <[^<>\r\n]+>', owner) for owner in owners):
-        raise ValueError('BASE owners must be exact Name <email> entries')
-    if int(git_bytes('cat-file', '-s', head)) > 1024 * 1024:
-        raise ValueError('commit object exceeds 1 MiB')
-    headers = git_bytes('cat-file', 'commit', head).split(b'\n\n', 1)[0].split(b'\n')
-    identities = {line.split(b' ', 1)[1].rsplit(b' ', 2)[0].decode('utf-8') for line in headers if line.startswith((b'author ', b'committer '))}
-    return [] if identities & owners else [f'{ascii(path)}: gate change: needs TR review' for path in protected]
+    if any(not re.fullmatch(r'[A-Za-z0-9_.@+-]+ ssh-ed25519 [A-Za-z0-9+/]+={0,2}', owner) for owner in owners):
+        raise ValueError('BASE owners must be principal ssh-ed25519 public-key entries')
+    errors = []
+    with tempfile.TemporaryDirectory(prefix='codex-gate-signers-') as directory:
+        signers, revocations = Path(directory) / 'owners', Path(directory) / 'revocations'
+        signers.write_text('\n'.join(sorted(owners)) + '\n', encoding='utf-8')
+        revocations.write_bytes(b'')
+        for commit in commits:
+            parents = git_bytes('show', '-s', '--format=%P', commit).decode().split()
+            args = ('diff', parents[0], commit) if parents else ('diff-tree', '--root', '--no-commit-id', '-r', commit)
+            paths = [path.decode('utf-8') for path in git_bytes(*args, '--no-renames', '--name-only', '-z').split(b'\0') if path]
+            protected = [path for path in paths if gate_path(path)]
+            if protected and (not owners or not verify_owner(commit, signers, revocations)):
+                errors += [f'{commit}:{ascii(path)}: gate change: needs TR review (listed owner SSH signature required)' for path in protected]
+    return errors
 
 
 def run(base, head, pr=None):

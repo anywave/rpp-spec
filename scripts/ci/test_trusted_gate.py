@@ -12,7 +12,8 @@ import unittest
 from unittest import mock
 
 HERE = Path(__file__).absolute().parent
-OWNER = 'Gate Owner <owner@example.invalid>'
+# Deliberately non-key placeholder; mocked verification is not cryptographic proof.
+SIGNER = 'fixture-owner ssh-ed25519 Zml4dHVyZS1ub3QtYS1yZWFsLWtleQ=='
 
 
 def load(path):
@@ -85,32 +86,94 @@ class TrustedGateTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output / 'receipt.json').read_text()), report)
 
     def test_empty_base_owners_ignore_head_owner_file_and_mailmap_self_approval(self):
-        """Kills reading owners/mailmap from HEAD or treating a branch name as owner approval."""
-        self.write('.github/codex-gate-owners.txt', 'Fixture <fixture@example.invalid>\n')
+        """Kills HEAD policy, forgeable labels, branch waivers and missed setup paths."""
+        self.write('.github/codex-gate-owners.txt', SIGNER + '\n')
         self.write('.mailmap', 'Gate Owner <owner@example.invalid> Fixture <fixture@example.invalid>\n')
-        for path in ('scripts/ci/new.py', '.github/new.txt', 'nested/codex-gate-extra', 'nested/requirements-ci.txt'):
+        protected = ('scripts/ci/new.py', '.github/new.txt', 'nested/codex-gate-extra', 'nested/requirements-ci.txt', 'nested/pyproject.toml', 'nested/setup.cfg', 'nested/pip.conf', 'nested/.python-version', 'nested/sitecustomize.py', 'nested/usercustomize.py', 'nested/custom.pth')
+        for path in protected:
             self.write(path, 'inert\n')
         head = self.commit()
         self.checkout_base()
-        with mock.patch.dict(os.environ, {'GITHUB_HEAD_REF': 'codex/ops3-spoof'}):
+        with mock.patch.dict(os.environ, {'GITHUB_HEAD_REF': 'codex/ops3-spoof'}), mock.patch.object(self.runner, 'verify_owner') as verify:
             errors = self.runner.owner_findings(self.base, head)
-        self.assertEqual(len(errors), 5)
+        self.assertEqual(len(errors), len(protected) + 1)
+        for path in protected:
+            self.assertTrue(any(path in error for error in errors))
         self.assertTrue(all('needs TR review' in error for error in errors))
+        verify.assert_not_called()
 
-    def test_exact_base_owner_author_or_committer_is_allowed_from_raw_headers(self):
-        """Kills requiring both identities or ignoring the author/committer owner alternative."""
-        self.write('.github/codex-gate-owners.txt', OWNER + '\n')
+    def test_unsigned_gate_commit_rejects_forged_author_and_committer_labels(self):
+        """Kills author/committer metadata authorization without an owner signature."""
+        self.write('.github/codex-gate-owners.txt', SIGNER + '\n')
         self.base = self.commit()
-        self.write('.mailmap', 'Gate Owner <owner@example.invalid> Fixture <fixture@example.invalid>\n')
         self.write('nested/requirements-extra.txt', 'inert\n')
-        self.assertTrue(self.runner.owner_findings(self.base, self.commit()))
-        for options in [('--author=' + OWNER,), ('--author=Other <other@example.invalid>',)]:
-            self.checkout_base()
-            self.write('nested/requirements-extra.txt', 'inert\n')
-            committer = 'Fixture' if options[0].endswith(OWNER) else 'Gate Owner'
-            email = 'fixture@example.invalid' if committer == 'Fixture' else 'owner@example.invalid'
-            head = self.commit('-c', 'user.name=' + committer, '-c', 'user.email=' + email, *options)
+        head = self.commit('-c', 'user.name=fixture-owner', '-c', 'user.email=owner@example.invalid', '--author=fixture-owner <owner@example.invalid>')
+        with mock.patch.object(self.runner.subprocess, 'run') as backend:
+            self.assertTrue(self.runner.owner_findings(self.base, head))
+        backend.assert_not_called()
+
+    def test_owner_verification_checks_each_protected_commit_even_after_revert(self):
+        """Kills tip-only approval, net-diff-only approval and checking ordinary commits."""
+        self.write('.github/codex-gate-owners.txt', SIGNER + '\n')
+        self.base = self.commit()
+        self.write('nested/requirements-extra.txt', 'inert\n')
+        edit = self.commit()
+        self.write('README.md', 'ordinary change\n')
+        ordinary = self.commit()
+        (self.root / 'nested/requirements-extra.txt').unlink()
+        tip = self.commit()
+        self.assertEqual(self.git('diff', '--name-only', self.base, tip), 'README.md')
+        with mock.patch.object(self.runner, 'verify_owner', side_effect=lambda commit, *_: commit == tip) as verify:
+            self.assertTrue(self.runner.owner_findings(self.base, tip))
+            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, tip])
+            self.assertNotIn(ordinary, [call.args[0] for call in verify.call_args_list])
+        with mock.patch.object(self.runner, 'verify_owner', return_value=True) as verify:
+            self.assertEqual(self.runner.owner_findings(self.base, tip), [])
+            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, tip])
+
+    def test_owner_policy_exports_base_public_signers_and_empty_revocations(self):
+        """Kills HEAD signer-list substitution; mocked positives prove policy, not crypto."""
+        self.write('.github/codex-gate-owners.txt', SIGNER + '\n')
+        self.base = self.commit()
+        self.write('.github/codex-gate-owners.txt', 'head-owner ssh-ed25519 YWJjZA==\n')
+        head = self.commit()
+        def approved(commit, signers, revocations):
+            self.assertEqual(commit, head)
+            self.assertEqual(signers.read_text(), SIGNER + '\n')
+            self.assertEqual(revocations.read_bytes(), b'')
+            self.assertFalse(signers.resolve().is_relative_to(self.root))
+            return True
+        with mock.patch.object(self.runner, 'verify_owner', side_effect=approved) as verify:
             self.assertEqual(self.runner.owner_findings(self.base, head), [])
+        self.assertEqual(verify.call_count, 1)
+
+    def test_owner_backend_requires_single_ssh_signature_and_checked_exit(self):
+        """Kills unsigned/other-format/duplicate acceptance, bad exits and omitted verifier guards."""
+        self.write('plain.txt', 'inert\n')
+        head = self.commit()
+        header = subprocess.check_output(['git', 'cat-file', 'commit', head]).partition(b'\n\n')[0]
+        ssh = b'\ngpgsig -----BEGIN SSH SIGNATURE-----\n Zml4dHVyZQ==\n -----END SSH SIGNATURE-----'
+        def object_with(signature):
+            return self.git('hash-object', '-w', '-t', 'commit', '--stdin', input=header + signature + b'\n\nfixture\n')
+        signers, revoked = self.output / 'signers', self.output / 'revoked'
+        signers.write_text(SIGNER + '\n')
+        revoked.write_bytes(b'')
+        for commit in (head, object_with(b'\ngpgsig -----BEGIN PGP SIGNATURE-----\n fixture'), object_with(ssh + ssh)):
+            with mock.patch.object(self.runner.subprocess, 'run') as backend:
+                self.assertFalse(self.runner.verify_owner(commit, signers, revoked))
+            backend.assert_not_called()
+        synthetic = object_with(ssh)  # No valid signature or key: the backend below is explicitly mocked.
+        with mock.patch.object(self.runner.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as backend:
+            self.assertTrue(self.runner.verify_owner(synthetic, signers, revoked))
+            command = backend.call_args.args[0]
+            for option in ('gpg.format=ssh', 'gpg.ssh.program=ssh-keygen', f'gpg.ssh.allowedSignersFile={signers}', f'gpg.ssh.revocationFile={revoked}', 'gpg.minTrustLevel=fully'):
+                self.assertIn(option, command)
+            self.assertEqual(command[-3:], ['verify-commit', '--raw', synthetic])
+            self.assertEqual(backend.call_args.kwargs['timeout'], 15)
+        for failure in (subprocess.CompletedProcess([], 1), OSError('fixture verifier unavailable'), subprocess.TimeoutExpired('git', 15)):
+            kwargs = {'side_effect': failure} if isinstance(failure, Exception) else {'return_value': failure}
+            with mock.patch.object(self.runner.subprocess, 'run', **kwargs):
+                self.assertFalse(self.runner.verify_owner(synthetic, signers, revoked))
 
     def test_exporter_rejects_parent_backslash_and_colon_path_mutations(self):
         """Kills path traversal and Windows separator/drive interpretation in metadata export."""

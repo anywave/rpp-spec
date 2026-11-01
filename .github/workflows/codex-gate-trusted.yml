@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Explain unconfigured App status
+        if: ${{ vars.CODEX_GATE_APP_READY != 'true' }}
+        run: echo '::notice::App status posting skipped until RADIX configures the App and codex-gate environment and sets CODEX_GATE_APP_READY=true.'
+      - name: Explain non-integration target
+        if: ${{ github.event.pull_request.base.ref != github.event.repository.default_branch || github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+        run: echo '::notice::App status posting skipped because this run does not target the integration branch.'
       # Only BASE code/dependencies run. HEAD is fetched as objects and parsed
       # as data; never checked out, imported, installed or sourced. No secrets;
       # the contents-read token is never persisted for PR-controlled code.
@@ -24,7 +30,7 @@ jobs:
           python-version: '3.12'
       - name: Install BASE dependencies
         run: |
-          python -I -m pip install --only-binary=:all: --require-hashes -r scripts/ci/requirements.txt
+          python -I -m pip --isolated install --require-hashes --no-deps --only-binary=:all: -r scripts/ci/requirements.txt
       - name: Check HEAD objects with BASE code
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -32,3 +38,36 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           python -I scripts/ci/trusted_gate.py --base "$BASE_SHA" --head "$HEAD_SHA" --pr "$PR_NUMBER" --output "$RUNNER_TEMP/codex-gate-trusted.json"
+  app-status:
+    name: Publish BASE verdict
+    needs: base-code
+    if: >-
+      ${{ always() && vars.CODEX_GATE_APP_READY == 'true' &&
+      github.event.pull_request.base.ref == github.event.repository.default_branch &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    environment: codex-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mint repository status token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.CODEX_GATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CODEX_GATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-statuses: write
+      - name: Post HEAD commit status
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GATE_STATE: ${{ needs.base-code.result == 'success' && 'success' || 'failure' }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api --hostname github.com --method POST "repos/$REPOSITORY/statuses/$HEAD_SHA" \
+            --raw-field state="$GATE_STATE" \
+            --raw-field context='anywave/codex-gate' \
+            --raw-field description='BASE policy review' \
+            --raw-field target_url="$TARGET_URL"
