@@ -1,4 +1,4 @@
-"""Compile/run the RA testbench and execute four named failure mutations.
+"""Run the RA testbench, four failure mutations and an unapplied RTL experiment.
 
 Only disposable output copies are mutated. No protocol implementation is edited.
 """
@@ -7,6 +7,9 @@ import argparse
 from pathlib import Path
 import re
 import subprocess
+
+
+EXPECTED_CHECKS = 33
 
 
 def summary(output: str) -> tuple[int, int, int]:
@@ -90,9 +93,9 @@ def main() -> None:
     rtl = (args.source_dir / "spiral_ra_coherence.v").read_text(encoding="utf-8")
 
     result = run_case(args, "control", tb, rtl)
-    if not healthy(result, 33):
+    if not healthy(result, EXPECTED_CHECKS):
         raise AssertionError(f"control failed: exit={result.returncode} counts={summary(result.stdout)}")
-    print("control checks=33 passed=33 failed=0 exit=0")
+    print(f"control checks={EXPECTED_CHECKS} passed={EXPECTED_CHECKS} failed=0 exit=0")
 
     # Each case names the single failing mutation and uses the clean compiled
     # control above. A compile error never counts as a killed mutation.
@@ -109,7 +112,7 @@ def main() -> None:
         ("medium-output-always-false", tb, no_medium),
     ):
         result = run_case(args, name, mutant_tb, mutant_rtl)
-        if healthy(result, 33):
+        if healthy(result, EXPECTED_CHECKS):
             raise AssertionError(f"survived mutation: {name}")
         require_failure_exit(result)
         print(f"killed {name} failed={summary(result.stdout)[2]} exit={result.returncode}")
@@ -118,7 +121,7 @@ def main() -> None:
     # behavior makes the same failed check exit zero, which this assertion kills.
     no_fatal = replace_once(wrong_phi, '$fatal(1, "RA testbench failed");', '$display("fatal removed");')
     result = run_case(args, "failure-exit-removed", no_fatal, rtl)
-    if summary(result.stdout) != (33, 32, 1) or result.returncode != 0:
+    if summary(result.stdout) != (EXPECTED_CHECKS, EXPECTED_CHECKS - 1, 1) or result.returncode != 0:
         raise AssertionError("stale failure-exit mutation: expected one failed row and exit zero")
     try:
         require_failure_exit(result)
@@ -128,6 +131,26 @@ def main() -> None:
         raise AssertionError("failure-exit mutation survived the status assertion")
     print("killed failure-exit-removed failed=1 exit=0 (failure-status contract detects mutant)")
     print("mutations killed=4 survived=0 clean_controls=1 failed_controls=0")
+
+    # Proposed scaling edit only: this counterexample is not an adopted repair.
+    # A reciprocal coefficient /65536 requires >>16, but the 24-bit product also
+    # overflows. Mutation: incorrectly reporting this proposal as 33/33 must fail.
+    shifted = replace_once(
+        rtl, "score_phi  = phi_div[23:14];   // Result after >>14",
+        "score_phi  = phi_div[23:16];   // Result after >>16",
+    )
+    shifted = replace_once(shifted, "score_ankh = ankh_div[23:14]", "score_ankh = ankh_div[23:16]")
+    diagnostic_tb = replace_once(
+        tb, 'check_result("E15 C4 belongs to medium band",',
+        '$display("SHIFT_PROPOSAL E15 C4 score=%0d", coh_score);\n'
+        '        check_result("E15 C4 belongs to medium band",',
+    )
+    result = run_case(args, "proposed-shift-only", diagnostic_tb, shifted)
+    if (summary(result.stdout) != (EXPECTED_CHECKS, EXPECTED_CHECKS - 1, 1)
+            or result.returncode != 1 or "SHIFT_PROPOSAL E15 C4 score=112" not in result.stdout):
+        raise AssertionError("shift-only proposal counterexample changed; re-review its numeric limits")
+    print(f"unapplied shift-only proposal checks={EXPECTED_CHECKS} "
+          f"passed={EXPECTED_CHECKS - 1} failed=1 exit=1 E15_C4_score=112; not a complete repair")
 
 
 if __name__ == "__main__":

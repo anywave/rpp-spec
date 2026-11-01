@@ -6,20 +6,70 @@ Both originally failing checks had incorrect testbench expectations:
 
 | Check | Evidence | Correction |
 |---|---|---|
-| Mid-coherence | `E=15,C=3` gives Python weighted score **297**, below the existing medium threshold **300**. The unchanged approximate RTL gives **160**, also low. | Assert the low band and exclude medium/high. Add a separate `E=15,C=4` medium probe: Python **369**, approximate RTL **450**. These check classification, without asserting cross-binding score equality. |
+| Mid-coherence | `E=15,C=3` gives Python weighted score **297**, below the existing medium threshold **300**. The unchanged approximate RTL gives **160**, also low. | Assert the low band and exclude medium/high. Retain an implementation-only `E=15,C=4` classification smoke probe, observed RTL **450**. That value depends on erroneous shifts and product truncation; it cannot validate the formula or agreement with Python. |
 | Phi extraction | The unchanged header address `0x61500000` has raw `[26:24]=1`. `ConsentHeaderParser` returns this raw field. Canonical decoding adds one, so its RAC level is **2**. | Expect raw phi **1**, and correct the fixture comment. Keep the header bytes, parser and address layout unchanged. |
 
 The exact Python values and approximate values are also retained in
 `tools/prove_out/results/hdl-comparison.csv`, rows `(15,3)` and `(15,4)`.
 The known approximate/LUT arithmetic disagreement remains an E1/core-adoption
 blocker; correcting these two testbench expectations does not resolve it.
-No E2 core/spec/constants/header edit is proposed or required.
+The testbench expectation corrections require no core/spec/constants/header edit. The HIGH reciprocal-scaling defect below remains unresolved for RADIX; its exact diagnostic RTL diff is proposed only, never applied.
 
 The documented compile command previously included two sources defining
 `ConsentHeaderParser`, `PMARecordParser` and `CRC8_Byte`; Icarus exits **6**.
 The revised source list includes `spiral_consent.v` once and specifies the top.
 The testbench now calls `$fatal(1, ...)` after any failed check, so CI can use
 process status. The old testbench printed two failures and exited **0**.
+
+## HIGH: reciprocal scaling and product overflow, unresolved — RADIX
+
+`spiral_ra_coherence.v:136-140` multiplies by reciprocal coefficients documented
+as `211/65536` and `936/65536`, but slices `[23:14]`, equivalent to shifting by
+14 before ten-bit truncation. A denominator of 65536 calls for a shift of 16.
+The 24-bit `ankh_div` product also overflows for part of the input domain.
+
+For `E=15,C=4`, the full reciprocal products are **5,120,970** and
+**19,053,216**. The second truncates to **2,276,000** in its 24-bit wire.
+The shipped slices yield **312 + 138 = 450**; the apparent medium-band success
+depends on faulty scaling/truncation. It is not independent evidence for the
+formula, even though the separate Python score happens to lie in that band.
+
+The exact two-line scaling proposal is retained in
+`CX005_RA_SHIFT_ONLY.diff` and reproduced below. It is **NOT APPLIED** and is
+**not a complete repair**: retaining 24-bit products changes this point to
+**78 + 34 = 112**. Widening products and choosing whether this approximate
+1618/5089-derived family should implement the published 165/509 Python policy
+need separate review. No such policy choice is made here.
+
+```diff
+--- a/hardware/verilog/spiral_ra_coherence.v
++++ b/hardware/verilog/spiral_ra_coherence.v
+@@ -136,7 +136,7 @@ module CoherenceEvaluator_Ra (
+     wire [23:0] phi_div  = term_phi * 24'd211;   // ×211/65536 ≈ /310
+     wire [23:0] ankh_div = term_ankh * 24'd936;  // ×936/65536 ≈ /70
+
+-    wire [9:0] score_phi  = phi_div[23:14];   // Result after >>14
+-    wire [9:0] score_ankh = ankh_div[23:14];
++    wire [9:0] score_phi  = phi_div[23:16];   // Result after >>16
++    wire [9:0] score_ankh = ankh_div[23:16];
+
+     wire [9:0] final_score = score_phi + score_ankh;
+```
+
+Icarus was run on a disposable RTL copy with exactly this diff. Compile **0**;
+**33 checks, 32 passed, 1 failed; runtime 1**. The only failed check is the
+implementation-only `E15 C4` classification smoke probe, now score **112**.
+The `E31 C7` diagnostic score changes **632 → 413**; `E15 C3` changes
+**160 → 296**. These are observed/calculateable counterexamples, not approved
+replacement values. The runner reproduces the shift-only experiment after its
+four mutation checks and asserts that this partial proposal is not reported as
+33/33. The shipped RTL file remains byte-identical to `95c67ef`.
+
+RADIX options: retain the approximate scorer with this defect explicitly open;
+commission a complete width/scaling repair against a selected numeric oracle;
+or retire this scorer in favor of an already verified binding. Recommended
+default: review a complete repair against the chosen oracle before adoption,
+because a two-line shift correction still leaves a demonstrated overflow.
 
 ## Executed commands and counts
 
@@ -56,7 +106,7 @@ From the E2 checkout, after:
 ```
 
 Clean compile/runtime **exit 0**; **33 checks, 33 passed, 0 failed**. The one
-additional check is the genuine medium-band probe. The runner also rejects
+additional check is the implementation-only classification smoke probe, not a formula-validation check. The runner also rejects
 missing/duplicate/inconsistent summaries and disagreements with individual rows.
 The command executes four mutations in disposable copies, with the compiled
 clean run as their shared control:
@@ -95,12 +145,22 @@ hexadecimal head passed above; literal `--head HEAD` exits 2 without a review.
 ## Conservative choices and Windows repeat
 
 Keep the existing input bytes and report the parser's encoded field explicitly.
-Use a separate medium input instead of accepting the old vector as medium.
+Retain the separate classification smoke probe without treating its medium result as formula agreement.
 Do not repair alternate RTL arithmetic or claim it equals the Python reference.
 No published outbox, source under `rpp/`, original package tests, spec text,
 protocol header, golden vector or constant changes.
 
+Round 2 repeats the commands above: package **1256 passed**, golden **5/0**,
+Ruff **0.14.10 / exit 0**, and whitespace **exit 0**. The runner now has one
+`EXPECTED_CHECKS` value for its control/mutation/proposal counts; it retains
+the four executable mutations and separately reproduces the unapplied numeric
+counterexample. `git apply --check hardware/verilog/CX005_RA_SHIFT_ONLY.diff`
+exits **0** without modifying RTL; `git diff --exit-code 95c67ef --
+hardware/verilog/spiral_ra_coherence.v` exits **0**. The runner itself exits
+**0** after verifying that the proposal's disposable HDL process exits **1**;
+that observed failure is evidence against calling the proposal a complete fix.
+
 TR should repeat the package/golden/Ruff commands on Windows 11 / Python 3.13,
 then run `python hardware/verilog/check_ra_testbench.py --iverilog <iverilog.exe>
 --vvp <vvp.exe> --output-dir <scratch-directory>` with Icarus installed. Native
-installs normally omit `--ivl-dir`. Expect **33/33**, **4 killed/0 survived**.
+installs normally omit `--ivl-dir`. Expect **33/33**, **4 killed/0 survived**, followed by the unapplied shift-only experiment **32/33**, runtime exit **1**.

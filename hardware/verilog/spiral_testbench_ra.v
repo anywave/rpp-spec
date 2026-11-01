@@ -325,8 +325,9 @@ module spiral_testbench_ra;
         check_result("E15 C3 belongs to low band", coh_low && !coh_medium && !coh_high);
 
         // Mutation: changing medium_coherence to always false must fail.
-        // A separate vector lies in the medium band in both definitions:
-        // Python=369, approximate RTL=450. This is a band check, not score equality.
+        // Implementation smoke probe only: the shipped RTL reports the medium band.
+        // Its observed 450 depends on erroneous shifts/product truncation.
+        // This check does not validate the formula or cross-binding agreement.
         coh_entropy = 15; coh_complecount = 4; coh_threshold = 10'd300;
         #10;
         check_result("E15 C4 belongs to medium band", coh_medium && !coh_low && !coh_high);
