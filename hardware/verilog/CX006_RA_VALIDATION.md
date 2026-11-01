@@ -95,10 +95,19 @@ git diff --cached --check
 Observed: both hardware sweeps **exit 0**; all four `cmp` commands **exit 0**;
 RA **33/33**, mutations **4/0**; existing prove-out pytest checks **54 passed**;
 package pytest **1256 passed**, one existing warning; golden **pass=5 fail=0**;
-Ruff **0.14.10 / exit 0**. Pytest's saved CX-005 snapshots remain historical
+Ruff **0.14.10 / exit 0**; staged whitespace **exit 0**. Pytest's saved CX-005 snapshots remain historical
 checks; the separate `rtl_repair` command above performs the current native HDL
 execution. New results go under `tools/prove_out/results/cx006/` without replacing
 any historical evidence.
+
+```bash
+PYTHONPATH=. "$PY" -m tools.drift check --base 275a115 --head "$(git rev-parse HEAD)" --output-dir /workspace/work/cx006/rtl-drift
+```
+
+Observed **exit 0**, findings **high=0 medium=0 low=0**; unresolved inventory
+**baselines=243 steward_items=4 advisories=2**. These catalog entries remain
+unchanged and are not marked accepted. `git diff --exit-code 275a115 -- rpp tests
+spec` also exits **0**.
 
 Primary byte-identical artifact SHA-256 values:
 
