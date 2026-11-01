@@ -1,0 +1,40 @@
+{
+  "bytes": 720707,
+  "choices": [
+    "RPPC magic, version1, six kinds1..6, reserved-zero, big-endian sequence and 16-byte recipient binding",
+    "strict112-byte/no-payload model; 64-byte signature is opaque",
+    "signature-only fixtures isolate structural guards; bound fixtures isolate whole-header verification"
+  ],
+  "evidence": "new provisional local layout; stdlib table oracle and literal-byte verifier fixtures, not cryptography",
+  "family_counts": {
+    "byte-substitution": 543,
+    "forbidden-extension": 7,
+    "forbidden-raw": 7,
+    "kind": 256,
+    "length": 145,
+    "magic": 3,
+    "opaque-fields": 12,
+    "reserved": 7,
+    "roundtrip": 126,
+    "verification-binding": 9,
+    "verifier-refusal": 1,
+    "version": 256,
+    "wrong-recipient": 1
+  },
+  "frame_bytes": 112,
+  "header_bytes": 48,
+  "rows": 1373,
+  "sha256": "b49134d35a5ba7c5be159750c6be57ddf977bba7f3ea594886e7f64a3bf9630f",
+  "signature_bytes": 64,
+  "verdict_counts": {
+    "BadMagic": 30,
+    "InvalidSignature": 438,
+    "NonzeroReserved": 14,
+    "OK": 147,
+    "Oversize": 39,
+    "Truncated": 112,
+    "UnknownKind": 254,
+    "UnsupportedVersion": 259,
+    "WrongRecipient": 80
+  }
+}

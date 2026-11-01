@@ -62,8 +62,8 @@ jobs:
       - name: Host tests without default features
         run: cargo +1.85.1 test --workspace --no-default-features --locked
 
-      - name: Cross-compile allocation-free codecs
+      - name: Cross-compile RPP core, control and link interfaces
         run: cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --locked
 
-      - name: Cross-compile alloc-only policy models
+      - name: Cross-compile alloc-only policy models and adapter interfaces
         run: cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked

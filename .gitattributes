@@ -5,3 +5,6 @@ tools/overlay_sim/results/** -text
 docs/codex/steward/BASELINE_REVIEW.md -text
 docs/design/RESOLVER_OVERLAY_PROPOSAL.diff -text
 rust/rpp-core/tests/data/** -text
+
+# CX-008 deterministic control-codec evidence is hashed as exact bytes.
+rust/rpp-control/tests/data/** -text

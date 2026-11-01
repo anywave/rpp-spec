@@ -3,5 +3,17 @@
 version = 4
 
 [[package]]
+name = "rpp-control"
+version = "0.1.0"
+
+[[package]]
 name = "rpp-core"
 version = "0.1.0"
+
+[[package]]
+name = "rpp-link"
+version = "0.1.0"
+dependencies = [
+ "rpp-control",
+ "rpp-core",
+]
