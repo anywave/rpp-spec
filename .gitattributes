@@ -1,3 +1,5 @@
 # Keep deterministic evidence byte-identical in autocrlf checkouts.
 tools/prove_out/results/** -text
 tools/overlay_sim/results/** -text
+# Preserve the exact per-ID review-register annotation bytes across checkouts.
+docs/codex/steward/BASELINE_REVIEW.md -text

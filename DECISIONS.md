@@ -66,6 +66,13 @@ Rationale: document the existing stricter policy without increasing retention
 or implying physical erasure. No clock precision or scheduler guarantee follows
 from this deadline. The protected cross-session MUST sentence is retained.
 
+The legacy `spec/CCQPSG.md:102–104` statement (`F-BASE-0048`) still says
+“session-scoped on software”; it is retained outside the approved patch scope.
+The reference policy documented at `spec/CCQPSG.md:108` governs the existing
+implementation, which implements no session-lifetime API. This records the
+remaining mismatch explicitly rather than claiming that all historical wording
+was reconciled.
+
 ### [RFC] CX-006-D3 — experimental device support
 
 **Ruling:** `experimental`. **Decision date:** 2026-10-31.
