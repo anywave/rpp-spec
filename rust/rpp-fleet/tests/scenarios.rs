@@ -8,10 +8,12 @@ use rpp_control::{
     HEADER_LEN,
 };
 use rpp_core::canonical::CanonicalAddress;
-use rpp_core::overlay::{Auth, Underlay};
+use rpp_core::overlay::{
+    Auth, ControlFrame as CoreFrame, ControlKind as CoreKind, Simulator, Status, Underlay,
+};
 use rpp_fleet::endpoint::{Endpoint, EndpointCapabilities, EndpointKind};
 use rpp_fleet::identity::{AddressBinding, AssignmentPolicy, NodeIdentity};
-use rpp_fleet::registry::Registry;
+use rpp_fleet::registry::{Registry, RegistryError};
 use rpp_fleet::resolver::{
     ControlResolution, DataResolution, FleetResolveError, FleetResolver, ResolutionStatus,
 };
@@ -185,6 +187,224 @@ fn control_row(name: &str, result: ControlResolution<'_>) -> [String; 7] {
     ]
 }
 
+fn error_row(name: &str, traffic: &str, error: &str) -> [String; 7] {
+    [
+        name.into(),
+        traffic.into(),
+        error.into(),
+        "-".into(),
+        "-".into(),
+        "-".into(),
+        "-".into(),
+    ]
+}
+
+fn boundary_rows() -> Vec<[String; 7]> {
+    let mut records = registry(vec![
+        endpoint(2, EndpointKind::Wifi, 40, 0),
+        endpoint(1, EndpointKind::Lan, 10, 0),
+    ]);
+    let mut fleet = resolver(&mut records);
+    assert_eq!(
+        fleet.resolve_data(target(), 0).unwrap().failover_order(),
+        [1, 2]
+    );
+    let mut rows = Vec::new();
+    for (name, invalid) in [
+        ("invalid-latency-u64max-update", reading(u64::MAX, 0)),
+        (
+            "invalid-loss-ppm-update",
+            LinkReading {
+                loss_ppm: 1_000_001,
+                ..reading(10, 0)
+            },
+        ),
+    ] {
+        let before = (
+            fleet.registry().clone(),
+            fleet.policy_rows().to_vec(),
+            fleet.stats(),
+        );
+        assert_eq!(
+            fleet.update_reading(&target(), 1, invalid),
+            Err(RegistryError::InvalidReading)
+        );
+        assert_eq!(fleet.registry(), &before.0);
+        assert_eq!(fleet.policy_rows(), before.1);
+        assert_eq!(fleet.stats(), before.2);
+        assert_eq!(
+            fleet.resolve_data(target(), 0).unwrap().failover_order(),
+            [1, 2]
+        );
+        rows.push(error_row(name, "fleet-update", "INVALID_READING"));
+    }
+    rows
+}
+
+fn replay_row() -> [String; 7] {
+    let mut records = registry(vec![
+        endpoint(1, EndpointKind::Lan, 10, 0),
+        endpoint(4, EndpointKind::Ble, 1, 0),
+    ]);
+    let mut fleet = resolver(&mut records);
+    let known = fleet
+        .resolve_data(target(), 0)
+        .unwrap()
+        .selected()
+        .unwrap()
+        .path()
+        .to_vec();
+    let notice = verified(1);
+    assert_eq!(
+        fleet
+            .resolve_control(target(), 1, &notice, &known, TrafficPath::Control)
+            .unwrap()
+            .status,
+        ResolutionStatus::Ready
+    );
+    let replay = fleet
+        .resolve_control(target(), 1, &notice, &known, TrafficPath::Control)
+        .unwrap();
+    assert_eq!(replay.status, ResolutionStatus::Denied);
+    assert_eq!(replay.meter.status, Status::Denied);
+    assert!(replay.route.is_none() && replay.failover_order.is_empty());
+    let row = control_row("control-replay", replay);
+    let next = verified(2);
+    assert_eq!(
+        fleet
+            .resolve_control(target(), 1, &next, &known, TrafficPath::Control)
+            .unwrap()
+            .status,
+        ResolutionStatus::Ready
+    );
+    assert_eq!(fleet.policy_rows().len(), 3);
+    row
+}
+
+fn rollback_row() -> [String; 7] {
+    let mut records = registry(vec![
+        endpoint(1, EndpointKind::Lan, 10, 2),
+        endpoint(4, EndpointKind::Ble, 1, 2),
+    ]);
+    let mut fleet = resolver(&mut records);
+    let known = fleet
+        .resolve_data(target(), 2)
+        .unwrap()
+        .selected()
+        .unwrap()
+        .path()
+        .to_vec();
+    let notice = verified(1);
+    assert_eq!(
+        fleet
+            .resolve_control(target(), 2, &notice, &known, TrafficPath::Control)
+            .unwrap()
+            .status,
+        ResolutionStatus::Ready
+    );
+    let before = (
+        fleet.registry().clone(),
+        fleet.policy_rows().to_vec(),
+        fleet.stats(),
+    );
+    let next = verified(2);
+    assert_eq!(
+        fleet.resolve_control(target(), 1, &next, &known, TrafficPath::Control),
+        Err(FleetResolveError::ClockRollback)
+    );
+    assert_eq!(fleet.registry(), &before.0);
+    assert_eq!(fleet.policy_rows(), before.1);
+    assert_eq!(fleet.stats(), before.2);
+    assert_eq!(
+        fleet
+            .resolve_control(target(), 2, &next, &known, TrafficPath::Control)
+            .unwrap()
+            .status,
+        ResolutionStatus::Ready
+    );
+    // Core meters INVALID_INPUT; the fleet rejects before calling it. This row
+    // explicitly describes the fleet boundary, not identical core status text.
+    let (a, b) = (source().label(), target().label());
+    let mut core = Simulator::new(
+        [a.clone(), b.clone()].into_iter().collect(),
+        [(a.clone(), b.clone())].into_iter().collect(),
+        Default::default(),
+    );
+    let reference = core.choose(&a, &b, 2, &known).unwrap();
+    let mut independent = known[0].clone();
+    independent.name = "ble-core".into();
+    independent.underlay = Underlay::Bluetooth;
+    independent.failure_domain = "independent-core-fixture".into();
+    let links = [independent];
+    let auth = Auth::fixture(&a, true);
+    assert_eq!(
+        core.send_control(
+            2,
+            &CoreFrame::notice(&a, &b, CoreKind::Stop, 1),
+            Some(&auth),
+            &links,
+            &reference
+        )
+        .status,
+        Status::Ok
+    );
+    assert_eq!(
+        core.send_control(
+            1,
+            &CoreFrame::notice(&a, &b, CoreKind::Stop, 2),
+            Some(&auth),
+            &links,
+            &reference
+        )
+        .status,
+        Status::InvalidInput
+    );
+    error_row("clock-rollback", "control", "CLOCK_ROLLBACK")
+}
+
+fn websocket_outage_rows() -> Vec<[String; 7]> {
+    let mut rows = Vec::new();
+    for fallback in [false, true] {
+        let mut endpoints = vec![endpoint(6, EndpointKind::WebSocketGateway, 15, 0)];
+        if fallback {
+            endpoints.push(endpoint(1, EndpointKind::Lan, 50, 0));
+        }
+        let mut records = registry(endpoints);
+        let mut fleet = resolver(&mut records);
+        assert_eq!(
+            fleet
+                .resolve_data(target(), 0)
+                .unwrap()
+                .selected()
+                .unwrap()
+                .endpoint_id,
+            6
+        );
+        let down = LinkReading {
+            available: false,
+            ..reading(15, 1)
+        };
+        fleet.update_reading(&target(), 6, down).unwrap();
+        let result = fleet.resolve_data(target(), 1).unwrap();
+        if fallback {
+            assert_eq!(result.status, ResolutionStatus::Ready);
+            assert_eq!(result.failover_order(), [1]);
+        } else {
+            assert_eq!(result.status, ResolutionStatus::NoChannel);
+            assert!(result.routes.is_empty());
+        }
+        rows.push(data_row(
+            if fallback {
+                "xiaozhi-ws-lost-lan-fallback"
+            } else {
+                "xiaozhi-ws-lost"
+            },
+            result,
+        ));
+    }
+    rows
+}
+
 fn scripted_rows() -> Vec<[String; 7]> {
     let mut rows = Vec::new();
     let mut records = registry(base_endpoints());
@@ -281,12 +501,31 @@ fn scripted_rows() -> Vec<[String; 7]> {
         "xiaozhi-websocket-lan-gateway",
         fleet.resolve_data(target(), 0).unwrap(),
     ));
+    let mut records = registry(vec![
+        endpoint(2, EndpointKind::Wifi, 10, 0),
+        endpoint(1, EndpointKind::Lan, 10, 0),
+    ]);
+    let mut fleet = resolver(&mut records);
+    rows.push(data_row(
+        "equal-score-tie",
+        fleet.resolve_data(target(), 0).unwrap(),
+    ));
+    rows.extend(boundary_rows());
+    rows.push(replay_row());
+    rows.push(rollback_row());
+    rows.extend(websocket_outage_rows());
+    let mut records = registry(Vec::new());
+    let mut fleet = resolver(&mut records);
+    rows.push(data_row(
+        "empty-endpoints-no-channel",
+        fleet.resolve_data(target(), 0).unwrap(),
+    ));
     rows
 }
 
 fn rendered(rows: &[[String; 7]]) -> (Vec<u8>, Vec<u8>) {
     let mut tsv = String::from("scenario\ttraffic\tstatus\tendpoint\tkind\turi\tfailover\n");
-    let mut markdown = String::from("# Scripted fleet endpoint selection\n\nThe existing merged overlay policy chooses paths from these supplied readings.\nIdentity assignments and prior verification are fixtures; no radio, discovery or cryptography runs.\n\n| Scenario | Traffic | Status | Endpoint | Kind | URI | Failover order |\n|---|---|---|---:|---|---|---|\n");
+    let mut markdown = String::from("# Scripted fleet endpoint selection\n\nThe existing merged overlay policy chooses paths from these supplied readings.\nIdentity assignments and prior verification are fixtures; no radio, discovery or cryptography runs.\n\nFourteen core-derived rows; three fleet-boundary contract rows are not independent core parity.\n\n| Scenario | Traffic | Status | Endpoint | Kind | URI | Failover order |\n|---|---|---|---:|---|---|---|\n");
     for row in rows {
         writeln!(&mut tsv, "{}", row.join("\t")).unwrap();
         writeln!(&mut markdown, "| {} |", row.join(" | ")).unwrap();
@@ -295,7 +534,7 @@ fn rendered(rows: &[[String; 7]]) -> (Vec<u8>, Vec<u8>) {
 }
 
 /// Failing mutation: reorder failover routes, allow unreviewed BLE data or change ws mapping.
-/// Golden rows come from actual existing Python core policy, not identity hashing.
+/// Fourteen rows use actual Python core results; three explicitly name fleet boundary contracts.
 #[test]
 fn scenario_tables_match_merged_python_policy_bytes_and_reruns() {
     let first = rendered(&scripted_rows());
@@ -308,7 +547,37 @@ fn scenario_tables_match_merged_python_policy_bytes_and_reruns() {
         include_bytes!("data/fleet-scenarios.md")
     );
     assert_eq!(first, rendered(&scripted_rows()));
-    assert_eq!(scripted_rows().len(), 9);
+    assert_eq!(scripted_rows().len(), 17);
+}
+
+/// Failing mutations: sentinel_reading_bypass, loss_ppm_validation_bypassed, invalid_update_written_before_validation.
+#[test]
+fn boundary_rejection_rows_preserve_valid_reading_and_state() {
+    let rows = boundary_rows();
+    assert_eq!(rows.len(), 2);
+    assert!(rows
+        .iter()
+        .all(|row| row[2] == "INVALID_READING" && row[3] == "-"));
+}
+
+/// Failing mutation equal_control_sequence_replayed: accept an already spent sequence.
+#[test]
+fn replay_row_is_denied_and_next_sequence_succeeds() {
+    assert_eq!(replay_row()[2], "DENIED");
+}
+
+/// Failing mutations data_rollback_guard_bypassed/control_rollback_after_path_validation: spend state on rollback.
+#[test]
+fn rollback_row_preserves_fleet_state_and_distinguishes_core_invalid_input() {
+    assert_eq!(rollback_row()[2], "CLOCK_ROLLBACK");
+}
+
+/// Failing mutation unavailable_channel_selected: select the unavailable WebSocket gateway.
+#[test]
+fn websocket_outage_rows_choose_only_live_fallback_or_no_channel() {
+    let rows = websocket_outage_rows();
+    assert_eq!(rows[0][2], "NO_CHANNEL");
+    assert_eq!(rows[1][3], "1");
 }
 
 /// Failing mutation: use endpoint insertion order or reverse the existing core ranking.
