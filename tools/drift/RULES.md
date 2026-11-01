@@ -1,5 +1,13 @@
 # Deterministic drift coordinator — verified revision 1 inventory
 
+**Revision 2 overlay (CX-007, 2026-11-01):** this document retains the original
+survey and quotations below. `catalog.json` now layers the exact CX-006 RADIX
+rulings over that frozen foundation: four ruled baseline identities, two A1
+wording guards, four decided steward items and decided A1. Other 239 baseline
+entries remain unchanged/review-pending; A2 stays open. The exact 20-finding
+ledger and RFC references are in the catalog and [CX007_VALIDATION.md](CX007_VALIDATION.md).
+Decided identity never exempts a later source change from review.
+
 Frozen source: `0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e`.
 Authority: TR verified answer #2 and Q1/Q2 in `anywave/trellis-channel`, `main`,
 `codex/inbox/rpp-spec.md`, observed commit `7735c29f33e25188c8adc9a76561dc1ebf4a3522`.

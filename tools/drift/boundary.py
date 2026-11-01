@@ -1,6 +1,7 @@
 """Passage-level diff review, normalized baseline movement, and MUST anchors."""
 
 from collections import defaultdict
+import hashlib
 from bisect import bisect_right
 
 from .passages import classify, digest, extract, in_scope, normalize
@@ -88,7 +89,33 @@ def replacement_pairs(old, new, diff, paired, used):
     return result
 
 
-def review(diff, read, base, head, catalog, add, first_event):
+def approved_transition(index, old, new, replacements, read, base, head, catalog, exists):
+    """Recognize only an exact ruled transition, never a decided file or rule."""
+    target = new[index]
+    for finding in catalog["rulings"]["findings"]:
+        if finding["rule_id"] != "BND-F-2" or finding["path"] != target.path:
+            continue
+        if finding["after"]["sha256"] != target.sha256:
+            continue
+        same_new = [p for p in new if p.path == target.path and p.sha256 == target.sha256]
+        same_old = [p for p in old if p.path == target.path and p.sha256 == target.sha256]
+        if len(same_new) != 1 or same_old:
+            continue
+        before = finding["before"]
+        if before is None:
+            if exists(base, target.path):
+                continue
+            current_file = hashlib.sha256(read(head, target.path).encode("utf-8")).hexdigest()
+            if current_file != finding["created_file_sha256"]:
+                continue
+            return True
+        for old_index, new_index in replacements.items():
+            if new_index == index and old[old_index].sha256 == before["sha256"]:
+                return True
+    return False
+
+
+def review(diff, read, base, head, catalog, add, first_event, exists):
     old, new = [], []
     for path in diff:
         if in_scope(path):
@@ -131,12 +158,13 @@ def review(diff, read, base, head, catalog, add, first_event):
                 allocated.add(entry["id"])
                 break
 
-    added = [p for j, p in enumerate(new) if j not in used]
-    for p in added:
-        rule_id = classify(p)
-        if rule_id:
-            add(rule_id, event(p, "+"), f"{p.kind}; normalized passage SHA-256 {p.sha256}")
     replacements = replacement_pairs(old, new, diff, paired, used)
+    for j, p in enumerate(new):
+        if j in used:
+            continue
+        rule_id = classify(p)
+        if rule_id and not (rule_id == "BND-F-2" and approved_transition(j, old, new, replacements, read, base, head, catalog, exists)):
+            add(rule_id, event(p, "+"), f"{p.kind}; normalized passage SHA-256 {p.sha256}")
 
     baseline_events = []
     for i, p in enumerate(old):

@@ -34,7 +34,7 @@ def render(result):
     if result["commits"]:
         summary = result["commits"][0]["summary"]
         lines[4:4] = [f"Open baseline: {summary['open_baselines']}; open steward items: {summary['open_steward_items']}; "
-                      f"open LOW advisory groups: {summary['open_advisories']}. All remain unresolved.", ""]
+                      f"open LOW advisory groups: {summary['open_advisories']}. Open counts exclude ruled/decided entries.", ""]
     for row in result["commits"]:
         s = row["summary"]
         lines.append(f"| {row['commit'][:12]} | {row['parent'][:12]} | {s['high']} | {s['medium']} | {s['low']} |")
@@ -46,7 +46,8 @@ def render(result):
         for f in row["findings"]:
             if f["severity"] in {"HIGH", "MEDIUM"}:
                 # Repository history paths here are ordinary text, but escape delimiters.
-                safe = lambda s: str(s).replace("|", "&#124;").replace("<", "&lt;").replace("\n", " ")
+                def safe(value):
+                    return str(value).replace("|", "&#124;").replace("<", "&lt;").replace("\n", " ")
                 lines.append("| " + " | ".join(map(safe, [row["commit"][:12], f["severity"], f["rule_id"],
                                                            f["path"], f["line"], f["source"], f["tag"]])) + " |")
     lines.append("")

@@ -244,12 +244,26 @@
     {
       "rule_id": "VER-FORMAT-1",
       "path": "VERSION_POLICY.md",
-      "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |\n| Theta decoding | `(address >> 27) & 0x1F` |\n| Phi decoding | `((address >> 24) & 0x07) + 1` |\n| Harmonic decoding | `(address >> 21) & 0x07` |\n| Radius decoding | `(address >> 13) & 0xFF` |\n| Reserved decoding | `address & 0x1FFF` |"
+      "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (r_enc << 13) \\| reserved` |\n| Theta decoding | `(address >> 27) & 0x1F` |\n| Phi decoding | `((address >> 24) & 0x07) + 1` |\n| Harmonic decoding | `(address >> 21) & 0x07` |\n| Radius decoding | `r_enc = (address >> 13) & 0xFF; radius = r_enc / 255.0` |\n| Reserved decoding | `address & 0x1FFF` |",
+      "original": {
+        "rule_id": "VER-FORMAT-1",
+        "path": "VERSION_POLICY.md",
+        "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |\n| Theta decoding | `(address >> 27) & 0x1F` |\n| Phi decoding | `((address >> 24) & 0x07) + 1` |\n| Harmonic decoding | `(address >> 21) & 0x07` |\n| Radius decoding | `(address >> 13) & 0xFF` |\n| Reserved decoding | `address & 0x1FFF` |"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-A1"
     },
     {
       "rule_id": "VER-FORMAT-1",
       "path": "VERSION_POLICY.md",
-      "text": "| Theta | 1 | 27 | 27 Repitans |\n| Phi | 1 | 6 | 6 RAC levels |\n| Harmonic | 0 | 4 | 5 Omega tiers |\n| Radius | 0 | 255 | Normalized 0-1 |\n| Reserved | 0 | 8191 | CRC or future |\n| Address | 0x08000000 | 0xFFFFFFFF | Valid range |"
+      "text": "| Theta | 1 | 27 | 27 Repitans |\n| Phi | 1 | 6 | 6 RAC levels |\n| Harmonic | 0 | 4 | 5 Omega tiers |\n| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0\u20131 |\n| Reserved | 0 | 8191 | CRC or future |\n| Address | 0x08000000 | 0xFFFFFFFF | Valid range |",
+      "original": {
+        "rule_id": "VER-FORMAT-1",
+        "path": "VERSION_POLICY.md",
+        "text": "| Theta | 1 | 27 | 27 Repitans |\n| Phi | 1 | 6 | 6 RAC levels |\n| Harmonic | 0 | 4 | 5 Omega tiers |\n| Radius | 0 | 255 | Normalized 0-1 |\n| Reserved | 0 | 8191 | CRC or future |\n| Address | 0x08000000 | 0xFFFFFFFF | Valid range |"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-A1"
     },
     {
       "rule_id": "VER-FORMAT-1",
@@ -823,14 +837,29 @@
       "id": "F-BASE-0038",
       "path": "rpp/continuity.py",
       "line": 269,
-      "end": 287,
+      "end": 288,
       "kind": "docstring",
-      "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
-      "sha256": "84bc5af82f68997c5e0e251d1d1ff0c3b37003b80ae16d5ff0292f1ec05e06e7",
+      "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the reference software timeout is 25 ns.\n    This function returns a policy deadline; it does not establish physical erasure.\n    Device-specific enforcement requires independent characterization.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+      "sha256": "a5b6c65570eaa7456b7400c643b55ea30a9100c47a02c67010fccb4d9b2d04ca",
       "rule_id": "BND-F-2",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      "status": "ruled - RADIX CX-006",
+      "route": "[RFC] CX-006-D4; DECISIONS.md:86; RADIX 2026-10-31",
+      "original": {
+        "id": "F-BASE-0038",
+        "path": "rpp/continuity.py",
+        "line": 269,
+        "end": 287,
+        "kind": "docstring",
+        "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+        "sha256": "84bc5af82f68997c5e0e251d1d1ff0c3b37003b80ae16d5ff0292f1ec05e06e7",
+        "rule_id": "BND-F-2",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D4"
     },
     {
       "id": "F-BASE-0039",
@@ -968,12 +997,27 @@
       "line": 108,
       "end": 108,
       "kind": "list_item",
-      "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
-      "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a",
+      "text": "- IF shell=0 THEN the reference software rejects elapsed time >= 25 ns. This is a software policy deadline, not a physical-erasure guarantee. A session-scoped profile would require a separate lifecycle contract.",
+      "sha256": "4b85a4f897d8dac0374d7a97163cbed175a393b04c9c1052712cf92e34bb6a07",
       "rule_id": "BND-F-2",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      "status": "ruled - RADIX CX-006",
+      "route": "[RFC] CX-006-D2; DECISIONS.md:58; RADIX 2026-10-31",
+      "original": {
+        "id": "F-BASE-0049",
+        "path": "spec/CCQPSG.md",
+        "line": 108,
+        "end": 108,
+        "kind": "list_item",
+        "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
+        "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a",
+        "rule_id": "BND-F-2",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D2"
     },
     {
       "id": "F-BASE-0050",
@@ -3100,12 +3144,27 @@
       "line": 288,
       "end": 288,
       "kind": "list_item",
-      "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
-      "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c",
+      "text": "2. On spintronic platforms, real-device Shell=0 conformance remains experimental. A device profile must separately specify the routing budget, measured lifetime under routing load and expiry criterion; the reference 25 ns value alone establishes none of these measurements.",
+      "sha256": "bcb5e2a19df7fd9b29c6e2496ab7441136d2b35284028fe0eb6474f3d2dbebca",
       "rule_id": "BND-F-1",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      "status": "ruled - RADIX CX-006",
+      "route": "[RFC] CX-006-D3; DECISIONS.md:76; RADIX 2026-10-31",
+      "original": {
+        "id": "F-BASE-0213",
+        "path": "spec/SPINTRONIC.md",
+        "line": 288,
+        "end": 288,
+        "kind": "list_item",
+        "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
+        "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c",
+        "rule_id": "BND-F-1",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D3"
     },
     {
       "id": "F-BASE-0214",
@@ -3204,12 +3263,27 @@
       "line": 311,
       "end": 311,
       "kind": "paragraph",
-      "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
-      "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc",
+      "text": "The reference `csp_from_rpp()` sets Shell=0 `min_t2_ns` to `SHELL_T2_NS[0]` = 25 and applies the existing SCOUT admission check. This software threshold is not device attestation. Real-device support remains experimental until the separate routing and expiry criteria are characterized; no physical-erasure guarantee follows from admission.",
+      "sha256": "cacde5d4566e7a262c9ae68cf01285821371b704072421e09163fc55de2bfd25",
       "rule_id": "BND-F-1",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      "status": "ruled - RADIX CX-006",
+      "route": "[RFC] CX-006-D3; DECISIONS.md:76; RADIX 2026-10-31",
+      "original": {
+        "id": "F-BASE-0221",
+        "path": "spec/SPINTRONIC.md",
+        "line": 311,
+        "end": 311,
+        "kind": "paragraph",
+        "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
+        "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc",
+        "rule_id": "BND-F-1",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D3"
     },
     {
       "id": "F-BASE-0222",
@@ -3644,23 +3718,23 @@
       "rule_id": "STEWARD-TTL-1",
       "severity": "MEDIUM",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+      "status": "decided - RADIX CX-006",
+      "route": "[RFC] CX-006-D2; DECISIONS.md:58; RADIX 2026-10-31",
       "description": "Shell-0 software TTL: session-scoped software text versus 25 ns enforced by rpp/ccqpsg.py and continuity.py.",
       "passages": [
         {
           "path": "spec/SPEC.md",
           "line": 94,
           "end": 94,
-          "text": "| 0 | Hot | In-memory cache | Session duration | ~25 ns |",
-          "sha256": "27278e8820316822762edc5d1386d2befbd18c899f6f4ac8eab5eeb1c304f32a"
+          "text": "| 0 | Hot | In-memory cache | 25 ns reference software TTL | ~25 ns device-profile target |",
+          "sha256": "81bf3fa0e5107a5206091a9ffd18b579e7601cd013b6f70194f8af8c169d78f3"
         },
         {
           "path": "spec/CCQPSG.md",
           "line": 108,
           "end": 108,
-          "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
-          "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a"
+          "text": "- IF shell=0 THEN the reference software rejects elapsed time >= 25 ns. This is a software policy deadline, not a physical-erasure guarantee. A session-scoped profile would require a separate lifecycle contract.",
+          "sha256": "4b85a4f897d8dac0374d7a97163cbed175a393b04c9c1052712cf92e34bb6a07"
         },
         {
           "path": "rpp/ccqpsg.py",
@@ -3676,46 +3750,112 @@
           "text": "    0: 25,                           # T2 of origin substrate (ns)",
           "sha256": "83f75ede1b6711b2017b6e89458ac227e83cfe32b23581552fa61ab42d6afb64"
         }
-      ]
+      ],
+      "original": {
+        "rule_id": "STEWARD-TTL-1",
+        "severity": "MEDIUM",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+        "description": "Shell-0 software TTL: session-scoped software text versus 25 ns enforced by rpp/ccqpsg.py and continuity.py.",
+        "passages": [
+          {
+            "path": "spec/SPEC.md",
+            "line": 94,
+            "end": 94,
+            "text": "| 0 | Hot | In-memory cache | Session duration | ~25 ns |",
+            "sha256": "27278e8820316822762edc5d1386d2befbd18c899f6f4ac8eab5eeb1c304f32a"
+          },
+          {
+            "path": "spec/CCQPSG.md",
+            "line": 108,
+            "end": 108,
+            "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
+            "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a"
+          },
+          {
+            "path": "rpp/ccqpsg.py",
+            "line": 151,
+            "end": 152,
+            "text": "    ttl_ns = compute_liminal_timeout(shell)\n    if elapsed_ns >= ttl_ns:",
+            "sha256": "9e1e6c23cf6367364067667ac3c7c963e0e1666b48e5a061394284c13b8843cc"
+          },
+          {
+            "path": "rpp/continuity.py",
+            "line": 46,
+            "end": 46,
+            "text": "    0: 25,                           # T2 of origin substrate (ns)",
+            "sha256": "83f75ede1b6711b2017b6e89458ac227e83cfe32b23581552fa61ab42d6afb64"
+          }
+        ]
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D2"
     },
     {
       "rule_id": "STEWARD-T2-1",
       "severity": "MEDIUM",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+      "status": "decided - RADIX CX-006",
+      "route": "[RFC] CX-006-D3; DECISIONS.md:76; RADIX 2026-10-31",
       "description": "Device T2 upper bound \u226425 ns versus destination requirement \u226525 ns.",
       "passages": [
         {
           "path": "spec/SPINTRONIC.md",
           "line": 288,
           "end": 288,
-          "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
-          "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c"
+          "text": "2. On spintronic platforms, real-device Shell=0 conformance remains experimental. A device profile must separately specify the routing budget, measured lifetime under routing load and expiry criterion; the reference 25 ns value alone establishes none of these measurements.",
+          "sha256": "bcb5e2a19df7fd9b29c6e2496ab7441136d2b35284028fe0eb6474f3d2dbebca"
         },
         {
           "path": "spec/SPINTRONIC.md",
           "line": 311,
           "end": 311,
-          "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
-          "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc"
+          "text": "The reference `csp_from_rpp()` sets Shell=0 `min_t2_ns` to `SHELL_T2_NS[0]` = 25 and applies the existing SCOUT admission check. This software threshold is not device attestation. Real-device support remains experimental until the separate routing and expiry criteria are characterized; no physical-erasure guarantee follows from admission.",
+          "sha256": "cacde5d4566e7a262c9ae68cf01285821371b704072421e09163fc55de2bfd25"
         }
-      ]
+      ],
+      "original": {
+        "rule_id": "STEWARD-T2-1",
+        "severity": "MEDIUM",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+        "description": "Device T2 upper bound \u226425 ns versus destination requirement \u226525 ns.",
+        "passages": [
+          {
+            "path": "spec/SPINTRONIC.md",
+            "line": 288,
+            "end": 288,
+            "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
+            "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c"
+          },
+          {
+            "path": "spec/SPINTRONIC.md",
+            "line": 311,
+            "end": 311,
+            "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
+            "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc"
+          }
+        ]
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D3"
     },
     {
       "rule_id": "STEWARD-CLAIM-1",
       "severity": "MEDIUM",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+      "status": "decided - RADIX CX-006",
+      "route": "[RFC] CX-006-D4; DECISIONS.md:86; RADIX 2026-10-31",
       "description": "Unqualified physical timeout docstring versus prohibition on conventional-hardware physical-enforcement claims.",
       "passages": [
         {
           "path": "rpp/continuity.py",
           "line": 276,
-          "end": 277,
-          "text": "    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.",
-          "sha256": "4d8769f7d9e956cf0c0b18be7900ac5d721659a57c9e9f3a2c92c36c8b2255c1"
+          "end": 278,
+          "text": "    For Shell 0, the reference software timeout is 25 ns.\n    This function returns a policy deadline; it does not establish physical erasure.\n    Device-specific enforcement requires independent characterization.",
+          "sha256": "f2e13877db56d588f8747243e6e7f70c9899eb83e0cb50afd9ee69285ed33d5e"
         },
         {
           "path": "spec/SPINTRONIC.md",
@@ -3724,31 +3864,83 @@
           "text": "2. **Not claim physical enforcement.** Documentation, comments, and API contracts for Shell=0 on conventional hardware must not assert that the key is physically irrecoverable. The correct claim is: \"Shell=0 TTL is enforced by software; physical irrecoverability requires spintronic hardware.\"",
           "sha256": "1f3b9e968571a3245d94449284ebe06a8b3376b4a93ac8a87301c56ee5382b3c"
         }
-      ]
+      ],
+      "original": {
+        "rule_id": "STEWARD-CLAIM-1",
+        "severity": "MEDIUM",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+        "description": "Unqualified physical timeout docstring versus prohibition on conventional-hardware physical-enforcement claims.",
+        "passages": [
+          {
+            "path": "rpp/continuity.py",
+            "line": 276,
+            "end": 277,
+            "text": "    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.",
+            "sha256": "4d8769f7d9e956cf0c0b18be7900ac5d721659a57c9e9f3a2c92c36c8b2255c1"
+          },
+          {
+            "path": "spec/SPINTRONIC.md",
+            "line": 278,
+            "end": 278,
+            "text": "2. **Not claim physical enforcement.** Documentation, comments, and API contracts for Shell=0 on conventional hardware must not assert that the key is physically irrecoverable. The correct claim is: \"Shell=0 TTL is enforced by software; physical irrecoverability requires spintronic hardware.\"",
+            "sha256": "1f3b9e968571a3245d94449284ebe06a8b3376b4a93ac8a87301c56ee5382b3c"
+          }
+        ]
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D4"
     },
     {
       "rule_id": "STEWARD-RADIUS-DERIVATION",
       "severity": "MEDIUM",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+      "status": "decided - RADIX CX-006",
+      "route": "[RFC] CX-006-D1; DECISIONS.md:19; RADIX 2026-10-31",
       "description": "Conflicting v1\u2192v2 radius derivation: fixed 0.5 versus shell/3.0.",
       "passages": [
         {
           "path": "spec/RPP-CANONICAL-v2.md",
           "line": 347,
-          "end": 347,
-          "text": "   - `radius_v2 = 0.5` (default)",
-          "sha256": "937021794b549f79a0e56693a0ba562b2bbf3bff6e37241324b3b20a135bde9e"
+          "end": 350,
+          "text": "   - `radius_v2 = 0.5` under the explicitly selected `neutral-radius` policy.\n     This does not preserve the v1 shell. The alternative `shell-projection`\n     policy uses `radius_v2 = shell_v1 / 3.0`. A migration API must require the\n     caller to name its policy; neither mapping is a universal default.",
+          "sha256": "4ca8247566f3e91df89786ffae44addf9d2ce2c8068cd1acc0880b1d44042b0f"
         },
         {
           "path": "spec/ADDRESSING-LAYERS.md",
           "line": 142,
           "end": 142,
-          "text": "    radius_v2 = shell / 3.0                                  # Shell \u2192 normalized radius",
-          "sha256": "425ce101729744b1f5a3f819d2c88a859b6aa279a6b539177b0e9c924eefc3d0"
+          "text": "    radius_v2 = shell / 3.0  # Explicit shell-projection policy; not neutral-radius",
+          "sha256": "d9fef1a9d72b2a7eafcf75256f497818d76741d7f554328a70af7c6a2934444e"
         }
-      ]
+      ],
+      "original": {
+        "rule_id": "STEWARD-RADIUS-DERIVATION",
+        "severity": "MEDIUM",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+        "description": "Conflicting v1\u2192v2 radius derivation: fixed 0.5 versus shell/3.0.",
+        "passages": [
+          {
+            "path": "spec/RPP-CANONICAL-v2.md",
+            "line": 347,
+            "end": 347,
+            "text": "   - `radius_v2 = 0.5` (default)",
+            "sha256": "937021794b549f79a0e56693a0ba562b2bbf3bff6e37241324b3b20a135bde9e"
+          },
+          {
+            "path": "spec/ADDRESSING-LAYERS.md",
+            "line": 142,
+            "end": 142,
+            "text": "    radius_v2 = shell / 3.0                                  # Shell \u2192 normalized radius",
+            "sha256": "425ce101729744b1f5a3f819d2c88a859b6aa279a6b539177b0e9c924eefc3d0"
+          }
+        ]
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-D1"
     }
   ],
   "advisories": [
@@ -3787,53 +3979,107 @@
       "rule_id": "WORD-RADIUS-1",
       "severity": "LOW",
       "tag": "IMPOSED",
-      "status": "unresolved - steward decision (RADIX)",
-      "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+      "status": "decided - RADIX CX-006",
+      "route": "[RFC] CX-006-A1; DECISIONS.md:170; RADIX 2026-10-31",
       "description": "Label API-normalized versus encoded radius at all six cited wording sites; do not edit the specification.",
       "passages": [
         {
           "path": "VERSION_POLICY.md",
-          "line": 83,
-          "end": 83,
-          "text": "| Radius | 0 | 255 | Normalized 0-1 |",
-          "sha256": "dfc79e8073861ee6894b12ce8b33226cbee723d6a9259343a05767a026cbf69e"
+          "line": 85,
+          "end": 85,
+          "text": "| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0\u20131 |",
+          "sha256": "e70442aaf7e04c22d529fbd62f3cd759fbe8e746793ab350f76312c875487796"
         },
         {
           "path": "VERSION_POLICY.md",
           "line": 70,
           "end": 70,
-          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |",
-          "sha256": "79e9126c1e862a51f3c27387d087f6cf841c001bcc6d595a6f0b4bd104c53ee9"
+          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (r_enc << 13) \\| reserved` |",
+          "sha256": "94a27849c01147af106e32564526dc444986c325dcf531cced093373e0177bf5"
         },
         {
           "path": "VERSION_POLICY.md",
           "line": 74,
           "end": 74,
-          "text": "| Radius decoding | `(address >> 13) & 0xFF` |",
-          "sha256": "fa296d3f61d0cb90458d73481bf15109146fb809483361d9dd19cbb51de08f3e"
+          "text": "| Radius decoding | `r_enc = (address >> 13) & 0xFF; radius = r_enc / 255.0` |",
+          "sha256": "44365b8e4230e8d3a16fe44ae4b727b36f1ca7e60032ca20ee6681e64d263442"
         },
         {
           "path": "spec/README.md",
           "line": 92,
           "end": 92,
-          "text": "| r (Radius) | 8 | 0\u2013255 | Ankh-normalized |",
-          "sha256": "7e0d8a036d1611a32e6fa231c1b249d1ef6a8b95c8b351e33a50495ef188b547"
+          "text": "| r (Radius) | 8 | 0\u2013255 | Encoded byte; normalized API radius 0\u20131 |",
+          "sha256": "a27f80f123b06c59d01570fbf825a81845aecbb45f05382bebba29dcf4174a9e"
         },
         {
           "path": "spec/PMA-SCHEMA-v1.md",
           "line": 116,
           "end": 116,
-          "text": "| [20:13] | r (radius) | 0-255 (normalized) |",
-          "sha256": "f9cd20cf0d32ba1aada02b233cb8ab0d63a445ea4c93827d1af399dd3f6c26f3"
+          "text": "| [20:13] | r (radius) | Encoded byte 0\u2013255; API radius 0\u20131 |",
+          "sha256": "8b7ba1651175b1b6e747d7b8f7e3db65d68bba74b9179090419c00b1bd31c68c"
         },
         {
           "path": "spec/ADDRESSING-LAYERS.md",
           "line": 114,
           "end": 114,
-          "text": "| r (Radius) | 8 | 0\u2013255 | Intensity scalar (Ankh-normalized emergence strength) |",
-          "sha256": "6afe82fb277b2b00ac27577725cf7294bb7911dae65e09267edee0f1fc98e0db"
+          "text": "| r (Radius) | 8 | 0\u2013255 | Encoded byte 0\u2013255; API intensity scalar 0\u20131 |",
+          "sha256": "dd9391e8794cb14527f683e04f99f5ccc03651ef6c5264c0a3a861d66d628af5"
         }
-      ]
+      ],
+      "original": {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "tag": "IMPOSED",
+        "status": "unresolved - steward decision (RADIX)",
+        "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision",
+        "description": "Label API-normalized versus encoded radius at all six cited wording sites; do not edit the specification.",
+        "passages": [
+          {
+            "path": "VERSION_POLICY.md",
+            "line": 83,
+            "end": 83,
+            "text": "| Radius | 0 | 255 | Normalized 0-1 |",
+            "sha256": "dfc79e8073861ee6894b12ce8b33226cbee723d6a9259343a05767a026cbf69e"
+          },
+          {
+            "path": "VERSION_POLICY.md",
+            "line": 70,
+            "end": 70,
+            "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |",
+            "sha256": "79e9126c1e862a51f3c27387d087f6cf841c001bcc6d595a6f0b4bd104c53ee9"
+          },
+          {
+            "path": "VERSION_POLICY.md",
+            "line": 74,
+            "end": 74,
+            "text": "| Radius decoding | `(address >> 13) & 0xFF` |",
+            "sha256": "fa296d3f61d0cb90458d73481bf15109146fb809483361d9dd19cbb51de08f3e"
+          },
+          {
+            "path": "spec/README.md",
+            "line": 92,
+            "end": 92,
+            "text": "| r (Radius) | 8 | 0\u2013255 | Ankh-normalized |",
+            "sha256": "7e0d8a036d1611a32e6fa231c1b249d1ef6a8b95c8b351e33a50495ef188b547"
+          },
+          {
+            "path": "spec/PMA-SCHEMA-v1.md",
+            "line": 116,
+            "end": 116,
+            "text": "| [20:13] | r (radius) | 0-255 (normalized) |",
+            "sha256": "f9cd20cf0d32ba1aada02b233cb8ab0d63a445ea4c93827d1af399dd3f6c26f3"
+          },
+          {
+            "path": "spec/ADDRESSING-LAYERS.md",
+            "line": 114,
+            "end": 114,
+            "text": "| r (Radius) | 8 | 0\u2013255 | Intensity scalar (Ankh-normalized emergence strength) |",
+            "sha256": "6afe82fb277b2b00ac27577725cf7294bb7911dae65e09267edee0f1fc98e0db"
+          }
+        ]
+      },
+      "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+      "decision_id": "CX-006-A1"
     }
   ],
   "passage_pairing": {
@@ -3843,5 +4089,520 @@
     "ambiguous": "Emit BND-F-BASELINE-REMOVED for lost baseline identity, then classify each new physics passage.",
     "renamed_changed": "Only equal-hash moves transfer identity across files; changed-text renames retain a removal finding.",
     "rewrapping": "Equal-hash raw text, end-line or owner changes are movement events, never removals."
+  },
+  "catalog_revision": 2,
+  "rulings": {
+    "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
+    "original_range_base": "275a115efad591304221e832c194a75f7749f9b0",
+    "authority": "RADIX",
+    "authorization": "CX-007; trellis-channel c098c20e; inbox blob 1b01db5d154c6b237324f7fe5ad779b3ea1154c7",
+    "decisions": {
+      "CX-006-D1": {
+        "id": "CX-006-D1",
+        "path": "DECISIONS.md",
+        "line": 19,
+        "end": 57,
+        "text": "### [RFC] CX-006-D1 \u2014 explicit migration alternatives\n\n**Ruling:** `explicit-alternatives`. **Decision date:** 2026-10-31.\nApply packet D1 option 3 in `spec/RPP-CANONICAL-v2.md` and\n`spec/ADDRESSING-LAYERS.md`. Label `neutral-radius` and `shell-projection`;\nneither formula is a universal default. Rationale: the two published formulas\ndiscard/preserve different information, so their choice belongs to the caller.\n\n**Named-policy contract:** this requirement applies only to a future conversion\nof a legacy v1 address to canonical v2. A migration API MUST require its caller\nto name `neutral-radius` or `shell-projection`; omitting the policy or supplying\nan unknown policy must be rejected, without silently selecting a formula.\n\n- `neutral-radius`: `radius_v2 = 0.5`; the v1 shell is not carried by radius.\n- `shell-projection`: `radius_v2 = shell_v1 / 3.0`, for integer shell 0\u20133.\n\nBoth alternatives use the existing documented theta, phi and harmonic\nprojection. The radius byte remains `round(radius_v2 * 255) & 0xFF`, with the\nexisting IMPOSED Python half-to-even tie interpretation. Layouts, field ranges,\nencoding constants and vectors do not change. The requirement defines a future\nmigration interface: the package currently supplies no v1\u2192canonical-v2 migration\nAPI. Existing ordinary-v2 constructors/default radii and unrelated geometry or\nextended-address adapters are unaffected.\n\nDiscriminating examples, with the other v1 fields held fixed:\n\n| v1 shell | `neutral-radius` API value | Encoded byte | `shell-projection` API value | Encoded byte |\n|---:|---:|---:|---:|---:|\n| 0 | 0.5 | 128 | 0 / 3 = 0 | 0 |\n| 1 | 0.5 | 128 | 1 / 3 | 85 |\n| 2 | 0.5 | 128 | 2 / 3 | 170 |\n| 3 | 0.5 | 128 | 3 / 3 = 1 | 255 |\n\nThe shell-projection examples recover their original shell under the existing\ninformational `round(radius_v2 * 3)` reverse rule. Neutral-radius does not\npreserve shell and provides no shell recovery promise. Neither projection\npromises semantic-sector name preservation. No migration API is implemented by\nthis documentation change.",
+        "sha256": "a716e960f26ca63679ee0b863167dbf628bcf478cf065111dcdcf1beec0ab5e4",
+        "authority": "RADIX",
+        "date": "2026-10-31"
+      },
+      "CX-006-D2": {
+        "id": "CX-006-D2",
+        "path": "DECISIONS.md",
+        "line": 58,
+        "end": 75,
+        "text": "### [RFC] CX-006-D2 \u2014 reference Shell-0 software deadline\n\n**Ruling:** `reference-25ns`. **Decision date:** 2026-10-31.\nApply packet D2 option 1: label the Shell-0 row in `spec/SPEC.md` as the 25 ns\nreference software TTL; replace the specified `spec/CCQPSG.md` rule with the\nreference rejection boundary `elapsed time >= 25 ns`. The earlier \u201csession\nduration\u201d/\u201csession-scoped\u201d wording did not describe that implementation.\nRationale: document the existing stricter policy without increasing retention\nor implying physical erasure. No clock precision or scheduler guarantee follows\nfrom this deadline. The protected cross-session MUST sentence is retained.\n\nThe legacy `spec/CCQPSG.md:102\u2013104` statement (`F-BASE-0048`) still says\n\u201csession-scoped on software\u201d; it is retained outside the approved patch scope.\nThe reference policy documented at `spec/CCQPSG.md:108` governs the existing\nimplementation, which implements no session-lifetime API. This records the\nremaining mismatch explicitly rather than claiming that all historical wording\nwas reconciled.",
+        "sha256": "75106fb671772e5a9aea34268c536e94ffb80f47d1c23cea8d9066f0ec1f56b4",
+        "authority": "RADIX",
+        "date": "2026-10-31"
+      },
+      "CX-006-D3": {
+        "id": "CX-006-D3",
+        "path": "DECISIONS.md",
+        "line": 76,
+        "end": 85,
+        "text": "### [RFC] CX-006-D3 \u2014 experimental device support\n\n**Ruling:** `experimental`. **Decision date:** 2026-10-31.\nApply packet D3 option 3 at the two cited `spec/SPINTRONIC.md` paragraphs.\nThe reference 25 ns admission value alone supplies no device characterization,\nconformance or attestation. Separate routing and expiry criteria need a\ncharacterized profile. Rationale: numerical software evidence does not establish\na real-device guarantee. Other historical device passages remain in the frozen\nbaseline for review; this decision does not validate or rewrite them.",
+        "sha256": "7356e129d8d6b7d7a753ff8151971df04f409817958632e457c2dda6e1abc0ff",
+        "authority": "RADIX",
+        "date": "2026-10-31"
+      },
+      "CX-006-D4": {
+        "id": "CX-006-D4",
+        "path": "DECISIONS.md",
+        "line": 86,
+        "end": 93,
+        "text": "### [RFC] CX-006-D4 \u2014 software timeout docstring\n\n**Ruling:** `software-docstring`. **Decision date:** 2026-10-31.\nApply packet D4 option 1 in `rpp/continuity.py`: describe the returned value as\na policy deadline rather than an erasure mechanism. Rationale: the function\nreturns a table value and has no device-erasure primitive. Only the docstring\nchanges; executable statements and published values remain identical.",
+        "sha256": "ec06296cab017527847d82c463d81a4f831068f9d161c843b00075ebfee55eb2",
+        "authority": "RADIX",
+        "date": "2026-10-31"
+      },
+      "CX-006-A1": {
+        "id": "CX-006-A1",
+        "path": "DECISIONS.md",
+        "line": 170,
+        "end": 179,
+        "text": "### [RFC] CX-006-A1 \u2014 normalized API value versus encoded byte\n\n**Ruling:** `clarify`. **Decision date:** 2026-10-31.\nApply the six prescribed wording-site clarifications: three in\n`VERSION_POLICY.md`, one each in `spec/README.md`, `spec/PMA-SCHEMA-v1.md` and\n`spec/ADDRESSING-LAYERS.md`. Use `r_enc` for the shifted byte and put its\n`round(radius * 255) & 0xFF` explanation after the complete formula table.\nRationale: distinguish the API's 0\u20131 value from its stored 0\u2013255 byte without\nchanging bits, range, rounding policy or constants.",
+        "sha256": "47a5ca2af1b6c2ace87e58f021111ce880d287bf1a0a84d379487fd2b89278b5",
+        "authority": "RADIX",
+        "date": "2026-10-31"
+      }
+    },
+    "findings": [
+      {
+        "rule_id": "VER-FORMAT-1",
+        "severity": "HIGH",
+        "path": "VERSION_POLICY.md",
+        "line": 70,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "VERSION_POLICY.md",
+          "line": 70,
+          "end": 70,
+          "kind": "table_row",
+          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |",
+          "sha256": "79e9126c1e862a51f3c27387d087f6cf841c001bcc6d595a6f0b4bd104c53ee9"
+        },
+        "after": {
+          "path": "VERSION_POLICY.md",
+          "line": 70,
+          "end": 70,
+          "kind": "table_row",
+          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (r_enc << 13) \\| reserved` |",
+          "sha256": "94a27849c01147af106e32564526dc444986c325dcf531cced093373e0177bf5"
+        }
+      },
+      {
+        "rule_id": "VER-FORMAT-1",
+        "severity": "HIGH",
+        "path": "VERSION_POLICY.md",
+        "line": 83,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "VERSION_POLICY.md",
+          "line": 83,
+          "end": 83,
+          "kind": "table_row",
+          "text": "| Radius | 0 | 255 | Normalized 0-1 |",
+          "sha256": "dfc79e8073861ee6894b12ce8b33226cbee723d6a9259343a05767a026cbf69e"
+        },
+        "after": {
+          "path": "VERSION_POLICY.md",
+          "line": 85,
+          "end": 85,
+          "kind": "table_row",
+          "text": "| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0\u20131 |",
+          "sha256": "e70442aaf7e04c22d529fbd62f3cd759fbe8e746793ab350f76312c875487796"
+        }
+      },
+      {
+        "rule_id": "BND-F-2",
+        "severity": "MEDIUM",
+        "path": "DECISIONS.md",
+        "line": 78,
+        "decision_id": "CX-006-D3",
+        "before": null,
+        "after": {
+          "path": "DECISIONS.md",
+          "line": 78,
+          "end": 84,
+          "kind": "paragraph",
+          "text": "**Ruling:** `experimental`. **Decision date:** 2026-10-31.\nApply packet D3 option 3 at the two cited `spec/SPINTRONIC.md` paragraphs.\nThe reference 25 ns admission value alone supplies no device characterization,\nconformance or attestation. Separate routing and expiry criteria need a\ncharacterized profile. Rationale: numerical software evidence does not establish\na real-device guarantee. Other historical device passages remain in the frozen\nbaseline for review; this decision does not validate or rewrite them.",
+          "sha256": "63978e4e8169f7fe0dbd3347896f52a7afe2fe11bc44434f6cfa8a5ddae7d340"
+        },
+        "created_file_sha256": "0f07c2379862a0e71fe88e20cba54fea8454565db26ed1ad01d6225eff754978"
+      },
+      {
+        "rule_id": "BND-F-2",
+        "severity": "MEDIUM",
+        "path": "spec/SPINTRONIC.md",
+        "line": 288,
+        "decision_id": "CX-006-D3",
+        "before": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 288,
+          "end": 288,
+          "kind": "list_item",
+          "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
+          "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c"
+        },
+        "after": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 288,
+          "end": 288,
+          "kind": "list_item",
+          "text": "2. On spintronic platforms, real-device Shell=0 conformance remains experimental. A device profile must separately specify the routing budget, measured lifetime under routing load and expiry criterion; the reference 25 ns value alone establishes none of these measurements.",
+          "sha256": "bcb5e2a19df7fd9b29c6e2496ab7441136d2b35284028fe0eb6474f3d2dbebca"
+        }
+      },
+      {
+        "rule_id": "BND-F-2",
+        "severity": "MEDIUM",
+        "path": "spec/SPINTRONIC.md",
+        "line": 311,
+        "decision_id": "CX-006-D3",
+        "before": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 311,
+          "end": 311,
+          "kind": "paragraph",
+          "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
+          "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc"
+        },
+        "after": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 311,
+          "end": 311,
+          "kind": "paragraph",
+          "text": "The reference `csp_from_rpp()` sets Shell=0 `min_t2_ns` to `SHELL_T2_NS[0]` = 25 and applies the existing SCOUT admission check. This software threshold is not device attestation. Real-device support remains experimental until the separate routing and expiry criteria are characterized; no physical-erasure guarantee follows from admission.",
+          "sha256": "cacde5d4566e7a262c9ae68cf01285821371b704072421e09163fc55de2bfd25"
+        }
+      },
+      {
+        "rule_id": "BND-F-BASELINE-REMOVED",
+        "severity": "MEDIUM",
+        "path": "rpp/continuity.py",
+        "line": 276,
+        "decision_id": "CX-006-D4",
+        "before": {
+          "path": "rpp/continuity.py",
+          "line": 269,
+          "end": 287,
+          "kind": "docstring",
+          "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+          "sha256": "84bc5af82f68997c5e0e251d1d1ff0c3b37003b80ae16d5ff0292f1ec05e06e7"
+        },
+        "after": {
+          "path": "rpp/continuity.py",
+          "line": 269,
+          "end": 288,
+          "kind": "docstring",
+          "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the reference software timeout is 25 ns.\n    This function returns a policy deadline; it does not establish physical erasure.\n    Device-specific enforcement requires independent characterization.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+          "sha256": "a5b6c65570eaa7456b7400c643b55ea30a9100c47a02c67010fccb4d9b2d04ca"
+        }
+      },
+      {
+        "rule_id": "BND-F-BASELINE-REMOVED",
+        "severity": "MEDIUM",
+        "path": "spec/CCQPSG.md",
+        "line": 108,
+        "decision_id": "CX-006-D2",
+        "before": {
+          "path": "spec/CCQPSG.md",
+          "line": 108,
+          "end": 108,
+          "kind": "list_item",
+          "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
+          "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a"
+        },
+        "after": {
+          "path": "spec/CCQPSG.md",
+          "line": 108,
+          "end": 108,
+          "kind": "list_item",
+          "text": "- IF shell=0 THEN the reference software rejects elapsed time >= 25 ns. This is a software policy deadline, not a physical-erasure guarantee. A session-scoped profile would require a separate lifecycle contract.",
+          "sha256": "4b85a4f897d8dac0374d7a97163cbed175a393b04c9c1052712cf92e34bb6a07"
+        }
+      },
+      {
+        "rule_id": "STEWARD-CLAIM-1",
+        "severity": "MEDIUM",
+        "path": "rpp/continuity.py",
+        "line": 276,
+        "decision_id": "CX-006-D4",
+        "before": {
+          "path": "rpp/continuity.py",
+          "line": 269,
+          "end": 287,
+          "kind": "docstring",
+          "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the returned value is the physical T2 spintronic decoherence\n    time \u2014 not a soft deadline. The state literally ceases to exist after this.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+          "sha256": "84bc5af82f68997c5e0e251d1d1ff0c3b37003b80ae16d5ff0292f1ec05e06e7"
+        },
+        "after": {
+          "path": "rpp/continuity.py",
+          "line": 269,
+          "end": 288,
+          "kind": "docstring",
+          "text": "\"\"\"\n    Return the liminal timeout duration in nanoseconds for the given shell tier.\n\n    This is the maximum allowed elapsed time for a crossing to complete.\n    Timeouts are shell-derived and not configurable per crossing (Protocol\n    Invariant 4 from spec/CONTINUITY.md Section 10).\n\n    For Shell 0, the reference software timeout is 25 ns.\n    This function returns a policy deadline; it does not establish physical erasure.\n    Device-specific enforcement requires independent characterization.\n\n    Args:\n        shell: Shell tier integer 0-3.\n\n    Returns:\n        Timeout duration in nanoseconds.\n\n    Raises:\n        ValueError: If shell is not in 0-3.\n    \"\"\"",
+          "sha256": "a5b6c65570eaa7456b7400c643b55ea30a9100c47a02c67010fccb4d9b2d04ca"
+        }
+      },
+      {
+        "rule_id": "STEWARD-RADIUS-DERIVATION",
+        "severity": "MEDIUM",
+        "path": "spec/ADDRESSING-LAYERS.md",
+        "line": 142,
+        "decision_id": "CX-006-D1",
+        "before": {
+          "path": "spec/ADDRESSING-LAYERS.md",
+          "line": 133,
+          "end": 154,
+          "kind": "code_fence",
+          "text": "```python\ndef semantic_to_transport(shell, theta, phi, harmonic):\n    \"\"\"\n    Translate v1.0 Semantic Interface address to v2.0 Transport/Resonance format.\n    This is a lossy projection \u2014 v2.0 represents a resonance tier approximation.\n    \"\"\"\n    theta_v2 = max(1, min(27, (theta * 27) // 512 + 1))   # 9-bit \u2192 Repitan 1-27\n    phi_v2 = max(1, min(6, (phi * 6) // 512 + 1))          # 9-bit \u2192 RAC 1-6\n    harmonic_v2 = min(4, (harmonic * 5) // 256)             # 8-bit \u2192 Omega 0-4\n    radius_v2 = shell / 3.0                                  # Shell \u2192 normalized radius\n    return theta_v2, phi_v2, harmonic_v2, radius_v2\n\ndef transport_to_semantic(theta_v2, phi_v2, harmonic_v2, radius_v2):\n    \"\"\"\n    Approximate reverse: v2.0 Transport \u2192 v1.0 Semantic. Always approximate.\n    \"\"\"\n    theta = ((theta_v2 - 1) * 512) // 27\n    phi = ((phi_v2 - 1) * 512) // 6\n    harmonic = (harmonic_v2 * 256) // 5\n    shell = round(radius_v2 * 3)\n    return shell, theta, phi, harmonic\n```",
+          "sha256": "4c896c30d3388cc49fd499f47327e8d56c48384a01f4a08bddf170faa369c9c2"
+        },
+        "after": {
+          "path": "spec/ADDRESSING-LAYERS.md",
+          "line": 133,
+          "end": 154,
+          "kind": "code_fence",
+          "text": "```python\ndef semantic_to_transport_shell_projection(shell, theta, phi, harmonic):\n    \"\"\"\n    Translate v1.0 Semantic Interface address to v2.0 Transport/Resonance format.\n    This is a lossy projection \u2014 v2.0 represents a resonance tier approximation.\n    \"\"\"\n    theta_v2 = max(1, min(27, (theta * 27) // 512 + 1))   # 9-bit \u2192 Repitan 1-27\n    phi_v2 = max(1, min(6, (phi * 6) // 512 + 1))          # 9-bit \u2192 RAC 1-6\n    harmonic_v2 = min(4, (harmonic * 5) // 256)             # 8-bit \u2192 Omega 0-4\n    radius_v2 = shell / 3.0  # Explicit shell-projection policy; not neutral-radius\n    return theta_v2, phi_v2, harmonic_v2, radius_v2\n\ndef transport_to_semantic(theta_v2, phi_v2, harmonic_v2, radius_v2):\n    \"\"\"\n    Approximate reverse: v2.0 Transport \u2192 v1.0 Semantic. Always approximate.\n    \"\"\"\n    theta = ((theta_v2 - 1) * 512) // 27\n    phi = ((phi_v2 - 1) * 512) // 6\n    harmonic = (harmonic_v2 * 256) // 5\n    shell = round(radius_v2 * 3)\n    return shell, theta, phi, harmonic\n```",
+          "sha256": "a05cd18b235c60eb0c6c7c30146a19e2f5712838fdd2f32080a635702bda921e"
+        }
+      },
+      {
+        "rule_id": "STEWARD-RADIUS-DERIVATION",
+        "severity": "MEDIUM",
+        "path": "spec/RPP-CANONICAL-v2.md",
+        "line": 347,
+        "decision_id": "CX-006-D1",
+        "before": {
+          "path": "spec/RPP-CANONICAL-v2.md",
+          "line": 347,
+          "end": 347,
+          "kind": "list_item",
+          "text": "   - `radius_v2 = 0.5` (default)",
+          "sha256": "937021794b549f79a0e56693a0ba562b2bbf3bff6e37241324b3b20a135bde9e"
+        },
+        "after": {
+          "path": "spec/RPP-CANONICAL-v2.md",
+          "line": 347,
+          "end": 350,
+          "kind": "list_item",
+          "text": "   - `radius_v2 = 0.5` under the explicitly selected `neutral-radius` policy.\n     This does not preserve the v1 shell. The alternative `shell-projection`\n     policy uses `radius_v2 = shell_v1 / 3.0`. A migration API must require the\n     caller to name its policy; neither mapping is a universal default.",
+          "sha256": "4ca8247566f3e91df89786ffae44addf9d2ce2c8068cd1acc0880b1d44042b0f"
+        }
+      },
+      {
+        "rule_id": "STEWARD-T2-1",
+        "severity": "MEDIUM",
+        "path": "spec/SPINTRONIC.md",
+        "line": 288,
+        "decision_id": "CX-006-D3",
+        "before": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 288,
+          "end": 288,
+          "kind": "list_item",
+          "text": "2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be \u2264 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.",
+          "sha256": "8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c"
+        },
+        "after": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 288,
+          "end": 288,
+          "kind": "list_item",
+          "text": "2. On spintronic platforms, real-device Shell=0 conformance remains experimental. A device profile must separately specify the routing budget, measured lifetime under routing load and expiry criterion; the reference 25 ns value alone establishes none of these measurements.",
+          "sha256": "bcb5e2a19df7fd9b29c6e2496ab7441136d2b35284028fe0eb6474f3d2dbebca"
+        }
+      },
+      {
+        "rule_id": "STEWARD-T2-1",
+        "severity": "MEDIUM",
+        "path": "spec/SPINTRONIC.md",
+        "line": 311,
+        "decision_id": "CX-006-D3",
+        "before": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 311,
+          "end": 311,
+          "kind": "paragraph",
+          "text": "For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 \u2265 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.",
+          "sha256": "124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc"
+        },
+        "after": {
+          "path": "spec/SPINTRONIC.md",
+          "line": 311,
+          "end": 311,
+          "kind": "paragraph",
+          "text": "The reference `csp_from_rpp()` sets Shell=0 `min_t2_ns` to `SHELL_T2_NS[0]` = 25 and applies the existing SCOUT admission check. This software threshold is not device attestation. Real-device support remains experimental until the separate routing and expiry criteria are characterized; no physical-erasure guarantee follows from admission.",
+          "sha256": "cacde5d4566e7a262c9ae68cf01285821371b704072421e09163fc55de2bfd25"
+        }
+      },
+      {
+        "rule_id": "STEWARD-TTL-1",
+        "severity": "MEDIUM",
+        "path": "spec/CCQPSG.md",
+        "line": 108,
+        "decision_id": "CX-006-D2",
+        "before": {
+          "path": "spec/CCQPSG.md",
+          "line": 108,
+          "end": 108,
+          "kind": "list_item",
+          "text": "- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).",
+          "sha256": "024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a"
+        },
+        "after": {
+          "path": "spec/CCQPSG.md",
+          "line": 108,
+          "end": 108,
+          "kind": "list_item",
+          "text": "- IF shell=0 THEN the reference software rejects elapsed time >= 25 ns. This is a software policy deadline, not a physical-erasure guarantee. A session-scoped profile would require a separate lifecycle contract.",
+          "sha256": "4b85a4f897d8dac0374d7a97163cbed175a393b04c9c1052712cf92e34bb6a07"
+        }
+      },
+      {
+        "rule_id": "STEWARD-TTL-1",
+        "severity": "MEDIUM",
+        "path": "spec/SPEC.md",
+        "line": 94,
+        "decision_id": "CX-006-D2",
+        "before": {
+          "path": "spec/SPEC.md",
+          "line": 94,
+          "end": 94,
+          "kind": "table_row",
+          "text": "| 0 | Hot | In-memory cache | Session duration | ~25 ns |",
+          "sha256": "27278e8820316822762edc5d1386d2befbd18c899f6f4ac8eab5eeb1c304f32a"
+        },
+        "after": {
+          "path": "spec/SPEC.md",
+          "line": 94,
+          "end": 94,
+          "kind": "table_row",
+          "text": "| 0 | Hot | In-memory cache | 25 ns reference software TTL | ~25 ns device-profile target |",
+          "sha256": "81bf3fa0e5107a5206091a9ffd18b579e7601cd013b6f70194f8af8c169d78f3"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "VERSION_POLICY.md",
+        "line": 70,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "VERSION_POLICY.md",
+          "line": 70,
+          "end": 70,
+          "kind": "table_row",
+          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (radius << 13) \\| reserved` |",
+          "sha256": "79e9126c1e862a51f3c27387d087f6cf841c001bcc6d595a6f0b4bd104c53ee9"
+        },
+        "after": {
+          "path": "VERSION_POLICY.md",
+          "line": 70,
+          "end": 70,
+          "kind": "table_row",
+          "text": "| Encoding | `(theta << 27) \\| ((phi-1) << 24) \\| (harmonic << 21) \\| (r_enc << 13) \\| reserved` |",
+          "sha256": "94a27849c01147af106e32564526dc444986c325dcf531cced093373e0177bf5"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "VERSION_POLICY.md",
+        "line": 74,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "VERSION_POLICY.md",
+          "line": 74,
+          "end": 74,
+          "kind": "table_row",
+          "text": "| Radius decoding | `(address >> 13) & 0xFF` |",
+          "sha256": "fa296d3f61d0cb90458d73481bf15109146fb809483361d9dd19cbb51de08f3e"
+        },
+        "after": {
+          "path": "VERSION_POLICY.md",
+          "line": 74,
+          "end": 74,
+          "kind": "table_row",
+          "text": "| Radius decoding | `r_enc = (address >> 13) & 0xFF; radius = r_enc / 255.0` |",
+          "sha256": "44365b8e4230e8d3a16fe44ae4b727b36f1ca7e60032ca20ee6681e64d263442"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "VERSION_POLICY.md",
+        "line": 83,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "VERSION_POLICY.md",
+          "line": 83,
+          "end": 83,
+          "kind": "table_row",
+          "text": "| Radius | 0 | 255 | Normalized 0-1 |",
+          "sha256": "dfc79e8073861ee6894b12ce8b33226cbee723d6a9259343a05767a026cbf69e"
+        },
+        "after": {
+          "path": "VERSION_POLICY.md",
+          "line": 85,
+          "end": 85,
+          "kind": "table_row",
+          "text": "| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0\u20131 |",
+          "sha256": "e70442aaf7e04c22d529fbd62f3cd759fbe8e746793ab350f76312c875487796"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "spec/ADDRESSING-LAYERS.md",
+        "line": 114,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "spec/ADDRESSING-LAYERS.md",
+          "line": 114,
+          "end": 114,
+          "kind": "table_row",
+          "text": "| r (Radius) | 8 | 0\u2013255 | Intensity scalar (Ankh-normalized emergence strength) |",
+          "sha256": "6afe82fb277b2b00ac27577725cf7294bb7911dae65e09267edee0f1fc98e0db"
+        },
+        "after": {
+          "path": "spec/ADDRESSING-LAYERS.md",
+          "line": 114,
+          "end": 114,
+          "kind": "table_row",
+          "text": "| r (Radius) | 8 | 0\u2013255 | Encoded byte 0\u2013255; API intensity scalar 0\u20131 |",
+          "sha256": "dd9391e8794cb14527f683e04f99f5ccc03651ef6c5264c0a3a861d66d628af5"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "spec/PMA-SCHEMA-v1.md",
+        "line": 116,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "spec/PMA-SCHEMA-v1.md",
+          "line": 116,
+          "end": 116,
+          "kind": "table_row",
+          "text": "| [20:13] | r (radius) | 0-255 (normalized) |",
+          "sha256": "f9cd20cf0d32ba1aada02b233cb8ab0d63a445ea4c93827d1af399dd3f6c26f3"
+        },
+        "after": {
+          "path": "spec/PMA-SCHEMA-v1.md",
+          "line": 116,
+          "end": 116,
+          "kind": "table_row",
+          "text": "| [20:13] | r (radius) | Encoded byte 0\u2013255; API radius 0\u20131 |",
+          "sha256": "8b7ba1651175b1b6e747d7b8f7e3db65d68bba74b9179090419c00b1bd31c68c"
+        }
+      },
+      {
+        "rule_id": "WORD-RADIUS-1",
+        "severity": "LOW",
+        "path": "spec/README.md",
+        "line": 92,
+        "decision_id": "CX-006-A1",
+        "before": {
+          "path": "spec/README.md",
+          "line": 92,
+          "end": 92,
+          "kind": "table_row",
+          "text": "| r (Radius) | 8 | 0\u2013255 | Ankh-normalized |",
+          "sha256": "7e0d8a036d1611a32e6fa231c1b249d1ef6a8b95c8b351e33a50495ef188b547"
+        },
+        "after": {
+          "path": "spec/README.md",
+          "line": 92,
+          "end": 92,
+          "kind": "table_row",
+          "text": "| r (Radius) | 8 | 0\u2013255 | Encoded byte; normalized API radius 0\u20131 |",
+          "sha256": "a27f80f123b06c59d01570fbf825a81845aecbb45f05382bebba29dcf4174a9e"
+        }
+      }
+    ]
   }
 }
