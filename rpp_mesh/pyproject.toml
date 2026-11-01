@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "RPP Mesh - experimental consent-aware overlay network extension for the RPP Python reference implementation"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Alexander Liam Lennon" }
 ]
@@ -26,7 +26,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
