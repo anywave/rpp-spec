@@ -58,7 +58,7 @@ def test_production_python_contract_reports_complete_domains_and_separate_sentin
 
 
 def test_terminal_affinity_row_preserves_each_binding_contract_and_exact_disagreement(terminal):
-    """Failing mutation: conflate the two bindings or conceal their exact disagreement with Python."""
+    """Failing mutation: conceal either binding's exact endpoint disagreement with Python."""
     result = verdict.analyze_affinity(verdict.affinity_rows(terminal))
     verdict.require_affinity(result)
     assert result["points"] == 1 and result["adjacent_driver_pairs"] == 0
@@ -89,9 +89,11 @@ def test_affinity_parser_rejects_unknown_rows(terminal):
 
 @pytest.mark.parametrize("mutation", ("formula", "threshold", "score-dependence", "bounds"))
 def test_affinity_contract_rejects_changed_native_binding_outputs(terminal, mutation):
-    """Failing mutation: drop a native formula, threshold, threshold-irrelevance or range contract check."""
+    """Failing mutations: skip formula/threshold/score independence; out-of-range output must reject (bounds guard is redundant)."""
     row = list(verdict.affinity_rows(terminal)[0])
     row[{"formula": 4, "threshold": 6, "score-dependence": 5, "bounds": 4}[mutation]] = {"formula": 1, "threshold": 0, "score-dependence": 1, "bounds": 256}[mutation]
+    if mutation == "formula":
+        row[5] = row[4]  # Isolate formula failure: repeat score and threshold bits stay consistent.
     with pytest.raises(AssertionError, match="contract"):
         verdict.require_affinity(verdict.analyze_affinity([tuple(row)]))
 

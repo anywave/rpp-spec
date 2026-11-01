@@ -60,7 +60,7 @@ def test_parser_rejects_corrupt_or_incomplete_native_evidence(mutation):
     changed = {"missing": rest, "duplicate": text + first + "\n",
                "unknown": text.replace("MAP,0,0", "MAP,0,x", 1),
                "outside": text.replace("MAP,0,0", "MAP,32,0", 1),
-               "kind": text.replace("MAP,0,0", "BOGUS,0,0", 1),
+               "kind": text + "BOGUS,0,0\n",
                "output": text.replace("MAP,0,0", "MAP,0,8", 1)}[mutation]
     with pytest.raises(ValueError):
         sector.parse_rows(changed)
