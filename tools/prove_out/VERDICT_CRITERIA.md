@@ -132,3 +132,16 @@ Binary64 values are reported without redefining the cross-binding criterion.
 The duplicated sector decoder in rpp_canonical.v is a separate label-producing
 path: compare decoded full words and their irrelevant fields as well as the
 standalone theta helper. Helper agreement cannot stand in for decoder evidence.
+
+## Final inventory addition, before these model bindings run
+
+CoherenceEvaluator_Stub in spiral_consolidated.v and the Python legacy
+hdl_simulation.CoherenceEvaluator are distinct legacy arithmetic models:
+characterize their shared 64 by 32 input grid, including finite-width wrap.
+The Python canonical evaluator is another 674-point policy binding; compare
+its 32 by 8 input grid separately. The Python Ra evaluator returns a different
+floating scale with different constants; characterize its inputs and outputs
+without silently multiplying it into the 674-point profile.
+Existing deterministic sweeps also cover HRDA, complement geometry, caller
+consent and SpinSite simulation; their names do not turn them into one quantity.
+This closes the source inventory without changing an earlier acceptance test.
