@@ -1,6 +1,7 @@
 """Mutation witnesses for composite metadata, PR totals and UTF-8 rules."""
 import subprocess
 import unittest
+from unittest import mock
 
 import gate
 import test_gate as fixtures
@@ -63,8 +64,13 @@ class RuleTests(unittest.TestCase):
     def test_readable_bounds_changed_content_before_patch_read(self):
         """Kills unbounded patch/blob reads on a huge single-line addition."""
         self.write('large.txt', 'a' * (4 * 1024 * 1024 + 1))
-        findings = self.check('readable', self.commit('large single line'))
+        head = self.commit('large single line')
+        findings = self.check('readable', head)
         self.assertTrue(any('exceeds 4 MiB' in finding for finding in findings))
+        self.base = head
+        self.write('large.txt', 'small\n')
+        findings = self.check('readable', self.commit('shrink large prior content'))
+        self.assertTrue(any('prior content exceeds 4 MiB' in finding for finding in findings))
 
     def test_commit_object_and_history_limits_fail_closed(self):
         """Kills unbounded commit-body reads and unbounded per-commit check loops."""
@@ -74,8 +80,8 @@ class RuleTests(unittest.TestCase):
         result = subprocess.run(['git', 'hash-object', '-w', '-t', 'commit', '--stdin'], input=header + b'\n\n' + b'x' * (1024 * 1024 + 1), capture_output=True, check=True)
         with self.assertRaisesRegex(ValueError, 'commit object exceeds 1 MiB'):
             gate.message_bytes(result.stdout.decode().strip())
-        with unittest.mock.patch.object(gate, 'git', return_value='a' * 40 + '\n'):
+        with mock.patch.object(gate, 'git', return_value='a' * 40 + '\n'):
             self.assertEqual(len(gate.commits(self.base, head)), 1)
-        with unittest.mock.patch.object(gate, 'git', return_value=('a' * 40 + '\n') * 129):
+        with mock.patch.object(gate, 'git', return_value=('a' * 40 + '\n') * 129):
             with self.assertRaisesRegex(ValueError, '128 commits'):
                 gate.commits(self.base, head)

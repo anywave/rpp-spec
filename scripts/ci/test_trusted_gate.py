@@ -78,11 +78,11 @@ class TrustedGateTests(unittest.TestCase):
         self.checkout_base()
         result = subprocess.run([sys.executable, '-I', str(self.root / 'scripts/ci/trusted_gate.py'), '--base', self.base, '--head', head, '--output', str(self.output / 'receipt.json')], capture_output=True, text=True, timeout=30)
         report = json.loads(result.stdout)
+        self.assertFalse(marker.exists())
         self.assertEqual(result.returncode, 1)
         self.assertEqual((report['base'], report['head']), (self.base, head))
         self.assertTrue(any('widget/action.yaml' in item for item in self.findings(report, 'actions')))
         self.assertEqual(json.loads((self.output / 'receipt.json').read_text()), report)
-        self.assertFalse(marker.exists())
 
     def test_empty_base_owners_ignore_head_owner_file_and_mailmap_self_approval(self):
         """Kills reading owners/mailmap from HEAD or treating a branch name as owner approval."""
@@ -116,7 +116,9 @@ class TrustedGateTests(unittest.TestCase):
         """Kills path traversal and Windows separator/drive interpretation in metadata export."""
         for path in ('.github/../action.yaml', '.github/a\\b.yaml', '.github/a:b.yaml'):
             record = b'100644 blob ' + b'a' * 40 + b'\t' + path.encode() + b'\0'
-            with mock.patch.object(self.runner, 'git_bytes', return_value=record):
+            def metadata(*args):
+                return record if args[0] == 'ls-tree' else b'6\n' if args[:2] == ('cat-file', '-s') else b'x: ok\n'
+            with mock.patch.object(self.runner, 'git_bytes', side_effect=metadata):
                 with self.assertRaises(ValueError):
                     self.runner.export_metadata(self.output, self.base)
 
@@ -165,8 +167,8 @@ class TrustedGateTests(unittest.TestCase):
         head = self.commit()
         self.checkout_base()
         report = self.runner.run(self.base, head)
-        self.assertTrue(any('widget/action.yaml' in error for error in self.findings(report, 'actions')))
         self.assertFalse(marker.exists())
+        self.assertTrue(any('widget/action.yaml' in error for error in self.findings(report, 'actions')))
 
     def test_runner_refuses_wrong_checkout_tampered_base_files_and_external_code_identity(self):
         """Kills trusting HEAD cwd, modified BASE runner/gate bytes, or a runner outside the BASE tree."""
@@ -232,4 +234,8 @@ class TrustedGateTests(unittest.TestCase):
         self.checkout_base()
         for path in ('scripts/ci/gate.py', 'scripts/ci/trusted_gate.py'):
             self.write(path, (self.root / path).read_bytes().replace(b'\n', b'\r\n'))
-        self.assertEqual(self.runner.run(self.base, head)['findings'], 0)
+        try:
+            report = self.runner.run(self.base, head)
+        except ValueError as error:
+            self.fail(f'canonical CRLF checkout rejected: {error}')
+        self.assertEqual(report['findings'], 0)
