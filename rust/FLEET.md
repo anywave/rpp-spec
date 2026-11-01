@@ -202,8 +202,10 @@ eligibility checks; stored data history does not exempt those checks.
 An empty, forged, wrong-target or superseded reference returns the explicit
 `InvalidDataReference` error rather than being silently replaced with an empty
 path. A historically old but still latest primary is not superseded merely by
-elapsed time. Only actual clock rollback maps to `ClockRollback`; other invalid
-core inputs map to `InvalidInput`.
+elapsed time. Both resolver entry points check `tick < policy.clock()` first,
+before input validation, meter retention or any core call. Rollback returns
+`ClockRollback` without changing state, including when another input is invalid.
+After that check, core invalid input always maps to `InvalidInput`.
 
 The library chooses a route; real adapters remain responsible for sends,
 outcomes and boundary errors. Reuse the existing first-token retry boundary and
