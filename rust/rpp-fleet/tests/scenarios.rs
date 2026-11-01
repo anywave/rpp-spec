@@ -566,7 +566,7 @@ fn replay_row_is_denied_and_next_sequence_succeeds() {
     assert_eq!(replay_row()[2], "DENIED");
 }
 
-/// Failing mutations data_rollback_guard_bypassed/control_rollback_after_path_validation: spend state on rollback.
+/// Failing mutation control_rollback_guard_bypassed: return core InvalidInput instead of the fleet rollback error.
 #[test]
 fn rollback_row_preserves_fleet_state_and_distinguishes_core_invalid_input() {
     assert_eq!(rollback_row()[2], "CLOCK_ROLLBACK");
