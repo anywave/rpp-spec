@@ -12,7 +12,16 @@ IGNORABLE = [(0xad, 0xad), (0x34f, 0x34f), (0x61c, 0x61c), (0x115f, 0x1160), (0x
 
 
 def git_bytes(*args):
-    return subprocess.check_output(['git', '--literal-pathspecs', *args])
+    command = ['git', '--literal-pathspecs', *args]
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as process:
+        data = process.stdout.read(8 * 1024 * 1024 + 1)
+        if len(data) > 8 * 1024 * 1024:
+            process.kill()
+            raise ValueError('Git output exceeds 8 MiB')
+        code = process.wait()
+        if code:
+            raise subprocess.CalledProcessError(code, command)
+        return data
 
 
 def git(*args):
@@ -99,12 +108,21 @@ def permissions(root, base, head, allow):
     return errors
 
 
+def message_bytes(commit):
+    if int(git('cat-file', '-s', commit)) > 1024 * 1024:
+        raise ValueError('commit object exceeds 1 MiB')
+    return git_bytes('cat-file', 'commit', commit).partition(b'\n\n')[2]
+
+
 def message(commit):
-    return git('cat-file', 'commit', commit).partition('\n\n')[2]
+    return message_bytes(commit).decode('utf-8', errors='replace')
 
 
 def commits(base, head):
-    return git('rev-list', '--reverse', f'{base}..{head}').splitlines()
+    items = git('rev-list', '--reverse', '--max-count=129', f'{base}..{head}').splitlines()
+    if len(items) > 128:
+        raise ValueError('PR history exceeds 128 commits')
+    return items
 
 
 def changed(base, head, *options):
@@ -170,6 +188,10 @@ def readable(root, base, head, allow):
         if size.returncode or int(size.stdout) > 4 * 1024 * 1024:
             errors.append(f'{ascii(path)}:0: changed content unavailable or exceeds 4 MiB')
             continue
+        old_size = subprocess.run(['git', 'cat-file', '-s', f'{ancestor}:{path}'], capture_output=True)
+        if old_size.returncode == 0 and int(old_size.stdout) > 4 * 1024 * 1024:
+            errors.append(f'{ascii(path)}:0: prior content exceeds 4 MiB')
+            continue
         if added == b'-':
             blob = subprocess.run(['git', 'show', f'{head}:{path}'], capture_output=True)
             if blob.returncode or b'\0' in blob.stdout[:8000]:
@@ -188,7 +210,7 @@ def readable(root, base, head, allow):
                     errors.append(f'{ascii(path)}:{new}: non-UTF-8 bytes')
                 new += 1
     for commit in commits(base, head):
-        for number, line in enumerate(git_bytes('cat-file', 'commit', commit).partition(b'\n\n')[2].split(b'\n'), 1):
+        for number, line in enumerate(message_bytes(commit).split(b'\n'), 1):
             try:
                 errors += unreadable(line.decode('utf-8'), commit, number)
             except UnicodeDecodeError:

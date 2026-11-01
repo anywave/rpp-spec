@@ -65,3 +65,17 @@ class RuleTests(unittest.TestCase):
         self.write('large.txt', 'a' * (4 * 1024 * 1024 + 1))
         findings = self.check('readable', self.commit('large single line'))
         self.assertTrue(any('exceeds 4 MiB' in finding for finding in findings))
+
+    def test_commit_object_and_history_limits_fail_closed(self):
+        """Kills unbounded commit-body reads and unbounded per-commit check loops."""
+        self.write('plain.txt', 'valid\n')
+        head = self.commit('valid')
+        header = gate.git_bytes('cat-file', 'commit', head).partition(b'\n\n')[0]
+        result = subprocess.run(['git', 'hash-object', '-w', '-t', 'commit', '--stdin'], input=header + b'\n\n' + b'x' * (1024 * 1024 + 1), capture_output=True, check=True)
+        with self.assertRaisesRegex(ValueError, 'commit object exceeds 1 MiB'):
+            gate.message_bytes(result.stdout.decode().strip())
+        with unittest.mock.patch.object(gate, 'git', return_value='a' * 40 + '\n'):
+            self.assertEqual(len(gate.commits(self.base, head)), 1)
+        with unittest.mock.patch.object(gate, 'git', return_value=('a' * 40 + '\n') * 129):
+            with self.assertRaisesRegex(ValueError, '128 commits'):
+                gate.commits(self.base, head)
