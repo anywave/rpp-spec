@@ -1,0 +1,26 @@
+{
+  "bytes": {
+    "address-construct.tsv": 386536,
+    "address-raw.tsv": 217295,
+    "address-uri.tsv": 470223
+  },
+  "counts": {
+    "construct": 4110,
+    "raw": 2119,
+    "uri": 3268
+  },
+  "evidence": "actual unchanged Python RPPAddress outputs; Rust tests consume these fixtures",
+  "limits": [
+    "Rust integer fields cannot represent Python bool arguments",
+    "Unicode Nd table frozen to Python Unicode15.0.0",
+    "signed raw corpus is bounded to i64; from_word handles all u32 values",
+    "negative-zero URI and prefix parser behavior preserved"
+  ],
+  "python_unicode_version": "15.0.0",
+  "sha256": {
+    "address-construct.tsv": "7f68bc4bbfdc6e0f0e5dff92b02bbae08633d325bb23dc408653b8fec519893a",
+    "address-raw.tsv": "2236f7fea51beacc32c6e3f807ca873a500b667d18cc00d46abf6a4c44e3711e",
+    "address-uri.tsv": "48886c20fda49012fb715dedb5b443045cc5dcc89a1d6dbc252b6bfe58b118c7"
+  },
+  "source_sha256_lf": "59be4b9e5d8544095218088c76476a8989757d9acdf46d2ad98cec4046170824"
+}

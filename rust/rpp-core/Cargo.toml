@@ -1,0 +1,13 @@
+[package]
+name = "rpp-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "RPP address types and deterministic resolver and overlay policy models"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
