@@ -27,7 +27,7 @@ frozen format-guard wording, not a changed layout, bit position or constant.
 | D7 review-proposal + reuse | Separate informative status at `spec/RESOLVER.md:738`, exact inserted profile at `:745`, reuse direction at `:796`; record at `DECISIONS.md:111`. No implementation or current normative-conformance claim. |
 | B1–B6 annotate | Exact manifest preamble + 243 ID-ordered lines in `docs/codex/steward/BASELINE_REVIEW.md:1`; records at `DECISIONS.md:128`. Frozen source manifest/catalog remain unchanged. |
 | A1 clarify | `VERSION_POLICY.md:70`, `:74`, `:85`; encoding explanation after the complete table at `:77`; `spec/README.md:92`, `spec/PMA-SCHEMA-v1.md:116`, `spec/ADDRESSING-LAYERS.md:114`; record at `DECISIONS.md:170`. |
-| A2 separate-proposal | Record at `DECISIONS.md:187`; the existing packet proposal remains separate; behavior unchanged. |
+| A2 separate-proposal | Record at `DECISIONS.md:180`; the existing packet proposal remains separate; behavior unchanged. |
 | RTL repair | Record of separate approval at `DECISIONS.md:187`; no RTL change on this branch. |
 | Current packet disposition | New prefix in `docs/codex/STEWARD_PACKET.md:1`; prior proposal/evidence body is explicitly historical. |
 
