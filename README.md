@@ -359,7 +359,7 @@ Claims in this repository are re-checked on every push and pull request by publi
 
 | Claim | Check | Runs |
 |---|---|---|
-| The Python reference implementation passes its test suite on Windows, Linux and macOS, Python 3.9 to 3.12 | `pytest tests/` | [CI runs](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml) |
+| The Python reference implementation passes its test suite on Windows, Linux and macOS, Python 3.10 to 3.12 | `pytest tests/` | [CI runs](https://github.com/anywave/rpp-spec/actions/workflows/ci.yml) |
 | The Mobius 32-bit address profile: four golden vectors, reject-not-mask, nonzero MBZ refused | `python tests/test_golden_vectors_mobius32.py` (standalone, no package import) | [Golden vectors runs](https://github.com/anywave/rpp-spec/actions/workflows/golden-vectors.yml) |
 | The consent gate passes its 20 simulation checks (Icarus Verilog) and synthesises for a Lattice ECP5 (LUT, FF, BRAM, Fmax in the job summary) | `iverilog -g2012 -Wall -o gate_tb rpp_consent_gate.v rpp_consent_gate_tb.v && vvp gate_tb`, then Yosys + nextpnr-ecp5 from a pinned OSS CAD Suite release | [Consent gate runs](https://github.com/anywave/rpp-spec/actions/workflows/consent-gate.yml) |
 

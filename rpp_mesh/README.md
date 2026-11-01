@@ -3,7 +3,7 @@
 **Consent-Aware Overlay Network for RPP**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/anywave/rpp-spec/blob/master/LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI](https://img.shields.io/pypi/v/rpp-mesh.svg)](https://pypi.org/project/rpp-mesh/)
 
 RPP Mesh extends the [Rotational Packet Protocol](https://pypi.org/project/rpp-protocol/) with network-level consent enforcement. Instead of checking consent only at the application layer, mesh nodes inspect RPP headers and enforce ACSP states at every hop.
@@ -131,7 +131,7 @@ config = load_config("production")
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - [rpp-protocol](https://pypi.org/project/rpp-protocol/) >= 0.1.9
 - Optional: [websockets](https://pypi.org/project/websockets/) for HNC consent streaming
 
