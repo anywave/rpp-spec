@@ -79,12 +79,14 @@ def artifacts():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=Path(__file__).parent / "results")
+    parser.add_argument("--output-dir", type=Path, required=True, help="explicit destination for generated artifacts")
     args = parser.parse_args()
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = args.output_dir
+    output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"output_dir={output_dir}")
     result = artifacts()
     for name, data in result.items():
-        (args.output_dir / name).write_bytes(data)
+        (output_dir / name).write_bytes(data)
     rows, _ = run()
     print(f"meter_rows={len(rows)} requests={len({r['request'] for r in rows})} artifacts={len(result)}")
     for name, data in result.items():

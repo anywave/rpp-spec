@@ -247,6 +247,15 @@ forwarding consent remains directed. Its path cost is the sum of
 for deterministic ties. Readings are fresh for ticks 0 through 5 after sampling;
 two failures open a link circuit for two ticks. It returns an explicit
 `NO_INDEPENDENT_CHANNEL` when control cannot avoid all data failure domains.
+Control additionally requires a nonempty route snapshot previously selected by
+this simulator for the same endpoints, and a verified tunnel verdict on every
+control hop; default or unknown references are denied. These are fixture
+verification results, not an implementation of signatures or tunnels. Rejected,
+invalid and no-channel operations do not advance accepted scenario time. Only
+accepted operations/application queries advance time; recipient validation comes
+before application-time advancement. Replay storage uses `(issuer, receipt)`, so
+one issuer cannot consume another issuer's receipt ID. The scenario CLI requires
+an explicit output directory and never chooses an in-tree default destination.
 Billboard `kind` is restricted to `fact` or `rule`; both are inert records in
 this demo, and no fact is executed or installed as an agent instruction.
 Numeric ranking weights, breaker cooldown,

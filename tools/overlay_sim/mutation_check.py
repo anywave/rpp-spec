@@ -1,7 +1,8 @@
-"""Run six in-memory policy mutants and clean controls; source is never modified."""
+"""Run twelve in-memory policy mutants and clean controls; source is never modified."""
 
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -12,7 +13,19 @@ CASES = (
     ("after_token", "test_after_first_token_never_retries", "test_before_token_retry_preserves_every_meter_row"),
     ("meter", "test_before_token_retry_preserves_every_meter_row", "test_success_meter_clean"),
     ("unstable", "test_byte_identical_reruns_and_stable_tiebreak", "test_available_control_clean"),
+    ("independence", "test_control_requires_known_path_and_disjoint_verified_tunnel", "test_control_valid_independent_fixture_clean"),
+    ("known_path", "test_control_requires_known_path_and_disjoint_verified_tunnel", "test_control_valid_independent_fixture_clean"),
+    ("issuer_replay", "test_billboard_receipts_are_per_issuer_and_cannot_burn_another_id", "test_billboard_unexpired_clean"),
+    ("delivery_expiry", "test_billboard_delivery_rejects_expired_before_storage", "test_billboard_unexpired_clean"),
+    ("tunnel_bypass", "test_control_requires_known_path_and_disjoint_verified_tunnel", "test_control_valid_independent_fixture_clean"),
+    ("premature_clock", "test_invalid_far_future_calls_do_not_lock_out_later_valid_work", "test_success_meter_clean"),
 )
+
+
+def is_assertion_failure(result):
+    """Count one actual pytest AssertionError, never runtime/collection failures."""
+    return (result.returncode == 1 and "1 failed" in result.stdout
+            and re.search(r"(?m)^E\s+AssertionError(?:[:\s]|$)", result.stdout) is not None)
 
 
 def main():
@@ -25,8 +38,8 @@ def main():
                        "-q", "-o", "addopts="]
             result = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True, encoding="utf-8")
             # Only an assertion failure in one collected test is a killed mutant.
-            correct = result.returncode == (1 if expected_failure else 0) and (
-                "1 failed" in result.stdout if expected_failure else "1 passed" in result.stdout)
+            correct = (is_assertion_failure(result) if expected_failure
+                       else result.returncode == 0 and "1 passed" in result.stdout)
             if expected_failure:
                 killed += correct
                 survived += not correct

@@ -6,7 +6,7 @@ Add a proposed design and a deterministic, stdlib-only simulator covering data
 failover, relay routes, status-only radio control and authorized billboard expiry.
 Spec additions remain an exact proposed diff; adopting them requires RADIX.
 
-Validation: 22 simulator cases; six killed mutants, zero survivors, six clean
+Validation: 30 simulator cases; twelve killed mutants, zero survivors, twelve clean
 controls; 17 meter rows across 16 scripted requests; three byte-identical output
 artifacts. Existing suite remains 1256 passed, golden vectors 5/0, Ruff 0.14.10
 exits 0. Final combined-branch drift/diff results and the tested commit appear in

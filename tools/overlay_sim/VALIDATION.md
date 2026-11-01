@@ -9,9 +9,9 @@ committed-diff drift check; this file records the simulator's executed evidence.
 
 | Command | Observed result |
 |---|---|
-| `python -m pytest tools/overlay_sim/tests/ -q -o addopts=` | 22 passed |
-| `python -m tools.overlay_sim.mutation_check` | killed=6 survived=0 controls_passed=6 controls_failed=0 |
-| `python -m tools.overlay_sim.scenarios` | meter_rows=17 requests=16 artifacts=3 |
+| `python -m pytest tools/overlay_sim/tests/ -q -o addopts=` | 30 passed |
+| `python -m tools.overlay_sim.mutation_check` | killed=12 survived=0 controls_passed=12 controls_failed=0 |
+| `python -m tools.overlay_sim.scenarios --output-dir tools/overlay_sim/results/` | meter_rows=17 requests=16 artifacts=3 |
 | `python -m pytest tests/ -q` | 1256 passed, 1 existing legacy-format warning |
 | `python tests/test_golden_vectors_mobius32.py` | SUMMARY pass=5 fail=0 |
 | `python -m ruff --version` | ruff 0.14.10 |
@@ -32,15 +32,19 @@ Every test names a failing mutation in its docstring. The executed mutations and
 clean controls are listed in README.md and `mutation_check.CASES`. The mutation
 runner accepts only one collected assertion-failing test as a kill; collection
 errors and missing tests do not count. Normal test sources are never modified.
-Tests additionally reject signed START, all payload/grant/consent/key/model/text
-fields on control, expired billboard application and clock rollback, unsigned or
+Tests additionally reject START with a true verification fixture, all payload/grant/consent/key/model/text
+fields on control, expired billboard delivery/application and clock rollback, false verification fixtures or
 out-of-scope statements, receipt replay, unverified readings/tunnels, truthy
 nonboolean flags, unbounded sequence integers and malformed operations without
 meter rows. Rejected operations cannot add members or grants or generate data.
 
 A cross-agent adversarial review prompted explicit regression guards for bounded
 control frames, strict boolean readings, invalid-operation accounting and
-expiry followed by clock rollback. All 22 cases passed after these changes.
+expiry followed by clock rollback. Round 2 adds rejected-future-call lockout,
+known-path control references, verified independent control tunnels, per-issuer
+replay state, malformed object/self-target handling and required explicit output
+destinations. CRLF-normalized committed-snapshot comparisons preserve standalone
+Windows checkouts. All 30 cases passed after these changes.
 The generic “always available” property is limited to eligible, fresh, verified,
 authorized reachable candidates; honest no-channel outcomes remain explicit.
 
