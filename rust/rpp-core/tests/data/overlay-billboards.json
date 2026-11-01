@@ -1,0 +1,41 @@
+{
+  "10": [
+    {
+      "fact": "Maintenance window starts at tick nine.",
+      "kind": "fact",
+      "machine": "B",
+      "receipt": "fact-1",
+      "since": 9,
+      "until": 11
+    }
+  ],
+  "11": [],
+  "8": [
+    {
+      "fact": "Pause this application while its owner is away.",
+      "kind": "rule",
+      "machine": "B",
+      "receipt": "rule-1",
+      "since": 8,
+      "until": 10
+    }
+  ],
+  "9": [
+    {
+      "fact": "Maintenance window starts at tick nine.",
+      "kind": "fact",
+      "machine": "B",
+      "receipt": "fact-1",
+      "since": 9,
+      "until": 11
+    },
+    {
+      "fact": "Pause this application while its owner is away.",
+      "kind": "rule",
+      "machine": "B",
+      "receipt": "rule-1",
+      "since": 8,
+      "until": 10
+    }
+  ]
+}
