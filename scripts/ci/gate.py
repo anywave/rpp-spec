@@ -1,5 +1,6 @@
 """Offline PR checks; Git arguments are never interpreted by a shell."""
 import argparse
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -11,8 +12,12 @@ SOURCE = {'.py', '.rs', '.v', '.sv', '.c', '.h', '.cpp', '.js', '.ts', '.tsx', '
 IGNORABLE = [(0xad, 0xad), (0x34f, 0x34f), (0x61c, 0x61c), (0x115f, 0x1160), (0x17b4, 0x17b5), (0x180b, 0x180f), (0x200b, 0x200f), (0x202a, 0x202e), (0x2060, 0x206f), (0x3164, 0x3164), (0xfe00, 0xfe0f), (0xfeff, 0xfeff), (0xffa0, 0xffa0), (0xfff0, 0xfff8), (0x1bca0, 0x1bca3), (0x1d173, 0x1d17a), (0xe0000, 0xe0fff)]
 
 
+def git_bytes(*args):
+    return subprocess.check_output(['git', '--literal-pathspecs', *args])
+
+
 def git(*args):
-    return subprocess.check_output(['git', '--literal-pathspecs', *args]).decode('utf-8')
+    return git_bytes(*args).decode('utf-8', errors='replace')
 
 
 def pairs(node):
@@ -103,6 +108,7 @@ def commits(base, head):
 
 
 def changed(base, head, *options):
+    base = git('merge-base', base, head).strip()
     return git('diff', '--no-renames', '--name-only', '-z', *options, base, head).split('\0')[:-1]
 
 
@@ -127,26 +133,37 @@ def slices(root, base, head, allow):
 
 
 def unreadable(text, path, line):
-    return [f'{ascii(str(path))}:{line}: U+{ord(char):04X}' for char in text if ord(char) == 27 or any(lo <= ord(char) <= hi for lo, hi in IGNORABLE)]
+    return [f'{ascii(str(path))}:{line}: U+{ord(char):04X}' for char in text if (ord(char) < 32 and char not in '\t\n') or 0x7f <= ord(char) <= 0x9f or ord(char) in {0x2028, 0x2029} or any(lo <= ord(char) <= hi for lo, hi in IGNORABLE)]
 
 
 def readable(root, base, head, allow):
     errors = []
-    for path in changed(base, head):
+    ancestor = git('merge-base', base, head).strip()
+    records = git_bytes('diff', '--no-renames', '--numstat', '-z', ancestor, head).split(b'\0')[:-1]
+    for record in records:
+        added, deleted, raw_path = record.split(b'\t', 2)
+        try:
+            path = raw_path.decode('utf-8')
+        except UnicodeDecodeError:
+            errors.append(f'{ascii(raw_path)}:0: non-UTF8 filename refused')
+            continue
         if path in allow:
             continue
         errors += unreadable(path, path, 0)
-        old = new = 0
+        if added == b'-':
+            blob = subprocess.run(['git', 'show', f'{head}:{path}'], capture_output=True)
+            if blob.returncode or b'\0' in blob.stdout[:8000]:
+                continue
+        new = 0
         active = False
-        for line in git('diff', '--no-ext-diff', '--no-textconv', '--text', '--no-color', '--no-renames', '--unified=0', base, head, '--', path).split('\n'):
+        for line in git('diff', '--no-ext-diff', '--no-textconv', '--text', '--no-color', '--no-renames', '--unified=0', ancestor, head, '--', path).split('\n'):
             hunk = re.match(r'@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
             if hunk:
-                old, new = map(int, hunk.groups())
+                new = int(hunk.group(2))
                 active = True
-            elif active and line.startswith(('+', '-')):
-                errors += unreadable(line[1:], path, new if line[0] == '+' else old)
-                old += line[0] == '-'
-                new += line[0] == '+'
+            elif active and line.startswith('+'):
+                errors += unreadable(line[1:], path, new)
+                new += 1
     for commit in commits(base, head):
         for number, line in enumerate(message(commit).split('\n'), 1):
             errors += unreadable(line, commit, number)
@@ -164,23 +181,29 @@ def travel(root, base, head, allow):
     errors = []
     for commit in commits(base, head):
         paths = git('diff-tree', '--root', '--no-commit-id', '-m', '--first-parent', '--name-only', '-z', '-r', commit).split('\0')[:-1]
-        if any(Path(path).suffix in SOURCE and not test_path(path) for path in paths) and not re.search(r'(?m)^no-test:\s*\S[^\n]*$', message(commit)):
+        if any(Path(path).suffix in SOURCE and not test_path(path) for path in paths) and not re.search(r'(?m)^no-test:[ \t]*\S[^\n]*$', message(commit)):
             errors.append(f'{commit}: source changed without PR test file or no-test: reason')
     return errors
+
+
+def protected(root, base, head, allow, branch):
+    paths = [path for path in changed(base, head) if path == 'scripts/ci' or path.startswith('scripts/ci/') or Path(path).name.startswith('codex-gate')]
+    return [] if not paths or branch.startswith('codex/ops3-') else [f'{ascii(path)}: gate changes require a codex/ops3-* branch' for path in paths]
 
 
 def main(check):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base', required=True)
     parser.add_argument('--head', required=True)
+    parser.add_argument('--branch', default=os.environ.get('GITHUB_HEAD_REF', ''))
     args = parser.parse_args()
     try:
         base, head = [git('rev-parse', '--verify', '--end-of-options', f'{ref}^{{commit}}').strip() for ref in (args.base, args.head)]
         prior = subprocess.run(['git', 'show', f'{base}:.github/codex-gate-allow.txt'], capture_output=True)
-        allow = {line for line in prior.stdout.decode('utf-8').splitlines() if line and not line.startswith('#')}
+        allow = {line for line in prior.stdout.decode('utf-8', errors='replace').splitlines() if line and not line.startswith('#')}
         if '.github/codex-gate-allow.txt' in allow:
             raise ValueError('allow file cannot exempt itself')
-        errors = globals()[check](Path('.'), base, head, allow)
+        errors = protected(Path('.'), base, head, allow, args.branch) if check == 'protected' else globals()[check](Path('.'), base, head, allow)
     except (ValueError, UnicodeError, yaml.YAMLError, subprocess.CalledProcessError) as error:
         errors = [f'gate tool error: {ascii(str(error))}']
     for error in errors:

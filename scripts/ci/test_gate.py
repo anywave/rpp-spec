@@ -1,5 +1,7 @@
-"""Bounded mutation witnesses for each of the five gate entry scripts."""
+"""Bounded mutation witnesses for the gate entry scripts."""
 import os
+import shutil
+from unittest import mock
 from pathlib import Path
 import tempfile
 import unittest
@@ -38,10 +40,14 @@ class GateTests(unittest.TestCase):
         return getattr(gate, name)(Path('.'), self.base, head or self.base, allow or set())
 
     def test_actions_reject_unpinned_and_duplicate_key_mutations(self):
-        """Kills tag/docker-ref and duplicate-uses bypasses; local/SHA controls pass."""
-        for ref in ('a/b@v1', 'docker://image', './local', 'a/b@' + 'a' * 40):
+        """Kills tag/docker/39-hex/7-hex and duplicate-uses bypasses; local/SHA controls pass."""
+        for ref, fails in [
+            ('a/b@v1', True), ('docker://image', True),
+            ('a/b@' + 'a' * 39, True), ('a/b@' + 'a' * 7, True),
+            ('./local', False), ('a/b@' + 'a' * 40, False),
+        ]:
             self.write('.github/actions/action.yaml', 'runs: {steps: [{uses: "' + ref + '"}]}\n')
-            self.assertEqual(bool(self.check('actions')), ref in ('a/b@v1', 'docker://image'))
+            self.assertEqual(bool(self.check('actions')), fails, ref)
         self.write('.github/x.yml', 'uses: a/b@v1\nuses: ./local\n')
         with self.assertRaises(ValueError):
             self.check('actions')
@@ -88,23 +94,97 @@ class GateTests(unittest.TestCase):
         self.commit('merge')
         self.assertTrue(self.check('slices', gate.git('rev-parse', 'HEAD').strip()))
 
-    def test_readable_rejects_added_removed_header_like_and_message_mutations(self):
-        """Kills omitted default-ignorables, removed/header/literal-path/binary/line-break and message bypasses."""
+    def test_readable_rejects_added_header_like_and_message_mutations_but_allows_removal(self):
+        """Kills omitted default-ignorables/header/literal-path/line-break/message and removed-text rejection mutations."""
         for code in (27, 0x34f, 0x115f, 0x200d, 0x202e, 0xfe0f, 0xe0061, 0xe0100):
             self.assertTrue(gate.unreadable(chr(code), 'fixture', 1))
         self.assertFalse(gate.unreadable('plain Greek: theta', 'fixture', 1))
         self.write('.gitattributes', '*.py -diff\n')
         self.write('odd[1] name.py', '++safe' + chr(0x2028) + chr(0x200b) + '\n')
         head = self.commit('added')
-        self.assertIn('U+200B', self.check('readable', head)[0])
+        findings = self.check('readable', head)
+        self.assertTrue(any('U+200B' in finding for finding in findings))
+        self.assertTrue(any('U+2028' in finding for finding in findings))
         self.assertFalse(self.check('readable', head, {'odd[1] name.py'}))
         self.base = head
         self.write('odd[1] name.py', 'clean\n')
         head = self.commit('removed')
-        self.assertTrue(self.check('readable', head))
+        self.assertEqual(self.check('readable', head), [])
         self.base = head
         self.write('README.md', 'next\n')
         self.assertTrue(self.check('readable', self.commit('bad ' + chr(0x202e))))
+
+    def test_readable_rejects_c0_c1_and_unicode_line_separator_mutations(self):
+        """Kills missing C0/C1/DEL/line-separator checks while preserving tab and LF controls."""
+        for code in [*range(9), *range(11, 32), *range(127, 160), 0x2028, 0x2029]:
+            self.assertTrue(gate.unreadable(chr(code), 'fixture', 1), hex(code))
+        self.assertEqual(gate.unreadable('plain\ttext\nnext', 'fixture', 1), [])
+
+    def test_readable_skips_real_binary_and_replaces_bad_utf8_without_hiding_text(self):
+        """Kills PNG-as-text, strict-decoding and invalid-UTF8-text exclusion mutations."""
+        Path('pixel.png').write_bytes(b'\x89PNG\r\n\x1a\n\0\x1b' + chr(0x200b).encode())
+        head = self.commit('binary image')
+        self.assertEqual(self.check('readable', head), [])
+        self.assertIn('\ufffd', gate.git('show', f'{head}:pixel.png'))
+        self.base = head
+        Path('broken.txt').write_bytes(b'visible \xff text\n')
+        head = self.commit('non UTF8 text')
+        self.assertEqual(self.check('readable', head), [])
+        self.base = head
+        Path('broken.txt').write_bytes(b'visible \xff ' + chr(0x200b).encode() + b'\n')
+        findings = self.check('readable', self.commit('hidden text after invalid UTF8'))
+        self.assertTrue(any('U+200B' in finding for finding in findings))
+
+    def test_merge_base_excludes_base_side_tests_and_hidden_text_mutations(self):
+        """Kills direct-base diffs that invent PR test coverage or restore BASE-only cleaned text."""
+        self.write('tests/test_existing.py', 'assert True\n')
+        self.write('baseline.md', 'old ' + chr(0x200b) + '\n')
+        self.write('scripts/ci/base.py', '# original\n')
+        common = self.commit('common baseline')
+        gate.git('checkout', '-qb', 'feature', common)
+        self.write('source.rs', 'fn changed() {}\n')
+        head = self.commit('source with no PR tests')
+        gate.git('checkout', '-q', 'master')
+        self.write('tests/test_existing.py', 'assert 1 == 1\n')
+        self.write('baseline.md', 'clean\n')
+        self.write('scripts/ci/base.py', '# BASE-only change\n')
+        self.base = self.commit('advance BASE only')
+        self.assertEqual(gate.changed(self.base, head), ['source.rs'])
+        self.assertTrue(self.check('travel', head))
+        self.assertEqual(self.check('readable', head), [])
+        self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'feature'), [])
+
+    def test_no_test_rejects_empty_reason_before_coauthor_trailer_mutation(self):
+        """Kills newline-consuming no-test whitespace; a nonempty same-line reason still passes."""
+        for index, reason in enumerate(('', ' ', '\t ')):
+            self.write('source.rs', f'fn changed_{index}() {{}}\n')
+            head = self.commit('source\n\nno-test:' + reason + '\n\nCo-authored-by: Fixture <fixture@example.invalid>')
+            self.assertTrue(self.check('travel', head))
+            self.base = head
+        self.write('source.rs', 'fn documented() {}\n')
+        head = self.commit('source\n\nno-test:\tfixture reason\n\nCo-authored-by: Fixture <fixture@example.invalid>')
+        self.assertEqual(self.check('travel', head), [])
+
+    def test_protected_paths_reject_non_ops3_branches_and_deletion_mutations(self):
+        """Kills missing gate/allowlist/basename/deletion protection and permissive branch-prefix mutations."""
+        for path in [
+            'scripts/ci/gate.py', '.github/workflows/codex-gate.yml',
+            '.github/codex-gate-allow.txt', 'docs/codex-gate-notes.md',
+        ]:
+            self.write(path, 'fixture\n')
+            head = self.commit('gate change')
+            for branch in ('feature', 'codex/ops3', 'codex/ops30-fix', 'codex/ops3evil'):
+                self.assertTrue(gate.protected(Path('.'), self.base, head, set(), branch), (path, branch))
+            self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'codex/ops3-fix'), [])
+            self.base = head
+        Path('scripts/ci/gate.py').unlink()
+        head = self.commit('remove gate')
+        self.assertTrue(gate.protected(Path('.'), self.base, head, set(), 'feature'))
+        self.base = head
+        self.write('scripts/ci_extra/helper.py', '# ordinary source\n')
+        self.write('.github/workflows/ordinary.yml', 'name: ordinary\n')
+        head = self.commit('unprotected paths')
+        self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'feature'), [])
 
     def test_tests_travel_rejects_missing_deleted_tests_and_empty_reason(self):
         """Kills test-presence-anywhere, deletion-as-test and empty no-test bypasses."""
@@ -124,3 +204,21 @@ class GateTests(unittest.TestCase):
         Path('test_source.py').unlink()
         self.write('source.rs', 'fn changed() {}\n')
         self.assertTrue(self.check('travel', self.commit('delete tests')))
+
+    def test_readable_rejects_lossy_filename_identity_mutation(self):
+        """Kills replacement-decoded Git paths that silently select no diff."""
+        original = gate.git_bytes
+        def output(*args):
+            return b'1\t0\tbad_\xff.py\0' if args[0] == 'diff' and '--numstat' in args else original(*args)
+        with mock.patch.object(gate, 'git_bytes', side_effect=output):
+            self.assertIn('non-UTF8 filename refused', self.check('readable')[0])
+
+    @unittest.skipUnless(shutil.which('bash'), 'Ubuntu workflow aggregation uses Bash')
+    def test_workflow_runs_all_checks_after_failure_mutation(self):
+        """Kills stopping at the first failed check or discarding its failure."""
+        workflow = gate.yaml.safe_load((self.old / '.github/workflows/codex-gate.yml').read_text())
+        script = next(step['run'] for step in workflow['jobs']['review']['steps'] if step.get('name') == 'Review PR range')
+        stub = 'python() { printf "%s\\n" "$1" >> calls; [ "$1" != scripts/ci/pinned_actions.py ]; };\n'
+        result = gate.subprocess.run(['bash', '-c', stub + script], capture_output=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(Path('calls').read_text().splitlines(), ['scripts/ci/' + name + '.py' for name in ('pinned_actions', 'permissions', 'slice_cap', 'readable_text', 'tests_travel', 'protected_paths')])
