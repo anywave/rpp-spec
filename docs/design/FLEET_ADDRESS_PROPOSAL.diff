@@ -1,0 +1,88 @@
+--- a/spec/RESOLVER.md
++++ b/spec/RESOLVER.md
+@@ -802,6 +802,85 @@
+ No tunnel, cipher, handshake or key exchange is implemented by this text.
+
+
++### 11.4 Informative Proposal: Fleet Assignment and Endpoint Records
++
++**Status: Proposed/informative, not an adopted specification contract.**
++This section describes the experimental `rpp-fleet` caller-assignment profile.
++It changes no canonical address layout, consent header, published constant,
++identity scheme or current resolver implementation.
++
++The canonical address specification defines fields and encoding, but neither
++it nor this resolver defines a derivation from an opaque lender/device identity
++to a canonical address. The separate `NETWORK.md` NodeRecord identifier,
++`SHA-256(public_key)`, is not such a derivation. No new hashing, truncation,
++key derivation or cryptographic ownership proof is proposed here.
++
++The named mode `explicit-caller-assignment-v1` requires the caller to supply an
++AddressBinding between an exact opaque identity and an existing canonical
++address. The experimental identity is the full pair of a 16-byte lender-key
++identifier and a 16-byte device identifier; these are identifiers, not keys.
++The existing 16-byte device identifier is also the explicit control-frame ID.
++These sizes are local implementation choices, not new published RPP fields.
++There is no default assignment mode and no identity-only address computation.
++The same identity and owner binding produce the same encoded address bytes;
++changing endpoint readings does not reassign the address.
++This is registry configuration, not permanent object identity or a future
++validity/consent promise. Hosts still resolve at point of access and enforce
++current policy; the semantic layer's temporal address rules are unchanged.
++
++A fleet registry checks unique full identities, encoded address words and
++control/device IDs within that registry. Machine registration uses the existing
++core canonical is_valid predicate, without another range table or reserved-bit
++filter. Binding objects can preserve other core-accepted states; registration
++does not admit those states as machine addresses. Duplicate/remap rejection
++leaves the registry unchanged. Local uniqueness does not make a 32-bit address
++globally unique, prove ownership, establish routability, grant membership or
++supply consent. Reassignment and ownership-transfer lifecycle are separate work.
++
++An endpoint record contains an endpoint ID, kind, URI, last LinkReading and
++capabilities. Endpoint IDs are u32 values unique within each node. Core link
++names use nAAAAAAAA-epEEEEEEEE: the registered encoded address word and endpoint
++ID as eight hexadecimal digits each. This reversible 20-character name is not
++a hash or truncated identity. Registry word uniqueness prevents link-name aliases
++inside the fleet, without asserting global address uniqueness. A resolver
++exclusively borrows its registry for its lifetime; structural bindings/endpoints
++cannot be replaced during that context, and only validated reading updates are
++forwarded. Proposed kinds are LAN, Wi-Fi, internet, BLE, LoRa and a
++WebSocketGateway profile. LinkReading carries integer latency/jitter in
++milliseconds, loss in parts per million, availability and observation tick.
++Capabilities are caller-supplied prior outcomes: tunnel_verified,
++reviewed_adapter, observation_verified and control_capable booleans plus a
++failure_domain identifier. They implement no authentication or device probing.
++Verification capabilities default to false; an unknown shared failure domain
++is not evidence of independence. Additional record IDs and flags are metadata,
++not bits added to an RPP address or consent header.
++
++WebSocketGateway is a caller-declared LAN profile for Xiaozhi-style gateway
++resolution and requires a ws:// URI shape. The URI and kind do not prove LAN
++locality, reachability, encryption, authentication or device compatibility.
++The profile opens no WebSocket and defines no voice protocol or vendor HAL.
++
++Endpoint records are adapted to existing core overlay policy for eligibility,
++freshness, live ordering, consent, tunnels and deterministic tie breaks. Data
++on BLE remains ineligible unless that existing policy permits the declared
++reviewed adapter and tunnel capability. Control candidates additionally require
++control_capable and the closed verified control type, bound to the registered
++source/recipient control IDs and a genuine known data path in the same policy
++context. The reference records the latest successful primary's historical
++failure domain, not current data availability, and is retained until replaced
++or its resolver/registry context is discarded. No new reference TTL or
++eligibility probe is imposed; current control candidates still pass existing
++core freshness/eligibility checks. Existing failure-domain independence and
++replay/authorization checks remain necessary. Registry entries, URI schemes, capability flags and control
++notices never create an admission grant or replace a consent action.
++
++Resolution reports selection, failover order or an explicit no-channel/denied
++outcome; it is not a transport send or a new retry/breaker/meter implementation.
++Actual adapters remain responsible for the selected physical path and outcomes.
++No board/network operation, cryptography, tunnel or discovery implementation is
++introduced by this informative proposal.
++
++
+ ---
+
+ ## 12. Version History

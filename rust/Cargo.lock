@@ -11,6 +11,15 @@ name = "rpp-core"
 version = "0.1.0"
 
 [[package]]
+name = "rpp-fleet"
+version = "0.1.0"
+dependencies = [
+ "rpp-control",
+ "rpp-core",
+ "rpp-link",
+]
+
+[[package]]
 name = "rpp-link"
 version = "0.1.0"
 dependencies = [

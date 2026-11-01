@@ -8,3 +8,7 @@ rust/rpp-core/tests/data/** -text
 
 # CX-008 deterministic control-codec evidence is hashed as exact bytes.
 rust/rpp-control/tests/data/** -text
+
+# CX-010 fleet scenario evidence is compared as exact bytes.
+rust/rpp-fleet/tests/data/** -text
+docs/design/FLEET_ADDRESS_PROPOSAL.diff -text
