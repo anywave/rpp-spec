@@ -53,7 +53,7 @@ class GateTests(unittest.TestCase):
             self.check('actions')
 
     def test_permissions_reject_write_secret_inheritance_mutations(self):
-        """Kills missing/write-all permissions, inherited/dynamic secrets and job-write bypasses."""
+        """Kills missing/write-all permissions, inherited/dynamic secrets, YAML-merge and job-write bypasses."""
         for permission, env, job, fails in [
             ('', '', 'runs-on: ubuntu-latest', True),
             ('permissions: write-all\n', '', 'runs-on: ubuntu-latest', True),
@@ -64,6 +64,7 @@ class GateTests(unittest.TestCase):
             ('permissions: {contents: write}\n', '', 'env: {K: "${{ toJSON(secrets) }}"}', True),
             ('permissions: {contents: write}\n', '', 'env: {K: "${{ SECRETS.PRIVATE }}"}', True),
             ('permissions: {contents: write}\n', '', 'env: {K: "${{ secrets.GITHUB_TOKEN }}"}', False),
+            ('permissions: {contents: read}\n', '', '<<: {permissions: {contents: write}, env: {K: "${{ secrets.PRIVATE }}"}}', True),
         ]:
             self.write('.github/workflows/x.yml', permission + env + 'jobs:\n  x:\n    ' + job + '\n')
             self.assertEqual(bool(self.check('permissions')), fails)

@@ -33,8 +33,8 @@ def pairs(node):
         raise ValueError('expected YAML mapping')
     result = {}
     for key, value in node.value:
-        if not isinstance(key, yaml.ScalarNode) or key.value in result:
-            raise ValueError(f'{key.start_mark.name}:{key.start_mark.line + 1}: complex or duplicate YAML key')
+        if not isinstance(key, yaml.ScalarNode) or key.value in result or key.value == '<<':
+            raise ValueError(f'{key.start_mark.name}:{key.start_mark.line + 1}: complex, duplicate or merge YAML key')
         result[key.value] = value
     return result
 
