@@ -67,7 +67,7 @@ def actions(root, base, head, allow):
             if isinstance(node, yaml.MappingNode) and 'uses' in pairs(node):
                 value = pairs(node)['uses']
                 if not isinstance(value, yaml.ScalarNode) or not re.fullmatch(r'(?:\./\S+|[^\s/@]+/[^\s@]+@[0-9a-fA-F]{40})', value.value):
-                    errors.append(f'{ascii(str(path))}:{value.start_mark.line + 1}: unpinned uses')
+                    errors.append(f'{ascii(path.relative_to(root).as_posix())}:{value.start_mark.line + 1}: unpinned uses')
     return errors
 
 
@@ -97,14 +97,14 @@ def permissions(root, base, head, allow):
                 nodes = list(walk(job)) + list(walk(top.get('env')))
                 inherited = fields.get('secrets')
                 if inherited is not None and getattr(inherited, 'value', '') == 'inherit':
-                    errors.append(f'{ascii(str(path))}:{inherited.start_mark.line + 1}: {ascii(name)}: secrets inherit with write')
+                    errors.append(f'{ascii(path.relative_to(root).as_posix())}:{inherited.start_mark.line + 1}: {ascii(name)}: secrets inherit with write')
                 for node in nodes:
                     if isinstance(node, yaml.ScalarNode):
                         text = re.sub(r'\bsecrets\s*(?:\.\s*GITHUB_TOKEN\b|\[\s*([\'"])GITHUB_TOKEN\1\s*\])', '', node.value, flags=re.I)
                         if '${{' in text and re.search(r'\bsecrets\b', text, re.I):
-                            errors.append(f'{ascii(str(path))}:{node.start_mark.line + 1}: {ascii(name)}: secret with write')
+                            errors.append(f'{ascii(path.relative_to(root).as_posix())}:{node.start_mark.line + 1}: {ascii(name)}: secret with write')
         except (ValueError, AttributeError) as error:
-            errors.append(f'{ascii(str(path))}:1: {ascii(str(error))}')
+            errors.append(f'{ascii(path.relative_to(root).as_posix())}:1: {ascii(str(error))}')
     return errors
 
 

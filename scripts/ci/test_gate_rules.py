@@ -1,5 +1,6 @@
 """Mutation witnesses for composite metadata, PR totals and UTF-8 rules."""
 import subprocess
+from pathlib import PureWindowsPath
 import unittest
 from unittest import mock
 
@@ -15,12 +16,18 @@ class RuleTests(unittest.TestCase):
     check = fixtures.GateTests.check
 
     def test_composite_outside_github_cannot_hide_unpinned_uses(self):
-        """Kills scanning only .github while composite actions elsewhere use tags."""
+        """Kills missed composites and OS-specific absolute diagnostic paths."""
         for name in ('tools/widget/action.yml', 'nested/adapter/action.yaml'):
             self.write(name, 'runs: {using: composite, steps: [{uses: a/b@v1}]}\n')
             self.assertTrue(self.check('actions'))
             self.write(name, 'runs: {using: composite, steps: [{uses: a/b@' + 'a' * 40 + '}]}\n')
             self.assertEqual(self.check('actions'), [])
+        document = gate.yaml.compose('uses: a/b@v1')
+        root = PureWindowsPath('C:/metadata')
+        with mock.patch.object(gate, 'documents', return_value=[(root / 'widget/action.yaml', document)]):
+            errors = gate.actions(root, self.base, self.base, set())
+            self.assertIn('widget/action.yaml', errors[0])
+            self.assertNotIn('C:', errors[0])
 
     def test_pr_total_rejects_31_files_and_1501_lines_with_exact_allowlist(self):
         """Kills omitted total cap, off-by-one thresholds and broad allowlist matches."""
