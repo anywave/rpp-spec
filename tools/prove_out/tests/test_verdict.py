@@ -1,5 +1,7 @@
 """Bounded contract/parser witnesses; native evidence is produced separately."""
 import os
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -105,3 +107,34 @@ def test_orientation_parser_requires_complete_unique_typed_grid_and_declared_for
             verdict.orientation(changed)
     with pytest.raises(AssertionError, match="wrap/reverse"):
         verdict.orientation(text.replace(first, first.rsplit(",", 1)[0] + ",0", 1))
+
+
+def test_native_helper_preserves_utf8_bench_and_logs_under_simulated_windows_acp(tmp_path, monkeypatch):
+    """Failing mutation drop-explicit-UTF8 lets simulated cp1252 corrupt bench/log text or subprocess capture."""
+    repo, work = tmp_path / "repo", tmp_path / "work"
+    repo.mkdir()
+    (repo / "bench.v").write_bytes("// café\n$finish;\n".encode("utf-8"))
+    read, write = Path.read_text, Path.write_text
+    def acp_read(path, *args, **kwargs):
+        if not args and kwargs.get("encoding") is None:
+            kwargs["encoding"] = "cp1252"
+        return read(path, *args, **kwargs)
+    def acp_write(path, text, *args, **kwargs):
+        if not args and kwargs.get("encoding") is None:
+            kwargs["encoding"] = "cp1252"
+        return write(path, text, *args, **kwargs)
+    calls = []
+    def capture(command, **kwargs):
+        assert kwargs.get("encoding") == "utf-8"
+        calls.append(command)
+        return SimpleNamespace(stdout="café\n", stderr="")
+    monkeypatch.setattr(Path, "read_text", acp_read)
+    monkeypatch.setattr(Path, "write_text", acp_write)
+    monkeypatch.setattr(verdict.subprocess, "run", capture)
+    args = SimpleNamespace(repo=repo, work_dir=work, iverilog="iverilog", vvp="vvp", ivl_dir=None)
+    assert verdict.native(args, "acp", "bench.v", "Test", {"source.v": "// café\n"}) == "café\n"
+    assert len(calls) == 2
+    assert (work / "acp/bench.v").read_bytes() == "// café\n$finish(0);\n".encode("utf-8")
+    assert (work / "acp/source.v").read_bytes() == "// café\n".encode("utf-8")
+    for name in ("compile.log", "run.log"):
+        assert (work / "acp" / name).read_bytes() == "café\n".encode("utf-8")
