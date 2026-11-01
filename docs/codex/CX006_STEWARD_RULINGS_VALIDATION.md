@@ -79,6 +79,9 @@ changes above are independently authorized by D2, D3 and D4; registry annotation
 do not grant that authority or imply acceptance. All original per-ID source
 hashes/statuses remain in the source manifest and catalog. The root attributes
 file explicitly protects the new byte-hashed registry with `-text`.
+The exact byte-hashed resolver proposal patch is also marked `-text`; a real
+`core.autocrlf=true` checkout preserves both files while converting an ordinary
+text control to CRLF.
 
 ## Exact unsuppressed drift findings
 
