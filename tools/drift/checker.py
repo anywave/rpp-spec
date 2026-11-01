@@ -2,6 +2,7 @@
 
 import ast
 from collections import Counter
+from copy import deepcopy
 from dataclasses import dataclass
 import fnmatch
 import hashlib
@@ -14,6 +15,7 @@ import subprocess
 
 from .boundary import review as boundary_review
 from .passages import digest, in_scope, normalize
+from .rulings import BASELINE_DECISIONS, BEFORE, DECIDED, DECISION_LINES, FINDING_KEYS, ITEM_DECISIONS, REVISION, RULED
 
 
 DATA = Path(__file__).with_name("catalog.json")
@@ -22,6 +24,8 @@ MAX_BLOB = 4 * 1024 * 1024
 MAX_DIFF = 16 * 1024 * 1024
 SOURCE_REVISION = "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e"
 UNRESOLVED = "unresolved - steward decision (RADIX)"
+FOUNDATION_SHA256 = "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce"
+APPROVED_OVERLAY_SHA256 = "fae35d63cce3e11f363cba32fb7617c112040e3e819aefe4ff33c39c870e4868"
 IMPLEMENTED_RULES = {
     **{key: "HIGH" for key in (
         "BND-A-1", "BND-B-1", "BND-C-1", "BND-E-1", "BND-G-1", "BND-F-1",
@@ -51,8 +55,8 @@ class ToolError(Exception):
 def load_catalog(path=None):
     """Reject incomplete metadata rather than claiming zero or unknown rules ran.
 
-    This engine implements the current 22-rule, frozen-source catalog. Extending
-    its rule vocabulary or source snapshot requires a reviewed engine change too.
+    This engine implements the 22-rule frozen scan plus the exact CX-006 ruling
+    overlay. A decided entry remains watched; only its approved identity changed.
     """
     try:
         catalog_path = DATA if path is None else Path(path)
@@ -120,7 +124,16 @@ def load_catalog(path=None):
         require(in_scope(entry["path"]) and entry["path"] in catalog["scanned_paths"])
         require(entry["kind"] in {"paragraph", "list_item", "table_row", "code_fence", "comment", "docstring"})
         require(entry["rule_id"] in {"BND-F-1", "BND-F-2"})
-        require(entry["tag"] == "IMPOSED" and entry["status"] == UNRESOLVED and entry["route"].startswith("[RFC]"))
+        require(entry["tag"] == "IMPOSED" and entry["route"].startswith("[RFC]"))
+        if entry["id"] in BASELINE_DECISIONS:
+            require(entry["status"] == RULED)
+            require(entry.get("decision_id") == "CX-006-" + BASELINE_DECISIONS[entry["id"]])
+            require(entry.get("source_revision") == REVISION)
+            require(isinstance(entry.get("original"), dict))
+            passage(entry["original"])
+            require(entry["original"].get("id") == entry["id"] and entry["original"].get("status") == UNRESOLVED)
+        else:
+            require(entry["status"] == UNRESOLVED and "decision_id" not in entry and "original" not in entry)
 
     anchors = catalog.get("software_must_anchors")
     require(isinstance(anchors, list) and len(anchors) == 7)
@@ -144,11 +157,73 @@ def load_catalog(path=None):
             require(key in expected and key not in ids)
             ids.add(key)
             require(item["severity"] == IMPLEMENTED_RULES[key] and item["tag"] == "IMPOSED")
-            require(item["status"] == UNRESOLVED and item["route"].startswith("[RFC]"))
+            require(item["route"].startswith("[RFC]"))
+            if key in ITEM_DECISIONS:
+                require(item["status"] == DECIDED and item.get("decision_id") == "CX-006-" + ITEM_DECISIONS[key])
+                require(item.get("source_revision") == REVISION)
+                require(isinstance(item.get("original"), dict) and item["original"].get("status") == UNRESOLVED)
+            else:
+                require(item["status"] == UNRESOLVED and "decision_id" not in item and "original" not in item)
             require(isinstance(item.get("passages"), list) and bool(item["passages"]))
             for source in item["passages"]:
                 passage(source)
         require(ids == expected)
+    require(catalog.get("catalog_revision") == 2)
+    rulings = catalog.get("rulings")
+    require(isinstance(rulings, dict) and rulings.get("source_revision") == REVISION)
+    require(rulings.get("authority") == "RADIX")
+    strings(rulings, ("authorization", "original_range_base"))
+    require(rulings["original_range_base"] == BEFORE)
+    require("c098c20e" in rulings["authorization"])
+    decisions = rulings.get("decisions")
+    require(isinstance(decisions, dict) and set(decisions) == {"CX-006-" + code for code in DECISION_LINES})
+    for code, line in DECISION_LINES.items():
+        decision = decisions["CX-006-" + code]
+        passage(decision)
+        require(decision.get("id") == "CX-006-" + code and decision["path"] == "DECISIONS.md" and decision["line"] == line)
+        require(decision.get("authority") == "RADIX" and decision.get("date") == "2026-10-31")
+        require(decision["text"].startswith(f"### [RFC] CX-006-{code} "))
+    recorded = rulings.get("findings")
+    require(isinstance(recorded, list) and len(recorded) == len(FINDING_KEYS))
+    for finding, (rule_id, severity, path, line, code) in zip(recorded, FINDING_KEYS):
+        require(isinstance(finding, dict))
+        require((finding.get("rule_id"), finding.get("severity"), finding.get("path"), finding.get("line"), finding.get("decision_id"))
+                == (rule_id, severity, path, line, "CX-006-" + code))
+        passage(finding.get("after"))
+        require(finding["after"]["path"] == path)
+        if finding.get("before") is None:
+            require(path == "DECISIONS.md" and rule_id == "BND-F-2")
+            require(re.fullmatch(r"[0-9a-f]{64}", finding.get("created_file_sha256", "")) is not None)
+        else:
+            passage(finding["before"])
+            require(finding["before"]["path"] == path)
+    revised_guards = [guard for guard in guards if "decision_id" in guard]
+    require(len(revised_guards) == 2)
+    for guard in revised_guards:
+        require(guard.get("decision_id") == "CX-006-A1" and guard.get("source_revision") == REVISION)
+        original = guard.get("original")
+        strings(original, ("rule_id", "path", "text"))
+        require(guard["rule_id"] == original["rule_id"] == "VER-FORMAT-1")
+        require(guard["path"] == original["path"] == "VERSION_POLICY.md")
+        expected = original["text"].replace("(radius << 13)", "(r_enc << 13)")
+        expected = expected.replace("| Radius decoding | `(address >> 13) & 0xFF` |", "| Radius decoding | `r_enc = (address >> 13) & 0xFF; radius = r_enc / 255.0` |")
+        expected = expected.replace("Normalized 0-1", "Encoded byte; API radius = byte / 255 in 0–1")
+        require(guard["text"] == expected and guard["text"] != original["text"])
+    # Restoring only explicitly approved originals must reconstruct the entire
+    # pre-revision catalog. This prevents changing any of the 239 pending entries,
+    # original ruling evidence, other guard, rule, anchor or frozen scope field.
+    foundation = deepcopy(catalog)
+    foundation.pop("catalog_revision")
+    foundation.pop("rulings")
+    for group in ("baselines", "guards", "steward_items", "advisories"):
+        foundation[group] = [item.get("original", item) for item in foundation[group]]
+    signature = hashlib.sha256(json.dumps(foundation, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    require(signature == FOUNDATION_SHA256)
+    approved = {group: [item for item in catalog[group] if "original" in item]
+                for group in ("baselines", "guards", "steward_items", "advisories")}
+    approved["rulings"] = rulings
+    signature = hashlib.sha256(json.dumps(approved, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    require(signature == APPROVED_OVERLAY_SHA256)
     return catalog
 
 
@@ -432,6 +507,11 @@ def check(root, base, head):
             cache[key] = blob(root, sha, path)
         return cache[key]
 
+    def exists(sha, path):
+        # Empty regular files and absent tree entries have the same text value.
+        # An exact creation permission must distinguish their Git identities.
+        return bool(git(root, "ls-tree", "-z", sha, "--", ":(literal)" + path))
+
     def add(rule_id, event, detail=""):
         rule = rules[rule_id]
         evidence = event.evidence
@@ -518,8 +598,22 @@ def check(root, base, head):
             event = witnesses[0] if witnesses else first_event(path, "-")
             add(guard["rule_id"], event, "Referenced source passage changed or removed.")
 
+    # Newly recorded ruled paragraphs are watched even when they were not part
+    # of the original 243-entry scan. Removing their approved wording still needs
+    # review; the historical-transition permission never blesses future edits.
+    for recorded in catalog["rulings"]["findings"]:
+        if recorded["rule_id"] != "BND-F-2":
+            continue
+        passage = recorded["after"]
+        path, text = passage["path"], normalize(passage["text"])
+        if path in diff and normalize(read(base, path)).count(text) > normalize(read(head, path)).count(text):
+            witnesses = [event for event in diff[path] if event.side == "-" and normalize(event.text)
+                         and normalize(event.text) in text]
+            add("BND-F-2", witnesses[0] if witnesses else first_event(path, "-"),
+                "Ruled passage changed or removed; prior decision " + recorded["decision_id"] + " is not a future waiver.")
+
     try:
-        baseline_events = boundary_review(diff, read, base, head, catalog, add, first_event)
+        baseline_events = boundary_review(diff, read, base, head, catalog, add, first_event, exists)
     except (SyntaxError, RecursionError) as exc:
         raise ToolError("changed in-scope Python source does not parse for passage extraction") from exc
 
@@ -558,10 +652,16 @@ def check(root, base, head):
         "baseline_events": baseline_events,
         "steward_items": steward_items,
         "advisories": advisories,
+        "rulings": catalog["rulings"],
         "summary": {"high": counts["high"], "medium": counts["medium"], "low": counts["low"],
                     "rules_run": len(rules), "rules_not_checkable": catalog["rules_not_checkable"],
-                    "open_baselines": len(catalog["baselines"]),
-                    "open_steward_items": len(steward_items), "open_advisories": len(advisories)},
+                    "open_baselines": sum(item["status"] == UNRESOLVED for item in catalog["baselines"]),
+                    "ruled_baselines": sum(item["status"] == RULED for item in catalog["baselines"]),
+                    "open_steward_items": sum(item["status"] == UNRESOLVED for item in steward_items),
+                    "decided_steward_items": sum(item["status"] == DECIDED for item in steward_items),
+                    "open_advisories": sum(item["status"] == UNRESOLVED for item in advisories),
+                    "decided_advisories": sum(item["status"] == DECIDED for item in advisories),
+                    "recorded_ruling_findings": len(catalog["rulings"]["findings"])},
     }
 
 
@@ -579,21 +679,30 @@ def markdown(report):
                   "<pre>" + html.escape(f"{f['path']}:{f['line']}\nSource: {f['source']}") + "</pre>", "",
                   "<pre>" + html.escape(f["evidence"]) + "</pre>", ""]
     lines += ["## Open Boundary F baseline", "",
-              f"{summary['open_baselines']} open; all IMPOSED; unresolved - steward decision (RADIX).",
+              f"{summary['open_baselines']} review-pending/open; {summary['ruled_baselines']} ruled; all IMPOSED.",
               "Route: [RFC] via TR under GOVERNANCE.md:63-71. No entry is marked accepted.", ""]
+    lines += ["## Recorded RADIX rulings", "", "These exact historical consequences are recorded, not blanket waivers for future edits.", ""]
+    for finding in report["rulings"]["findings"]:
+        decision = report["rulings"]["decisions"][finding["decision_id"]]
+        body = (f"{finding['severity']} {finding['rule_id']} {finding['path']}:{finding['line']}\n"
+                f"{finding['decision_id']} — {decision['path']}:{decision['line']}")
+        lines += ["<pre>" + html.escape(body) + "</pre>", ""]
     if report["baseline_events"]:
         lines += ["## Baseline movement and text changes", "",
                   "Moves preserve normalized identity and do not count as drift findings.", ""]
         for event in report["baseline_events"]:
             lines += ["<pre>" + html.escape(json.dumps(event, sort_keys=True, ensure_ascii=False, indent=2)) + "</pre>", ""]
-    for key, title in [("steward_items", "Open steward items (unchanged)"),
-                       ("advisories", "Open wording/edge advisories (unchanged)")]:
+    for key, title in [("steward_items", "Steward items (open and decided)"),
+                       ("advisories", "Wording/edge advisories (open and decided)")]:
         lines += ["## " + title, "",
                   "Unchanged items do not affect exit status; changed source passages appear as diff findings.", ""]
         for item in report[key]:
             if item["change"] != "unchanged":
                 continue
             body = f"{item['rule_id']} {item['severity']} ({item['tag']})\n{item['description']}\n{item['status']}\n{item['route']}"
+            if "decision_id" in item:
+                decision = report["rulings"]["decisions"][item["decision_id"]]
+                body += f"\n{item['decision_id']}: {decision['path']}:{decision['line']}"
             for source in item["passages"]:
                 body += f"\n{source['path']}:{source['line']}\n{source['text']}"
             lines += ["<pre>" + html.escape(body) + "</pre>", ""]

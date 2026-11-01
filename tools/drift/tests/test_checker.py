@@ -1,7 +1,5 @@
 """Behavioral diff fixtures in disposable repositories; production files never change."""
 
-import hashlib
-import html
 import json
 import os
 from pathlib import Path
@@ -18,7 +16,7 @@ from tools.drift.passages import digest, extract
 CATALOG = json.loads(checker.DATA.read_text(encoding="utf-8"))
 RULE_IDS = [r["rule_id"] for r in CATALOG["rules"]]
 POLICY = "**RPP Specification Version:** 2.0.0 (Ra-Canonical)\n\n"
-RADIUS_ROW = "| Radius | 0 | 255 | Normalized 0-1 |"
+RADIUS_ROW = "| Radius | 0 | 255 | Encoded byte; API radius = byte / 255 in 0–1 |"
 RADIUS_SOURCE = "spec/RPP-CANONICAL-v2.md"
 CANONICAL = "rpp/address_canonical.py"
 
@@ -73,7 +71,7 @@ CLEAN["BND-F-BASELINE-REMOVED"] = (baseline["path"], baseline["text"] + "\n", "A
 CASES["VER-RADIUS-TIES"] = (CANONICAL, "radius_enc = round(self.radius * 255) & 0xFF\n", "radius_enc = int(self.radius * 255 + 0.5) & 0xFF\n")
 CLEAN["VER-RADIUS-TIES"] = (CANONICAL, "radius_enc = round(self.radius * 255) & 0xFF\n", "# Explanation\nradius_enc = round(self.radius * 255) & 0xFF\n")
 for rule_id, index, old_word, new_word in [
-    ("STEWARD-TTL-1", 0, "Session duration", "25 ns"),
+    ("STEWARD-TTL-1", 0, "25 ns", "26 ns"),
     ("STEWARD-T2-1", 0, "25 ns", "30 ns"),
     ("STEWARD-CLAIM-1", 1, "irrecoverable", "recoverable"),
     ("STEWARD-RADIUS-DERIVATION", 0, "0.5", "0.25"),
@@ -155,8 +153,8 @@ def test_rule_clean_control(repo, rule_id):
 
 def test_catalog_inventory_sources_and_hashes():
     root = Path(__file__).resolve().parents[3]
-    def source(path):
-        return subprocess.check_output(["git", "-C", str(root), "show", CATALOG["source_revision"] + ":" + path], encoding="utf-8")
+    def source(path, revision=None):
+        return subprocess.check_output(["git", "-C", str(root), "show", (revision or CATALOG["source_revision"]) + ":" + path], encoding="utf-8")
     inventory = (root / "tools/drift/RULES.md").read_text(encoding="utf-8")
     assert len(re.findall(r"^\| P-\d+ \|", inventory, re.M)) == CATALOG["rules_not_checkable"]
     assert set(CASES) == set(CLEAN) == set(RULE_IDS)
@@ -166,8 +164,8 @@ def test_catalog_inventory_sources_and_hashes():
         assert f"| {rule['rule_id']} |" in inventory
     for b in CATALOG["baselines"]:
         assert digest(b["text"]) == b["sha256"]
-        assert any(p.line == b["line"] and p.kind == b["kind"] and p.text == b["text"] for p in extract(b["path"], source(b["path"])))
-        assert b["status"] == "unresolved - steward decision (RADIX)"
+        assert any(p.line == b["line"] and p.kind == b["kind"] and p.text == b["text"] for p in extract(b["path"], source(b["path"], b.get("source_revision"))))
+        assert b["status"] == ("ruled - RADIX CX-006" if "decision_id" in b else "unresolved - steward decision (RADIX)")
 
 
 @pytest.mark.parametrize("operation", ["change", "delete", "move", "unrelated", "duplicate"])
@@ -306,7 +304,7 @@ def test_sort_order_counts_and_schema(repo):
     findings = report["findings"]
     assert [(f["severity"], f["rule_id"]) for f in findings] == [
         ("HIGH", "BND-A-1"), ("HIGH", "BND-E-1"), ("MEDIUM", "BND-F-2"), ("LOW", "WORD-CLAIM-1")]
-    assert report["summary"] == dict(high=2, medium=1, low=1, rules_run=len(RULE_IDS), rules_not_checkable=CATALOG["rules_not_checkable"], open_baselines=len(CATALOG["baselines"]), open_steward_items=4, open_advisories=2)
+    assert report["summary"] == dict(high=2, medium=1, low=1, rules_run=len(RULE_IDS), rules_not_checkable=CATALOG["rules_not_checkable"], open_baselines=239, ruled_baselines=4, open_steward_items=0, decided_steward_items=4, open_advisories=1, decided_advisories=1, recorded_ruling_findings=20)
     assert set(findings[0]) == {"rule_id", "severity", "path", "line", "evidence", "source", "tag"}
 
 
@@ -372,7 +370,7 @@ def test_complete_normalized_git_blob_baseline():
     root = Path(__file__).resolve().parents[3]
     scanned, entries = scan(root, CATALOG["source_revision"])
     assert scanned == CATALOG["scanned_paths"]
-    assert entries == CATALOG["baselines"]
+    assert entries == [entry.get("original", entry) for entry in CATALOG["baselines"]]
     assert any(p == "rpp/continuity.py" for p in scanned)
     assert any("/" not in p for p in scanned)
     assert all(e["tag"] == "IMPOSED" and e["route"].startswith("[RFC]") for e in entries)
@@ -414,10 +412,11 @@ def test_unchanged_steward_items_do_not_make_diff_dirty(repo):
     base, head = repo.range(("README.md", "", "A routing note.\n"))
     report = checker.check(repo.path, base, head)
     assert not report["findings"]
-    assert report["summary"]["open_steward_items"] == 4
-    assert report["summary"]["open_baselines"] == len(CATALOG["baselines"])
+    assert report["summary"]["open_steward_items"] == 0
+    assert report["summary"]["decided_steward_items"] == 4
+    assert report["summary"]["open_baselines"] == 239
     assert all(item["change"] == "unchanged" for item in report["steward_items"])
-    assert "Open steward items (unchanged)" in checker.markdown(report)
+    assert "Steward items (open and decided)" in checker.markdown(report)
 
 
 @pytest.mark.parametrize("anchor", CATALOG["software_must_anchors"], ids=lambda a: f"{a['path']}:{a['line']}")

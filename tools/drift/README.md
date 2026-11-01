@@ -1,5 +1,12 @@
 # Deterministic drift coordinator
 
+Catalog revision 2 records RADIX's CX-006 decisions under the CX-007 release
+(`trellis-channel` inbox `c098c20e`). The original `0a12c8d` inventory remains
+the foundation. Only four baseline identities and the two A1 wording guards
+are revised; 239 baseline entries retain every original field/status and remain
+review-pending. Four steward items and A1 are decided with `DECISIONS.md`
+references; A2 remains open. See [CX007_VALIDATION.md](CX007_VALIDATION.md).
+
 This extension reviews two Git trees against explicit predicates. It emits review
 candidates and never changes the specification, imports target code, executes
 target tests, calls a model or performs network operations. Use Python 3.12+ and
@@ -53,16 +60,28 @@ edit runs and unchanged-line mappings. Unrelated same-hunk physics cannot supply
 replacement scope. Splits/merges and other ambiguity retain a removal finding
 (the stricter CX-004 choice) and classify new physics wording independently. Deleting/rewriting a known baseline without physics wording emits
 MEDIUM `BND-F-BASELINE-REMOVED`, with its old id/path/line hint/hash. Loss of a
-software-MUST anchor is independently HIGH. All entries remain IMPOSED,
-`unresolved - steward decision (RADIX)`, routed `[RFC]` via TR under
-GOVERNANCE.md:63-71. The open count is printed every check; no entry is accepted.
+software-MUST anchor is independently HIGH. All entries remain IMPOSED;
+the 239 pending entries retain `unresolved - steward decision (RADIX)` and their
+original `[RFC]` routes. Four entries are explicitly ruled with preserved
+originals and decision references. The open count is printed every check; no
+entry is marked accepted.
 
-Four separate MEDIUM steward items cover Shell-0 software TTL, T2 bounds,
-conventional-hardware physical claims and conflicting v1→v2 radius derivation.
-They appear under “Open steward items (unchanged)” and in the open count. Editing
-one of their cited passages yields a normal diff finding. Two LOW advisory groups
-cover six radius wording sites and the True/-0.0/negative-zero URI behavior.
-Neither grouping changes application code or resolves the steward's decision.
+Four MEDIUM steward items cover Shell-0 software TTL, T2 bounds,
+conventional-hardware physical claims and v1→v2 radius derivation. Revision 2
+records their decided state and updated watched passages. Editing a cited
+passage still yields its normal diff finding. A1's six radius wording sites are
+also decided; the True/-0.0/negative-zero URI advisory A2 stays open. Reports
+show open and decided items separately by count while retaining all records.
+
+The catalog retains all 20 CX-006 findings with exact before/after passages and
+RADIX decision references. Only the three recorded MEDIUM passage transitions
+need an explicit replay permission: the actual unique same-owner replacement
+must match its old/new identities, or the new DECISIONS file must be an exact
+creation. Existing approved copies, duplicates, other paths, altered text and
+HIGH classifications receive no permission. Approved after-identities stay
+watched for later deletion or rewrite. No rule, file or decided status is exempt.
+Canonical foundation and approved-overlay fingerprints reject metadata edits
+outside this reviewed revision, including status changes to any pending entry.
 
 The v2 normalized radius and encoded byte contracts are **SOURCED**. The separate
 Python half-to-even clause is **IMPOSED**, with vectors `1/510 -> 0`, `5/510 -> 2`,
@@ -107,8 +126,9 @@ python -m tools.drift.history \
   --output-dir /tmp/drift-history
 ```
 
-The snapshot command reconstructs the complete frozen scan and updates only
-`tools/drift/catalog.json`. Its tests compare every path and entry with Git blobs.
+The snapshot command reconstructs the complete original frozen scan, then applies
+only the pinned `5677ea2` ruling overlay, and updates only `tools/drift/catalog.json`.
+Its tests compare paths, entries, decision records and exact scopes with Git blobs.
 Review updated rule/source metadata and RULES.md before committing catalog edits.
 [HISTORY.md](HISTORY.md) lists counts for all 30 reachable commits and every
 HIGH/MEDIUM finding with its commit; [history.json](history.json) retains evidence,

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .checker import DATA, blob, git, resolve
 from .passages import classify, digest, extract, in_scope
+from .rulings import DECIDED, REVISION, RULED, apply_rulings
 
 
 STATUS = "unresolved - steward decision (RADIX)"
@@ -40,7 +41,9 @@ def source(root, revision, path, first, last=None, text=None):
 
 
 def revise_catalog(root):
-    catalog = json.loads(DATA.read_text(encoding="utf-8"))
+    # Reconstruct from the immutable pre-overlay catalog, never from partially
+    # edited current metadata. The source scan itself remains pinned to 0a12c8d.
+    catalog = json.loads(blob(root, REVISION, "tools/drift/catalog.json"))
     revision = catalog["source_revision"]
     scanned, entries = scan(root, revision)
     catalog["scanned_paths"] = scanned
@@ -140,6 +143,7 @@ def revise_catalog(root):
         data = source(root, revision, path, first, last)
         catalog["guards"].append(dict(rule_id=rule_id, path=path, text=data["text"]))
     catalog["rules"] = list(rules.values())
+    apply_rulings(catalog, lambda sha, path: blob(root, sha, path))
     DATA.write_text(json.dumps(catalog, ensure_ascii=True, indent=2) + "\n", encoding="utf-8", newline="\n")
     return catalog
 
@@ -148,8 +152,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
     catalog = revise_catalog(Path.cwd())
-    print(f"SUMMARY scanned_paths={len(catalog['scanned_paths'])} open_baselines={len(catalog['baselines'])} "
-          f"open_steward_items={len(catalog['steward_items'])} open_advisories={len(catalog['advisories'])}")
+    print(f"SUMMARY scanned_paths={len(catalog['scanned_paths'])} "
+          f"open_baselines={sum(e['status'] == STATUS for e in catalog['baselines'])} "
+          f"ruled_baselines={sum(e['status'] == RULED for e in catalog['baselines'])} "
+          f"open_steward_items={sum(e['status'] != DECIDED for e in catalog['steward_items'])} "
+          f"open_advisories={sum(e['status'] != DECIDED for e in catalog['advisories'])}")
 
 
 if __name__ == "__main__":

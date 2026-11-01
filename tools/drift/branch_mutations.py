@@ -13,9 +13,66 @@ INTERACTION = "tools/drift/tests/test_boundary_interactions.py::"
 GIT = "tools/drift/tests/test_git_boundaries.py::"
 PHYSICAL_CONTROL = INTERACTION + "test_same_passage_physical_rewrite_is_not_baseline_removal"
 WORD_CONTROL = INTERACTION + "test_valid_word_only_markdown_is_reviewed"
+RULING_TEST = "tools/drift/tests/test_rulings.py::"
+RULING_CONTROL = RULING_TEST + "test_exact_historical_transition_is_clean"
 
 
 BRANCH_MUTANTS = {
+    "ruling_path_scope": {
+        "module": "boundary",
+        "replacements": [('        if finding["rule_id"] != "BND-F-2" or finding["path"] != target.path:\n',
+                          '        if finding["rule_id"] != "BND-F-2":\n')],
+        "positive": RULING_TEST + "test_wrong_path_transition_reports_medium",
+        "control": RULING_CONTROL,
+        "meaning": "Treat an approved transition as permission on another path.",
+    },
+    "ruling_before_identity": {
+        "module": "boundary",
+        "replacements": [('            if new_index == index and old[old_index].sha256 == before["sha256"]:\n',
+                          '            if new_index == index:\n')],
+        "positive": RULING_TEST + "test_wrong_before_hash_transition_reports_medium",
+        "control": RULING_CONTROL,
+        "meaning": "Ignore which old passage the exact new wording replaces.",
+    },
+    "ruling_created_file_identity": {
+        "module": "boundary",
+        "replacements": [('            if current_file != finding["created_file_sha256"]:\n',
+                          '            if False:\n')],
+        "positive": RULING_TEST + "test_modified_decisions_creation_reports_medium",
+        "control": RULING_TEST + "test_exact_decisions_creation_is_clean",
+        "meaning": "Allow a partial-match creation of the approved decision file.",
+    },
+    "ruling_empty_file_creation": {
+        "module": "boundary",
+        "replacements": [('            if exists(base, target.path):\n',
+                          '            if read(base, target.path):\n')],
+        "positive": RULING_TEST + "test_existing_empty_decisions_is_not_creation",
+        "control": RULING_TEST + "test_exact_decisions_creation_is_clean",
+        "meaning": "Confuse an existing empty decision file with an absent Git tree entry.",
+    },
+    "ruling_future_identity_loss": {
+        "module": "checker",
+        "replacements": [('    for recorded in catalog["rulings"]["findings"]:\n',
+                          '    for recorded in ():\n')],
+        "positive": RULING_TEST + "test_future_decisions_paragraph_deletion_reports_medium",
+        "control": RULING_CONTROL,
+        "meaning": "Stop watching an approved paragraph outside the original baseline scan.",
+    },
+    "ruling_high_severity_permission": {
+        "module": "boundary",
+        "replacements": [('not (rule_id == "BND-F-2" and approved_transition(',
+                          'not (True and approved_transition(')],
+        "positive": RULING_TEST + "test_current_high_classification_is_not_exempt",
+        "control": RULING_CONTROL,
+        "meaning": "Allow a MEDIUM ruling identity to exempt a current HIGH classification.",
+    },
+    "ruling_nonruled_status": {
+        "module": "checker",
+        "replacements": [("    require(isinstance(catalog, dict))\n", "    return catalog\n    require(isinstance(catalog, dict))\n")],
+        "positive": RULING_TEST + "test_nonruled_baseline_status_change_is_rejected",
+        "control": "tools/drift/tests/test_catalog_errors.py::test_valid_catalog_control",
+        "meaning": "Bypass validation and accept an unauthorized pending-entry status change.",
+    },
     "restore_hunk_scope": {
         "module": "boundary",
         "replacements": [("    replacements = replacement_pairs(old, new, diff, paired, used)\n", '''    replacements = {}
