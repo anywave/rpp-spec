@@ -105,7 +105,7 @@ on software). Shell=1 is warm (300 s). Shell=2 is cold (86,400 s). Shell=3 is fr
 (2,592,000 s).
 
 **Bidirectionality:**
-- IF shell=0 THEN the packet is transient; its TTL is ~25 ns (spintronic) or session-scoped (software).
+- IF shell=0 THEN the reference software rejects elapsed time >= 25 ns. This is a software policy deadline, not a physical-erasure guarantee. A session-scoped profile would require a separate lifecycle contract.
 - IF the packet is transient THEN shell=0.
 - IF shell=N THEN TTL = `SHELL_LIMINAL_TIMEOUT_NS[N]`.
 - IF TTL = `SHELL_LIMINAL_TIMEOUT_NS[N]` THEN shell=N.

@@ -1,0 +1,247 @@
+# Boundary F per-passage review register
+
+Every entry remains unresolved unless RADIX records a separate explicit disposition; review-pending is not acceptance.
+
+- F-BASE-0001 | B5 | dc2875836e0978b2fd5e541e225a61be135d3bd36d3e19b73ec20e66906bba41 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0002 | B5 | 72ce6df03a58e69a3c1587be8df410eb90810bb444142e5a3a443df63a0f8b07 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0003 | B5 | f488d32cd77568e6c1fa9c80013fd9eaf40bda99a765c55771a19446ee98bd5e | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0004 | B5 | 8014d44c7619216e98b359caf8267c09cfd63cb69d8e916b511a713c5073cf7b | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0005 | B5 | f872e0fe82be9447f9d1b47548c72d71dbedab94793b637bd7cf8baca2cf5f19 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0006 | B5 | 96f8a8021ca5242d33fc7d4cdb24c298e6b07335b49dafd19571ecc67ecdb7e9 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0007 | B4 | 1765f10225deeacd52b5e724fe4899d79c4997b32ec6b28d0a87a270ff499e47 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0008 | B4 | 79c09479b9999714508ae657b5afbb14404aef1e7e12d8b2e7e73aa25a0ae7b2 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0009 | B4 | 1052bba48226fd7e9bb0d10454f7e4721e1fcaab3e43ba93609691d9a98f0309 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0010 | B4 | b92a6be2ad66618e289f7e7d0d28d5ba77984aad25f0735437eb97d321b36207 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0011 | B4 | beda2188cde5807157eedf35e0782e4b65ff8bbd8c0d027ffd03094bfe234ae5 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0012 | B4 | 93f324cc86f22108b588a891e6b8bfc606b5ab7f2ae542e8faecce3a07701b3f | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0013 | B4 | e5e070f7dba22001959b4f1f8d74d695f9457f079b61bc93c54a94e48573a7dd | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0014 | B5 | 0b0760347c77463a2ae2dfaf8c12ef53fe4a58edcc89ee70e4e576d9b680b92a | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0015 | B5 | cbb18651d454791c36a603d2b5f644ae2c9f1f05dacc82a14b49ef3bf4bed9f1 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0016 | B5 | fb29fa2f4701dd2e535083b42b9abd7b4609dbb8392ab49ae0193850a08c4d56 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0017 | B5 | 4d874e49152433a478e0060256399d3150ec370236b4a29a5b22f3493f156bc6 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0018 | B5 | c7afcc5f81765a0e9d88f16994ec8a479daa982f4a65ece03e4ae9b4f866bc57 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0019 | B5 | d06d58d01cad816f40da040df3185a2296c9ce426ec185ec564ae1985ec29ff9 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0020 | B4 | 4dda10c34bfa2292146aa0f512352fbbdcf384f8cc6148842dd5c1d437ef847c | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0021 | B4 | 014e0a650158dc70c8611f905355b347ed488518a500c331d16c69b6fcc108ea | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0022 | B5 | 85c3278ff7d5bb90f3c119010f425f4bdb4e5ea3180d6dea135a8d9308573744 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0023 | B5 | 31ff26544ce4713d58baddacb79c6fcda81c4c448a3e8ddb600802c89a2e3565 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0024 | B5 | d059c7ae7915f2cd609c8286ea6a6326c9069e7bab6158c6a20e66bc85916a10 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0025 | B5 | a5db88d6667fac68bfe2e2209359cce75397a32feef07b8d6641a47bb10681fc | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0026 | B5 | f3eb457a41cddf1826bd44e11cd3584163597d85ed54d3021693215f96686e99 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0027 | B5 | ca198deac5d5957d0420248c7ed37cef93e7ebf9aad924f48ef9bca8eb3f28d1 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0028 | B5 | f0daccfe2c255b5caabbf32dc2dd552899cbe3a216eca3bd5093b7f31823a405 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0029 | B5 | e90850a9c8df70090353e1acff4b215658ad793edb1475163f5477aa19c29513 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0030 | B5 | b9d04d4939eee136276bae12b5879728a1bd9dcf58fc6efb184d147878d7f8c5 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0031 | B6 | 9a498331f566eed0add971ad644124695183642d3d150f17ab4b9665d629914b | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0032 | B6 | 3aaf7c58ae8065579549677696409ab4613516787418610069b89b4abecc1203 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0033 | B6 | bfc7b9373c8ded4563d5ee1998d1157c20ccbe89a6c1adf4b6362ad35c85868f | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0034 | B6 | 05e3edf34f09b1e08947a4e9a13306d4435e32ca978be1ba2988415c3a5f234f | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0035 | B6 | 63401af841841d0f1b2492e9f68d3a0ef5660b10ba158196cf4aae7a38adafd5 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0036 | B6 | f7fea6a7f25e3e62436da8081d107ba3f06446b7d92c3354e35750fae81a6f7c | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0037 | B6 | 1c1b28b38fad04a380327f8141ae3ef2cc8a089b5c6ea9b0742c06a68949bcd3 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0038 | B6 | 84bc5af82f68997c5e0e251d1d1ff0c3b37003b80ae16d5ff0292f1ec05e06e7 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0039 | B6 | f48d23ef677ca5b24c6d798f6027a0bcaee24996834a488304fe8542c4460211 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0040 | B6 | cd2a8327c86b58b8f09280c7fdb01f8b698ba675f52e5bad1e07826466731341 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0041 | B6 | 88adcaef88feb68af9a3a9fa90b31023584ad887ae0b96c4747f79aad8ff967f | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0042 | B6 | 80217545a619b4c907901c7c585866de803cfecba91b673696b4bef134d1feaa | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0043 | B6 | 8e4aaa6a404505b1010f5e8e2b2ed5bbe64852b5bd928ffaeba6a6e3ce6f23af | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0044 | B6 | e948360a501ecf44024f3cc59aa1e8dcd15cfe292a5dcebbe57dfe6269c18103 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0045 | B6 | e6ddc98505ac87f24126a0e1f4ca53558bf05cd955b0d91eb6117fd1d43b8266 | review-pending | Documentation review pending; executable code is unchanged and device enforcement is unvalidated.
+- F-BASE-0046 | B5 | 810b5e763ce32dc71ff6e48b367d0c17bd8680f585a8ac8b62569cb0e5692536 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0047 | B5 | 510e38ef6ca996c5f56d78e175bbdf41c4d27a2b728aa0c28a86201ab301848b | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0048 | B1 | ccff988a06aa7d79a1a46699fbecba97d68165e7e81ecbdf000b5a325aee996f | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0049 | B1 | 024c464c986d77c9bdd2f4b61aa331159768bbaf658e564f85737782d221421a | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0050 | B1 | 6f717753674bdee6f88c837b5437123675020879b318493c6c030c3098cabdfa | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0051 | B1 | e5da1a7ccca5dd5a9d4e6e90aa410f1dfed2c324b57337343b6ae9b68f4d9962 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0052 | B1 | 72e1a4db1316e4ac633e1238d9d459bce75b1239c8863d4347b9c73a50827d8e | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0053 | B1 | 778689aa3163d1ec2a5c60320bd2a34fab2cd217606d922deb787b8aed523b2d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0054 | B1 | a33add5b7299dd0be01afed0668c0452191e0e7c8c9e32bb2b684fb72bbb33ce | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0055 | B1 | 75aa4b43dcec19dc70ab72fbb798a533e70b9d4fd52ba798d9c5cfcf3753668d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0056 | B1 | 57fd1e8e10b7b1053bf59412c9403eac4390a3b0fe0ea72f0a06af0004f80b44 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0057 | B1 | 2e739148289393b8fb17a069cfe9a2afab8fb812a169dd59eef75b4c9ddc6d15 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0058 | B1 | 3bcbaf4af74170a791c4fca6812c1ce04d539ce8ee7be3920c520eca0316e47a | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0059 | B1 | a5eb9c38d55cc437b7fd8039050d82a705c46862d613be048dea690d882832fb | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0060 | B1 | d712296636583909d8cae5510797dbc9724e440872714023d4c1f19ef7298acd | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0061 | B1 | 0f2f5916338f1ebf25c2f6dd8cf070cf4cffa84bfda0d63c021e27df675b4e7e | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0062 | B1 | 55e237de53a9b580e4e6bd33faa832c9348c4b33c73fd94f9b91e5c1106b2827 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0063 | B1 | e661706bd209ed81ba2c9b67e6289060ae60e8402c8194cfed8941575be97812 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0064 | B2 | b28982bad429d19c8743163f446479e238efa21209880f034dd2095c8eed565c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0065 | B2 | eb980d6d5e3f4596d54cf3dc23847259298c15f809433b6baaf7f05b97bc7741 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0066 | B3 | 93f0add93803b0e818232f5b93b9afa2ceb6117a6cfc4d5d682cb0e2edbbf4af | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0067 | B3 | 9538a3f831d8188231c195e9503e5370027f9e253d924bf618124f488943f8a5 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0068 | B3 | ff3b796ad258fd985be549ae62f0e0de0ad4881f453cac7fb758293dca0dd7fe | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0069 | B3 | 073dc2119d60788a431ffaaa7dfb515f2a3f873a1a342a504da16ce3cb02cc1b | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0070 | B3 | 51698eff5d7966a5c8c41a4938427a4c15d02060aa73ccc6c9a8700bf41ec14d | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0071 | B3 | 63d08ed05d2b37553bfa167b419e1537727b5bbf0643f4a5b4d8ac63dfd7bdc6 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0072 | B3 | dc34e2a49115e8f3faa007a20b4b01a14a696ceb078644c26771da8a290861f2 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0073 | B3 | 8d152fd10ef3426570f6cee548983b9da34a4e0154f5a8e60128df1e0d314097 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0074 | B3 | 7c04e863a1ed12b61df98993ef295df3fcd88e0a6841b31b55c8b1ea37308260 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0075 | B3 | 6dcd8dd4ad30f550f26dd0a157fa776953fb59b2cde791932a31c68ab2288caa | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0076 | B3 | 6b8824488365221ec731911ec526cdba551a1bddf2b74648f97dfc791f6ae63d | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0077 | B3 | 87018eb1eb74fc47f8f1fae0fbe066ecefcb12028d0261a13a95af426c9a9ff5 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0078 | B3 | 149d0eb2c18c2b3a83ea85c099098510ce984b60c2e1b84d869c249ad820835e | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0079 | B3 | 1bc4a49b7d7deb96abef9d67fc6bbb78bd2a3d29a6c3fe32f5949467a02e3cc4 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0080 | B3 | 572e2263818e011e850682af123605719a824ba0f46096918b95de7774c3929f | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0081 | B3 | 4e2207255f716e21d7bf6157294bb8baf69959ca5ee508525a914d250ed351b3 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0082 | B3 | e60567d7ae7185c6a37b887052d4b69164dccc98d83b773c1d317090ed72c754 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0083 | B1 | b1bbedbd2c8c6e797e75f09881ba79aa0e31e9bc39dd2fd2c5a5fb0656611dfa | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0084 | B1 | 04bd8445c5dc1e2a7fcd489fc71957bec8520ae801b7f8ec4172fd48222a418d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0085 | B1 | 17d3a4f7018c3f8379ab423cd83ca2cc5a71c004a474a6ff3658cd7a6c1d5f30 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0086 | B1 | da8d6c25598ddad6d35621c163c0dc2e8aa1a86bf077a061126cbdcb6dabbc0b | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0087 | B1 | 0e5b0580b857c6c82c79bf387f5bfb4cd019eeaa0bdfc5f805414c0e60c691b8 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0088 | B1 | ecf8d4ad184bbc60fb330ceb353c7ad0ce1bf104aac1884a5d628c9b7efafa9d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0089 | B1 | 1ce6fd8d0fb84c04e7c19fc8c2153919cb24b5c7ba253b579dc07408489291a5 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0090 | B1 | 650424597d7f5692670210624126796064ea0ccb3d6dd7bdb22c2e6f0a0b880c | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0091 | B1 | c8a56d9deac639cb57e4d664d73482aa483dd2a775d6470b49b2f523808746d7 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0092 | B1 | b5312a16777bc1141557ca1201ce592da36e6a2c6a4138b30def024242d6fe9d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0093 | B1 | 6a3a94efa4c5d19189195eac1754aa485e9d707bec2f39fc2d8a79399ae0d492 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0094 | B1 | 24a8d9d1dca316ea02ce6a30baebdbb0462e70b7d076905f2736f4cf49286f89 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0095 | B1 | 7ce7d91685c5fa060f5734ff629b0f21beac4c88d9336ac4f58a8046e9ef3b01 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0096 | B1 | be3a172b8d8d9ebd3af711c80bd4541dfcaed1608667876de884c3dcf11e2e9f | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0097 | B1 | ce1d4f75702252ef063c3d297f122bb254ba52aea45e3fd10711922d7095eec5 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0098 | B1 | 21a8f913a0da528509133330c1a083f51e9fc3f26ca3cfb4560b310b40814846 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0099 | B5 | 1be15ca72ef7582fdd192eb95f40ce9e1fca60bb66f78776657fe1912f364e40 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0100 | B5 | 517d6d79427fb9fde80c007fe46759e450d2479c36b687aa536a547f023d002f | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0101 | B5 | 7cab2886515a666e70c78477136e1c1780b61db90734386aedd5b94ded155437 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0102 | B5 | f64e2b47cc7c1c4bc1c91caaf319a8a957ea033ce15e47ace2f565a92e4347ef | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0103 | B5 | 203eeed1192f85552766233a06d64681ed10bf48ffae7d6fb7c0476e3510a0cf | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0104 | B5 | 75b4c1480cb045608dbd7a8332e1158d980dc805b73d3dc85cd0bed230ceb1d1 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0105 | B5 | 973ae7fe081b515d1dd719983c9655ef15eb39f545a2c3db58f864f786afb2b2 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0106 | B5 | f8e98e7616039f98dcc4a822f897f1bdd4cacc4fd537b02f8fcf01f72bed9cb5 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0107 | B5 | 1f72f14e4064b5280534d25912fe0c3e8ee1e14fcd7b80e83860ae5c46cbf2c4 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0108 | B4 | f23d0d9267720707cca6e78c219762cc8445369a7c737ea52da8dac693e6b41f | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0109 | B4 | 9c9affc128e8580c4b7a3882d36528a432dc2d7dd8d22465ff93175a59235049 | review-pending | Retained as provenance or navigation; this reference is not claim validation.
+- F-BASE-0110 | B5 | 50729b525386bc3fde08681c59b496951bf32388e30867a82bb86ebd0002070f | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0111 | B5 | 8e8591cfdba25d15a65bcdd0b5e8156e64ae6142ada5368ebcd2317e2c4f73b5 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0112 | B5 | f90989f9a63ad4bfdebef98eac6a629ba54c267d2ef1b56cb268846da77a3d51 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0113 | B5 | 70f3f4f9274d7c3d01a95e1c435221909cd4f29b5842f3bc032ab1f4d654435a | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0114 | B5 | c1541309f17dc72c27e71adaca00ff2054322b1dac7497d1d916d91642ed6cdf | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0115 | B5 | 90a1dd9b972c352607ca25ba01aee0e1b44879c757f9f20965d955e8da6ee18b | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0116 | B5 | fd38d98e2008852a2fa4eca7256046f09c2e1ef06fab094728852e41fa8b2c16 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0117 | B5 | 43041f22c80f2395d01370a2a5f679bc61e8699c5bc7cf7f48f19947a7743244 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0118 | B5 | 106c641555680365162860ea064b1074d4b781581705159cef57ea25fee507ac | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0119 | B5 | b98326231ff459f191f2cece5ffe69da203b35e8d65a20123002212e0740a0c5 | review-pending | Software and transport behavior are the supported review scope; interpretations remain open.
+- F-BASE-0120 | B3 | ad038fdcdc9e4d5cf9b2255430873694c629f521b9d6f8ebe12218f1dd6b0845 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0121 | B3 | bb24f8400b72a96d5a6cd72dcaa0ef9a01665f8651c8e6770822c897fdab0499 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0122 | B3 | fbee4f9dbdb9f066824ab07db054d5a26bb7d2876df298a2714dcedb5583b337 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0123 | B3 | 51fa1d8382586e8e6e03f8e294822238efe55fb8edd5ab511a6a8d1cde76707e | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0124 | B3 | 315983863fc03805639c5769ec015f802537c1741e077c84f5a436f783935932 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0125 | B3 | e3a34bf392afb2c1fda5a63e429f6c365a22a9bed859bfc1e484ac3f8c71bbd0 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0126 | B3 | a6a0fef580cb23e578a69717e9bd737d1064dd5d8fc8a9e9de3ed9413d54b61c | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0127 | B3 | d63ddf90250e280f081a08d01aab3a57b7103720522d195f61155bb93fec643c | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0128 | B3 | e678e51d0e844e39b17ccbe31ac6eef9dbf127284e96fc80e3fc617188537447 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0129 | B3 | 3b351bdc2ef8b0eb567a2f58926183b06617b59a6abc26ecbc05290e784d9dbe | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0130 | B3 | fbda96812de56868a741ed70cf4d0ffb63c34d33238ec4a34d994eeb86567524 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0131 | B3 | 623e65b64b0a3336833114730d90ed3eca222cf95bc380ec3efd1381a9dac63a | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0132 | B3 | f83565841cf0651336853d85601ef355235204dd6642015c6461c3df6631bce4 | review-pending | Computational model scope only; numerical reproducibility is not empirical validation.
+- F-BASE-0133 | B1 | e01b53463bfd8fef7fce695bd8c3cbc680dd5bf7c7bb013dd488db8efbb3611d | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0134 | B1 | 5ded0079c8d724376d01abae6385f3b77278ff58b11be991dad11149dc01a372 | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0135 | B1 | 1f3c42934d26211e2861001413dffcefbae7e1f66ce5ccdad788704cbbcd48bc | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0136 | B1 | 580860008d580264c33ec15dac88f051a90df3191b3a8e2fe21637b68b6ff1dc | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0137 | B1 | 6dcd8dd4ad30f550f26dd0a157fa776953fb59b2cde791932a31c68ab2288caa | review-pending | Preserve software obligations; review optional device statements separately.
+- F-BASE-0138 | B2 | b549fccbc9345d5fa668e4c8260fb8f3914cfe450feb77b0b1376265c1409a32 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0139 | B2 | a1ad78a5a3e34a3563e4c15f2feb984cdc7d4b6594954df6ab7e17fd1ac01a3d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0140 | B2 | b1b5698c19a4563b8f407f8dab7feffe4fcaaf0452cad384b5c7cb7785f90eb5 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0141 | B2 | 66ea6d7abb17516e58dedbfd821bf4c09f95ec7aca6f837ce6fc99f0f2fadd0f | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0142 | B2 | 0833a1a71fea986cf76f9cea5fdec7d69859930e91750487e60e25b4d8f27da2 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0143 | B2 | 956294b82f4cc3f7349f243412ad46d357ad4f5a7ed9de8be094bd145d3c1d71 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0144 | B2 | fcca9902cb06bea58f37b10cfae8be4a99e4f8a840d731cc9ca47d3eaa6e194b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0145 | B2 | 7a00a212bb7436ba29de03cc04c0ffb166de53a6114db24caa5c188219a58f63 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0146 | B2 | 3976862f61df7598c9eb0818ddf8dc3001e016b61c92cf4c2894b720d71919ad | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0147 | B2 | 00157299b824e66412013aa9e6479c8c4b64a65291615233e745706ef7aff92b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0148 | B2 | 1a6b3afe8f102c678de0fc93b19549feec743c2c449a9ae853c80d12d61cf039 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0149 | B2 | 48492ec30aefd03348c17b76496aefedcbb7a80ba25252002039784a574633d7 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0150 | B2 | 94358d83d9a2955ddf2fd9621811f80219e97d9e1815368d7b1ca2713642bb13 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0151 | B2 | 1e801c53275c43325188a76febc5ee16e893ec374513def46347691d1fdd6fc3 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0152 | B2 | 46a17445cc3a19c6abaa14f7454451b256721d06913548a0108cdaa36814232b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0153 | B2 | e878d06a1d63920e1028ae373f47b8fd0f332dd793026db00dbd68fa7c33c331 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0154 | B2 | 256fe6d3e503bff77eb5885c218fe5d50cc29996076c813332fb1598dfce22f3 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0155 | B2 | 6db9b1f520aad8275617141912b608ecfc9cc2d27ce54e4fb9f64749368bc654 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0156 | B2 | 2ac86ee0b491c6a7f9ee13fcd35801043086f7b18ff81af09448642777d0d1db | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0157 | B2 | d4341516a972bde70932daf71fc792a24717fad096c139455e656e5fbfa799dc | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0158 | B2 | 83a4c7feb96b9d90e949d047bba0a166a85811bd5e1bb99ba5410fe9dd270cec | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0159 | B2 | dffcbfa9d5d55fc8344fd75afaf36f9f96285f87abcc9da632045fbeddfc5389 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0160 | B2 | 51e4bb8a9d540646df01d7823dcd5336006645e4575c7dd522d40ba1bbf7193b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0161 | B2 | 733ff16d235d9f2a31bf157a1aee9ef12d92820ed7909d9c74b6e4679b5872e8 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0162 | B2 | 5c02505f4ec4913defe803c380ab1c97ff7c2814b1396db286aa0478cbca754d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0163 | B2 | cde2310e72be0966c965046b819d412f9ade282067abd18eac14c4c9fbbf5dfb | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0164 | B2 | fef71d5f68433369275329e3f892b15c01e551362e9a76778370e05555792f93 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0165 | B2 | c118c66ffbd67dc435ab1844d5a52126d97e0c619233327d93b61ad2f3affc3f | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0166 | B2 | 204dbd2bdde6925d318e8b58b3e5e489ad9106bf27e176fe809b06a3acf6c5a5 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0167 | B2 | e0442c272a3449ec511f8c5479b88731fe5b5d8cc8e8490dea7ce6660e7e5adf | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0168 | B2 | 0e674ab8066a3398dbda5f88f96d7f0d20fe6205ce7220aaa0a4631a0f2ccec6 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0169 | B2 | 2247649dca36a2d2850b8349bfe688b78288039bc1a13b270ebc5a26ebada624 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0170 | B2 | 801a699a6d4f1cb544fcf6e89958bdd08b9d433ffabb4a15c062d381f20cbc48 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0171 | B2 | f1c6d7efa25bf31a0c6d1e2ccd9577e9a7ec93cf341229429d2e7b202af6f4b7 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0172 | B2 | afad90618fc4d675a2acc5fc000e982a2dc1441010595ff2c88aed6a8477b27d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0173 | B2 | 897a6e7497e230ea6743e688cc0963b31524e17c9bd2b56c2cd77e9cf32697cd | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0174 | B2 | cd1169e832623fa3d4445a6b2b84a13371314197ea0024080cdc4306c51757d1 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0175 | B2 | 399ef191837cf027bbb12a56356f10d4abeb854fc929449325fe490125e5263c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0176 | B2 | 38d7f7fe2842e62ef78dfd6c6ec4a4335cb0c0691c42d39951bfd9af4a9a857e | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0177 | B2 | 8a1c1cdea28aeb2988d44f4e6861d59434445fc5d269ff1d78a3670ce678cbe8 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0178 | B2 | 7403df0bb8f1923fa02802f995bb5638cf29aab9ba8b823e8523c3138c530c3f | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0179 | B2 | 53d855106387e7d76734639854083b8dded842f87016debcb4a17abff478d95b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0180 | B2 | a21017f9ef7301838f259956277957a6b094100ef4fb26f3fdd8fca33984d36a | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0181 | B2 | 60c478cc9b4c674db61541c0ecc7b2b05373e37ed6bd4041c1c0aff1fdb9f0a5 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0182 | B2 | 621be9061623ab9971e29d4b8642c7618fed87d9fdebf5d41c7297b01859c332 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0183 | B2 | fc2f7d797d819c9df2d0de4ae539ed93441ee4ada5ab99544a7cf80221d6d6b8 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0184 | B2 | b809a36ed7b56321e4e12472cddb396450ca56b053ea1c1590b7c29d1a03fd3c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0185 | B2 | a25dc19af1f9e9c50d683eecd5a448deb5ac81ed51d9199e00f926c487ed7094 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0186 | B2 | 7906cf2e106b4161449adcee014f936cbb463e298136b95ecfe9fb3231f08243 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0187 | B2 | fce86f31cee8fd56ea93b83b34ccc6fe36d0163be61f4da24f0eacb31d381f43 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0188 | B2 | 35c72195f5fdfe16ce9421e735ce2b504840e1f8db0aa88e55b6bf9c5eab2889 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0189 | B2 | d8f9dc88ca283eaa60a8e8e228f5d7154a25229b3706a45467c744a0b9eda505 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0190 | B2 | 7312cd9b7bb8283cbdf53caeb1a84ab82a40508e2cae951ed6b2caf2e95251b2 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0191 | B2 | a47dd6aabade7fe0ca34411f3d027a66f1bcc4b5f09cc351b94804fb91e85210 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0192 | B2 | 915c31fe8ac503f88af88efca6dd632f857ae77a58e79e86d4cebf98b75dbd3c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0193 | B2 | 8bd902b189762aeaa754f8e95c0b23808d5e4134d3e8ab00c5d71826ba50d8fe | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0194 | B2 | 03768e03727df6c4fb60d770e7ff7737a697526fc5c4a03b0906d375c60553ef | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0195 | B2 | 09959d92466289cea07622f9852fade5e9b1dc10f114795c6aa98b0cc0dfe579 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0196 | B2 | faa7431d102b6b0a87140b4be42bbdeee9b61e4a7d565dde6c18726073bc4a59 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0197 | B2 | 92a1cc2b927c74e5ecc9afe2b254ea132af8f3035dabfe172b04cd7d71a9ac58 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0198 | B2 | 024a294a90564a9066fbded481d7fa91914a8e963d14205a7622a6f5a6d42404 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0199 | B2 | 884574b5e0582284549cafca2688cea9277b03002066df6e43aa5064593de3f7 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0200 | B2 | 8c81f1e2da5c19b411f18fee5c5e19983b5f30925648659417989617a3a17928 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0201 | B2 | 540269bc2c454b95325f0392eb800955a63b8fd11916024d4cd2b799106036af | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0202 | B2 | a472955fe351b9087ee6b7684af31b23401f672318e9eff8107e1bcb96b6e109 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0203 | B2 | a1f71c74683ac8726706f96a064891efcd52e9df594dcdcf787f8788cd5668a4 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0204 | B2 | 3ac3563f2c32a93b449a22306de44e34d6c979d0478c77666be793ae77097861 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0205 | B2 | bd0bc4bc1af8e50c972e735dca25ec02353cce33ddcbbdef11d7798b967e52d1 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0206 | B2 | 019bb6b31c4df5ee229a51a14414f12ce05682f2eff227848ef6af8b5317f9cf | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0207 | B2 | ba64ad0ff48d43fae1fa4ed4435a625a8bed3ec5240692f72de2198e3c5c7fe0 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0208 | B2 | 1bbac5a3961dbff8c8f38d1a039f10f8ac2d0074a0e183a199fd7db02dcb411c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0209 | B2 | 1f3b9e968571a3245d94449284ebe06a8b3376b4a93ac8a87301c56ee5382b3c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0210 | B2 | 9b909024b345eb256fc70bc504d5f14cafb158e228eb31997f33c95331d7c9d3 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0211 | B2 | 30de813e7a192cd2d53dec1a4c0624e3ef4b852e327b5319e8d1da009d7f161b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0212 | B2 | 8a326e2f9149319bd73144f16eb574f73216b5c027e337d4b44446ea02c99409 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0213 | B2 | 8a2a066b677d950d4661a0671345bead846191322a0ab5364b4ee29a9829ea5c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0214 | B2 | b9d9b10f96d7c6bb4c369d9ff56382bb5042a55e197954faf329aa322b0e10cf | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0215 | B2 | 0e6cea57e60106281f8b239e1aa56bae634ce03bd5017740efaf54d09a8efc9d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0216 | B2 | 8028fa331ea30aca4d041b3e1339c11cfbf290df77534c963281402216b948b6 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0217 | B2 | c3162c6f9d8425a42972ced47164921595f03d94dada138b63c37245ebfa1d78 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0218 | B2 | 9eb0c5509fd3efaa63108d0e1e54b24f527217d0c77d046c771e58821c116788 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0219 | B2 | 82e86039f51e37e9da59101c26ab8be56fe6409b64244b09538595bc50029962 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0220 | B2 | 72a03b04ff25ee748eafa553fc19a1f9b73b3dd04794804ed4eeccf9d83d8dec | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0221 | B2 | 124aecf1190b58305bd84549f29a7dc0743644d8ea8e76a31e1ad8d7ad841bbc | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0222 | B2 | ce3c59a39a16b0245a98c21ec54e0f7dd84f58d1687a68259e8ede4fffb6768b | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0223 | B2 | 7ea0e34a73b923d8fdd7868e6dbe2d4ac4d72ca97ea59040856924d390eeab37 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0224 | B2 | 54371a899abb20273f08dfa97dc12251481218c364bcca516a717b86b71bad81 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0225 | B2 | 2a03dc8d41919a509390aac8a525daa31ad64253be48ad6a20287651f76ef777 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0226 | B2 | f0a8cc57ac5c88eb4ce53685ae8bbf48787dcc58e45552af6bb9e4fb002231cc | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0227 | B2 | e6145775b86e3476cee8569a54c1bf4ba20a1024cd8c9b297cf0c7999d40176f | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0228 | B2 | bed8257efd82fea5eef39c4375a6e59a58a05f14ddbb176b32b3feb1366f683d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0229 | B2 | 8f9f6af2bd011f748214f26f6beac1c3fd5b65f810872e421874223dc9f9638a | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0230 | B2 | 84819537e16831c8cd087fc04cb6dedbd10fe33f16f97094f882afba973d66c2 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0231 | B2 | 3741867c26d682a03823e5c79ef7b67addc401d4ca0508dc2397a8b3875f1213 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0232 | B2 | 27881a5e2b5a34f916283cac9f785dbf482563da77a7801b944cc627cc2e49a4 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0233 | B2 | c77f8f7c20f778a251209f0028c38b9c7788208421b51578dd1f9a104fd7fa42 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0234 | B2 | b21bc1c7fcbba6098f254bd57ec45a3b944ab7123d41c70299806953b24d6937 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0235 | B2 | 8d251529bdaad61ae149b7cdf9bc39f6e44b13be34e656ced1a928eba09097c9 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0236 | B2 | 645d007147e02e2ac541bf4d9b4a23a68678e25a705a56369bfa077f3aab84f5 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0237 | B2 | 5955aee85c5c0ca9bbdc65f71a047fa915c45321dfc337559c4ed304602f3f6d | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0238 | B2 | 001ce89a617835f8e189cfa05e4a8d8412ffcbe851e9f7cc6ccc93be0f647d8c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0239 | B2 | 326e4c40fcbbb8646aef3f432fcf140735ab5f57185a3234652dc26a25aea404 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0240 | B2 | 78c1d495e2afb3856f67fb3acb81599a820d374cb99f92896d507ca22424d473 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0241 | B2 | bd330baea32d372c505a29256d4d8f7074f81ae6d6589fe321b6e254a7190e01 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0242 | B2 | e31a9ec4f6ddbbe0926f2f9f09d2cfd4120b2af858042015588f5ce39101b91c | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.
+- F-BASE-0243 | B2 | d231e0064beeb9194d97f86c3e866838259d8bf5438f2c9d02f37f09b537a159 | review-pending | Device claims remain unvalidated pending characterization; no conformance accepted.

@@ -89,7 +89,7 @@ Neither layer is deprecated. They serve different levels of the protocol stack.
 | θ (Theta) | 5 | 1–27 | 27 Repitans |
 | φ (Phi) | 3 | 0–5 | 6 RAC Levels |
 | h (Harmonic) | 3 | 0–4 | 5 Omega Formats |
-| r (Radius) | 8 | 0–255 | Ankh-normalized |
+| r (Radius) | 8 | 0–255 | Encoded byte; normalized API radius 0–1 |
 | Reserved/CRC | 13 | — | Integrity / routing hints |
 
 **Total: 32 bits**

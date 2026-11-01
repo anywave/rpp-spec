@@ -285,7 +285,7 @@ The constant `SHELL_LIMINAL_TIMEOUT_NS[0]` = 25 in `rpp/continuity.py` is correc
 On spintronic hardware, Shell=0 is a physical invariant. Implementations on spintronic platforms:
 
 1. **MUST encode the epoch in the spintronic register** at the start of each Shell=0 routing decision and MUST NOT maintain a classical copy of the epoch value during or after the routing window.
-2. **MUST complete the routing decision within T2** (the measured T2 of the specific device, which must be ≤ 25 ns). If the routing logic cannot complete within T2, it is not a valid Shell=0 implementation.
+2. On spintronic platforms, real-device Shell=0 conformance remains experimental. A device profile must separately specify the routing budget, measured lifetime under routing load and expiry criterion; the reference 25 ns value alone establishes none of these measurements.
 3. **MAY read the T2 value from device characterization** rather than assuming the worst-case 25 ns. A device with measured T2 = 8 ns provides strictly stronger enforcement; the timeout constant should reflect the actual device.
 4. **SHOULD log T2 measurements** as part of device attestation to allow external verification that the physical invariant holds.
 
@@ -308,7 +308,7 @@ min_t2_ns: int
 # Minimum T2 coherence time destination must provide (nanoseconds).
 ```
 
-For Shell=0 packets, `min_t2_ns` is set by `csp_from_rpp()` to `SHELL_T2_NS[0]` = 25. A destination substrate that cannot provide T2 ≥ 25 ns MUST refuse the crossing in the SCOUT phase. This prevents a spintronic origin from crossing to a conventional destination and silently downgrading to software enforcement.
+The reference `csp_from_rpp()` sets Shell=0 `min_t2_ns` to `SHELL_T2_NS[0]` = 25 and applies the existing SCOUT admission check. This software threshold is not device attestation. Real-device support remains experimental until the separate routing and expiry criteria are characterized; no physical-erasure guarantee follows from admission.
 
 ---
 
