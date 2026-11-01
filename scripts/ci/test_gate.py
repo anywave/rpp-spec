@@ -127,8 +127,8 @@ class GateTests(unittest.TestCase):
             self.assertTrue(gate.unreadable(chr(code), 'fixture', 1), hex(code))
         self.assertEqual(gate.unreadable('plain\ttext\nnext', 'fixture', 1), [])
 
-    def test_readable_skips_real_binary_and_replaces_bad_utf8_without_hiding_text(self):
-        """Kills PNG-as-text, strict-decoding and invalid-UTF8-text exclusion mutations."""
+    def test_readable_skips_binary_but_rejects_non_utf8_added_bytes(self):
+        """Kills PNG-as-text and replacement-decoding that hides invalid added bytes."""
         Path('pixel.png').write_bytes(b'\x89PNG\r\n\x1a\n\0\x1b' + chr(0x200b).encode())
         head = self.commit('binary image')
         self.assertEqual(self.check('readable', head), [])
@@ -136,11 +136,11 @@ class GateTests(unittest.TestCase):
         self.base = head
         Path('broken.txt').write_bytes(b'visible \xff text\n')
         head = self.commit('non UTF8 text')
-        self.assertEqual(self.check('readable', head), [])
+        self.assertTrue(any('non-UTF-8 bytes' in finding for finding in self.check('readable', head)))
         self.base = head
         Path('broken.txt').write_bytes(b'visible \xff ' + chr(0x200b).encode() + b'\n')
         findings = self.check('readable', self.commit('hidden text after invalid UTF8'))
-        self.assertTrue(any('U+200B' in finding for finding in findings))
+        self.assertTrue(any('non-UTF-8 bytes' in finding for finding in findings))
 
     def test_merge_base_excludes_base_side_tests_and_hidden_text_mutations(self):
         """Kills direct-base diffs that invent PR test coverage or restore BASE-only cleaned text."""
@@ -159,7 +159,6 @@ class GateTests(unittest.TestCase):
         self.assertEqual(gate.changed(self.base, head), ['source.rs'])
         self.assertTrue(self.check('travel', head))
         self.assertEqual(self.check('readable', head), [])
-        self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'feature'), [])
 
     def test_no_test_rejects_empty_reason_before_coauthor_trailer_mutation(self):
         """Kills newline-consuming no-test whitespace; a nonempty same-line reason still passes."""
@@ -171,27 +170,6 @@ class GateTests(unittest.TestCase):
         self.write('source.rs', 'fn documented() {}\n')
         head = self.commit('source\n\nno-test:\tfixture reason\n\nCo-authored-by: Fixture <fixture@example.invalid>')
         self.assertEqual(self.check('travel', head), [])
-
-    def test_protected_paths_reject_non_ops3_branches_and_deletion_mutations(self):
-        """Kills missing gate/allowlist/basename/deletion protection and permissive branch-prefix mutations."""
-        for path in [
-            'scripts/ci/gate.py', '.github/workflows/codex-gate.yml',
-            '.github/codex-gate-allow.txt', 'docs/codex-gate-notes.md',
-        ]:
-            self.write(path, 'fixture\n')
-            head = self.commit('gate change')
-            for branch in ('feature', 'codex/ops3', 'codex/ops30-fix', 'codex/ops3evil'):
-                self.assertTrue(gate.protected(Path('.'), self.base, head, set(), branch), (path, branch))
-            self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'codex/ops3-fix'), [])
-            self.base = head
-        Path('scripts/ci/gate.py').unlink()
-        head = self.commit('remove gate')
-        self.assertTrue(gate.protected(Path('.'), self.base, head, set(), 'feature'))
-        self.base = head
-        self.write('scripts/ci_extra/helper.py', '# ordinary source\n')
-        self.write('.github/workflows/ordinary.yml', 'name: ordinary\n')
-        head = self.commit('unprotected paths')
-        self.assertEqual(gate.protected(Path('.'), self.base, head, set(), 'feature'), [])
 
     def test_tests_travel_rejects_missing_deleted_tests_and_empty_reason(self):
         """Kills test-presence-anywhere, deletion-as-test and empty no-test bypasses."""
@@ -228,4 +206,4 @@ class GateTests(unittest.TestCase):
         stub = 'python() { printf "%s\\n" "$1" >> calls; [ "$1" != scripts/ci/pinned_actions.py ]; };\n'
         result = gate.subprocess.run(['bash', '-c', stub + script], capture_output=True)
         self.assertEqual(result.returncode, 1)
-        self.assertEqual(Path('calls').read_text().splitlines(), ['scripts/ci/' + name + '.py' for name in ('pinned_actions', 'permissions', 'slice_cap', 'readable_text', 'tests_travel', 'protected_paths')])
+        self.assertEqual(Path('calls').read_text().splitlines(), ['scripts/ci/' + name + '.py' for name in ('pinned_actions', 'permissions', 'slice_cap', 'readable_text', 'tests_travel', 'pr_total')])

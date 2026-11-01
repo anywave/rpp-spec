@@ -1,4 +1,5 @@
 name: codex-gate
+# Fast feedback from PR code; only codex-gate-trusted is authoritative.
 on: pull_request
 permissions:
   contents: read
@@ -25,10 +26,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          HEAD_BRANCH: ${{ github.head_ref }}
         run: |
           status=0
-          for check in pinned_actions permissions slice_cap readable_text tests_travel protected_paths; do
-            python "scripts/ci/$check.py" --base "$BASE_SHA" --head "$HEAD_SHA" --branch "$HEAD_BRANCH" || status=1
+          for check in pinned_actions permissions slice_cap readable_text tests_travel pr_total; do
+            python "scripts/ci/$check.py" --base "$BASE_SHA" --head "$HEAD_SHA" || status=1
           done
           exit "$status"

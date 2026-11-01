@@ -1,6 +1,5 @@
 """Offline PR checks; Git arguments are never interpreted by a shell."""
 import argparse
-import os
 from pathlib import Path
 import re
 import subprocess
@@ -43,8 +42,9 @@ def walk(node, seen=None):
 
 
 def documents(root):
-    for path in sorted((root / '.github').rglob('*')):
-        if path.suffix in {'.yml', '.yaml'}:
+    paths = set((root / '.github').rglob('*')) | set(root.rglob('action.yml')) | set(root.rglob('action.yaml'))
+    for path in sorted(paths):
+        if path.is_file() and path.suffix in {'.yml', '.yaml'}:
             if path.is_symlink():
                 raise ValueError(f'{path}: symlink YAML refused')
             with path.open(encoding='utf-8') as stream:
@@ -137,8 +137,15 @@ def slices(root, base, head, allow):
     return errors
 
 
+def total(root, base, head, allow):
+    ancestor = git('merge-base', base, head).strip()
+    files, lines = slice_counts(git('diff', '--no-renames', '--numstat', '-z', ancestor, head), allow)
+    return [] if files <= 30 and lines <= 1500 else [f'PR total: files={files} lines={lines}; cap=30/1500']
+
+
 def unreadable(text, path, line):
-    return [f'{ascii(str(path))}:{line}: U+{ord(char):04X}' for char in text if (ord(char) < 32 and char not in '\t\n') or 0x7f <= ord(char) <= 0x9f or ord(char) in {0x2028, 0x2029} or any(lo <= ord(char) <= hi for lo, hi in IGNORABLE)]
+    points = {ord(char) for char in text if (ord(char) < 32 and char not in '\t\n') or 0x7f <= ord(char) <= 0x9f or ord(char) in {0x2028, 0x2029} or any(lo <= ord(char) <= hi for lo, hi in IGNORABLE)}
+    return [f'{ascii(str(path))}:{line}: U+{point:04X}' for point in sorted(points)]
 
 
 def readable(root, base, head, allow):
@@ -155,23 +162,37 @@ def readable(root, base, head, allow):
         if path in allow:
             continue
         errors += unreadable(path, path, 0)
+        if added == b'0':
+            continue
+        size = subprocess.run(['git', 'cat-file', '-s', f'{head}:{path}'], capture_output=True)
+        if size.returncode and added == b'-':
+            continue
+        if size.returncode or int(size.stdout) > 4 * 1024 * 1024:
+            errors.append(f'{ascii(path)}:0: changed content unavailable or exceeds 4 MiB')
+            continue
         if added == b'-':
             blob = subprocess.run(['git', 'show', f'{head}:{path}'], capture_output=True)
             if blob.returncode or b'\0' in blob.stdout[:8000]:
                 continue
         new = 0
         active = False
-        for line in git('diff', '--no-ext-diff', '--no-textconv', '--text', '--no-color', '--no-renames', '--unified=0', ancestor, head, '--', path).split('\n'):
-            hunk = re.match(r'@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
+        for line in git_bytes('diff', '--no-ext-diff', '--no-textconv', '--text', '--no-color', '--no-renames', '--unified=0', ancestor, head, '--', path).split(b'\n'):
+            hunk = re.match(rb'@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@', line)
             if hunk:
                 new = int(hunk.group(2))
                 active = True
-            elif active and line.startswith('+'):
-                errors += unreadable(line[1:], path, new)
+            elif active and line.startswith(b'+'):
+                try:
+                    errors += unreadable(line[1:].decode('utf-8'), path, new)
+                except UnicodeDecodeError:
+                    errors.append(f'{ascii(path)}:{new}: non-UTF-8 bytes')
                 new += 1
     for commit in commits(base, head):
-        for number, line in enumerate(message(commit).split('\n'), 1):
-            errors += unreadable(line, commit, number)
+        for number, line in enumerate(git_bytes('cat-file', 'commit', commit).partition(b'\n\n')[2].split(b'\n'), 1):
+            try:
+                errors += unreadable(line.decode('utf-8'), commit, number)
+            except UnicodeDecodeError:
+                errors.append(f'{commit}:{number}: non-UTF-8 bytes')
     return errors
 
 
@@ -191,16 +212,10 @@ def travel(root, base, head, allow):
     return errors
 
 
-def protected(root, base, head, allow, branch):
-    paths = [path for path in changed(base, head) if path == 'scripts/ci' or path.startswith('scripts/ci/') or Path(path).name.startswith('codex-gate')]
-    return [] if not paths or branch.startswith('codex/ops3-') else [f'{ascii(path)}: gate changes require a codex/ops3-* branch' for path in paths]
-
-
 def main(check):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base', required=True)
     parser.add_argument('--head', required=True)
-    parser.add_argument('--branch', default=os.environ.get('GITHUB_HEAD_REF', ''))
     args = parser.parse_args()
     try:
         base, head = [git('rev-parse', '--verify', '--end-of-options', f'{ref}^{{commit}}').strip() for ref in (args.base, args.head)]
@@ -208,7 +223,7 @@ def main(check):
         allow = {line for line in prior.stdout.decode('utf-8', errors='replace').splitlines() if line and not line.startswith('#')}
         if '.github/codex-gate-allow.txt' in allow:
             raise ValueError('allow file cannot exempt itself')
-        errors = protected(Path('.'), base, head, allow, args.branch) if check == 'protected' else globals()[check](Path('.'), base, head, allow)
+        errors = globals()[check](Path('.'), base, head, allow)
     except (ValueError, UnicodeError, yaml.YAMLError, subprocess.CalledProcessError) as error:
         errors = [f'gate tool error: {ascii(str(error))}']
     for error in errors:

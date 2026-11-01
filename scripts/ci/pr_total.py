@@ -1,2 +1,2 @@
 from gate import main
-main("protected")
+main("total")
