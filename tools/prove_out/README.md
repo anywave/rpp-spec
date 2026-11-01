@@ -1,5 +1,13 @@
 # CX-003 coherence and sector prove-out
 
+CX-005 extension at master `95c67ef`: see [CX005_CONDITIONS.md](CX005_CONDITIONS.md)
+for the complete proved-condition checklist and unchanged partly-proved verdicts,
+[CX005_VALIDATION.md](CX005_VALIDATION.md) for new actual RTL/native-Rust counts,
+[FOREIGN_BINDINGS.md](FOREIGN_BINDINGS.md) for foreign-domain limits, and
+[CX005_PROPOSALS.md](CX005_PROPOSALS.md) for exact unapplied adoption patches.
+The commands/counts below are the historical CX-003 record; use the CX-005
+validation commands for the current checkout.
+
 The source under study is the immutable rpp-spec master snapshot
 `0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e`. This extension does not change core,
 constants, formats, consent headers, original tests or specification text. Nothing

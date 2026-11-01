@@ -1,0 +1,38 @@
+{
+  "condition_inverted_trigger_mismatches": 0,
+  "decreases": {
+    "approximate_completion": 63,
+    "approximate_entropy": 5,
+    "exact_completion": 0,
+    "exact_entropy": 0,
+    "lut_completion": 32,
+    "lut_entropy": 0
+  },
+  "derivation_points": 32,
+  "fallback_component_mismatches": {
+    "any": 134400,
+    "omega": 0,
+    "phi_zero": 0,
+    "radius": 0,
+    "theta": 134400
+  },
+  "fallback_points": 207360,
+  "log_sha256": "1b1976c0be736dd117ddaa3b2321bf79454865ed167e17f9675ba89c131a31f8",
+  "named_derivation_mismatches": 13,
+  "score_mismatches": {
+    "approximate": 3060,
+    "exact": 0,
+    "lut": 2940
+  },
+  "score_points": 3072,
+  "threshold_mismatches": {
+    "approximate": 967,
+    "exact": 0,
+    "lut": 345
+  },
+  "trigger_first_true_indices": [
+    12,
+    29
+  ],
+  "trigger_points": 34
+}

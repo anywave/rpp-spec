@@ -1,0 +1,7 @@
+{
+  "csv_sha256": "8ad8786406cc1f24625dda28fb2f6eb1432a94c196541389bd93d67304d8f9ff",
+  "evidence_kind": "actual ra_core public Rust gates, canonicalized numeric CSV",
+  "mismatches": 0,
+  "native_boundary_rows": 36,
+  "native_grid_rows": 6006
+}

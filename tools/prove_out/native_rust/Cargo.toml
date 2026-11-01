@@ -1,0 +1,8 @@
+[package]
+name = "cx005-native-gates-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ra_core = { git = "https://github.com/anywave/ra-system.git", rev = "e685d3abacca3105a7c377e9db80df33ce7c2985" }
