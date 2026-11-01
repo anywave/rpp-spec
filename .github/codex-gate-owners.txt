@@ -1,0 +1,2 @@
+# TR adds reviewed public SSH signers on BASE: principal ssh-ed25519 public-key.
+# Empty denies gate changes. Every gate-touching commit needs a listed signature.
