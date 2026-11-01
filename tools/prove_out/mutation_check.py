@@ -16,13 +16,22 @@ CASES = {
     "spin_decay": "test_isolated_spin_site_implements_its_exponential_simulation",
 }
 
+COMPLETION_CASES = {
+    "completion_binding": "test_all_raw_score_thresholds_and_stages",
+    "completion_matrix": "test_all_sector_access_states_and_void_exception",
+    "completion_projection": "test_sector_projection_table_has_every_theta_once",
+    "completion_grid_guard": "test_rtl_grid_rejects_missing_rows",
+}
+
 
 def main():
     root = Path(__file__).resolve().parents[2]
     killed = 0
-    for mutation, target in CASES.items():
+    cases = [(mutation, "test_properties.py", target) for mutation, target in CASES.items()]
+    cases += [(mutation, "test_completion.py", target) for mutation, target in COMPLETION_CASES.items()]
+    for mutation, filename, target in cases:
         result = subprocess.run([sys.executable, "-m", "pytest", "-q", "-o", "addopts=",
-                                 f"tools/prove_out/tests/test_properties.py::{target}"], cwd=root,
+                                 f"tools/prove_out/tests/{filename}::{target}"], cwd=root,
                                 env=dict(os.environ, PROVE_OUT_MUTATION=mutation, PYTHONIOENCODING="utf-8"),
                                 capture_output=True, encoding="utf-8")
         detected = result.returncode == 1 and "1 failed" in result.stdout and "AssertionError" in result.stdout
@@ -31,8 +40,8 @@ def main():
         if not detected:
             print(result.stdout)
             print(result.stderr, file=sys.stderr)
-    print(f"SUMMARY killed={killed} survived={len(CASES) - killed}")
-    return int(killed != len(CASES))
+    print(f"SUMMARY killed={killed} survived={len(cases) - killed}")
+    return int(killed != len(cases))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,34 @@
+{
+  "clash-reference.csv_sha256": "ee8ca076425e1cc4a1d97a483dfc2b27dbe6d926ddfa1a8c2d72aea2a7f73d98",
+  "clash_max_avatar_weight": 254,
+  "clash_product_rows": 65536,
+  "evidence_kind": "source transcription, not native execution",
+  "rust-reference.csv_sha256": "8ad8786406cc1f24625dda28fb2f6eb1432a94c196541389bd93d67304d8f9ff",
+  "rust_boundary_rows": 36,
+  "rust_floor": 0.31830989236409934,
+  "rust_grid_rows": 6006,
+  "rust_thresholds": [
+    1.0,
+    0.9876543217444954,
+    0.8999999999999999,
+    0.8230452668104956,
+    0.72,
+    0.628539360786579
+  ],
+  "source_hashes": {
+    "haskell/clash/RaGroupCoherence.hs": "79abd59e0d7fa03ec5c049d0559a50212dd9f2fcae2d63424eeb626b1003201e",
+    "rust/src/constants.rs": "24b566b48511e39f18adc6e5d05e2f173694b4a3d5c8d19ec8a31b4329dee832",
+    "rust/src/gates.rs": "ef7cff9c6d1a55eeefc5d665d899de68220e8428566aef00c4b7c9b663b54131",
+    "rust/src/lib.rs": "fa5193fa9a3a7bea0b62c93ebe2dfd47143a3926045b8114220a4d11d9c2a450",
+    "rust/src/rac.rs": "c0d3698b72c3465ccc44997df0024c726a49c589a8104dfab27114b5409035aa"
+  },
+  "source_revision": "e685d3abacca3105a7c377e9db80df33ce7c2985",
+  "three_inverted": {
+    "active": 3,
+    "coherence": 38,
+    "dominant_size": 3,
+    "field_strength": 115,
+    "inverted": 3,
+    "status": "collapsed"
+  }
+}
