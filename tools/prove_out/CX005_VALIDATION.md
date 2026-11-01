@@ -18,9 +18,9 @@ resolves inside this worktree. The existing deprecation notices are retained.
 | `python tests/test_golden_vectors_mobius32.py` | **SUMMARY pass=5 fail=0**. |
 | `ruff --version` | **ruff0.14.10**. |
 | `ruff check rpp/ tests/ --ignore E501` | **exit0**. |
-| `ruff check tools/prove_out/completion.py tools/prove_out/foreign_reference.py tools/prove_out/native_rust/run.py tools/prove_out/tests/test_completion.py tools/prove_out/tests/test_foreign_reference.py tools/prove_out/mutation_check.py --ignore E501` | **exit0**. |
+| `ruff check tools/prove_out/completion.py tools/prove_out/evidence.py tools/prove_out/foreign_reference.py tools/prove_out/native_rust/run.py tools/prove_out/tests/test_completion.py tools/prove_out/tests/test_evidence_bytes.py tools/prove_out/tests/test_foreign_reference.py tools/prove_out/mutation_check.py --ignore E501` | **exit0**. |
 | `git diff --check` and staged equivalent | **exit0**. |
-| `python -m tools.drift check --base95c67ef --head <full branch SHA> --output-dir <scratch>` (space after `--base` in executable command below) | **high=0 medium=0 low=0**, open baselines243/steward items4/advisories2 unchanged; **exit0**. |
+| `python -m tools.drift check --base 95c67ef --head <full branch SHA> --output-dir <scratch>` | **high=0 medium=0 low=0**, open baselines243/steward items4/advisories2 unchanged; **exit0**. |
 
 Every new test has a concrete failing mutation in its docstring. The runner's
 22 named mutations are actually executed in test memory; a survived mutant
