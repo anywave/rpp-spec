@@ -88,9 +88,18 @@ jobs:
           mkdir -p synth
           cd hardware/verilog
           out=../../synth
+          # Reset status markers before either flow; interrupted/retried runs cannot reuse old success.
+          echo incomplete > "$out/flow_A.status"
+          echo incomplete > "$out/flow_B.status"
           # Flow A (documented flow); must succeed
-          yosys -q -l $out/yosys_A.log -p "read_verilog -sv rpp_consent_gate.v; hierarchy -top rpp_consent_gate; synth_lattice -family ecp5 -run begin:map_luts; abc -lut 4 -dress; clean; synth_lattice -family ecp5 -json $out/gate_A.json -run map_cells:"
-          nextpnr-ecp5 --12k --package CABGA256 --json $out/gate_A.json --freq 90 --timing-allow-fail > $out/pnr_A.log 2>&1 || { cat $out/pnr_A.log; exit 1; }
+          if yosys -q -l $out/yosys_A.log -p "read_verilog -sv rpp_consent_gate.v; hierarchy -top rpp_consent_gate; synth_lattice -family ecp5 -run begin:map_luts; abc -lut 4 -dress; clean; synth_lattice -family ecp5 -json $out/gate_A.json -run map_cells:" \
+             && nextpnr-ecp5 --12k --package CABGA256 --json $out/gate_A.json --freq 90 --timing-allow-fail > "$out/pnr_A.log" 2>&1; then
+            echo ok > "$out/flow_A.status"
+          else
+            echo failed > "$out/flow_A.status"
+            if test -f "$out/pnr_A.log"; then cat "$out/pnr_A.log"; fi
+            exit 1
+          fi
           # Flow B (standard flow); allowed to fail, the outcome is recorded
           if yosys -q -l $out/yosys_B.log -p "read_verilog -sv rpp_consent_gate.v; hierarchy -top rpp_consent_gate; synth_lattice -family ecp5 -json $out/gate_B.json" \
              && nextpnr-ecp5 --12k --package CABGA256 --json $out/gate_B.json --freq 90 --timing-allow-fail > $out/pnr_B.log 2>&1; then
