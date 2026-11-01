@@ -9,6 +9,13 @@ adapter interface crates to this workspace. [ESP32 adapter guidance](ESP32.md)
 describes their features, host simulation, provisional frame and board gaps.
 The module and Python-parity details below describe `rpp-core`.
 
+`rpp-link` simulation helpers require the explicit, non-default `sim` feature.
+Default features and `std` alone do not expose `rpp_link::simulated`, including
+`verified_fixture` and its assumed-verification fixture. Enable host simulation
+with `--features rpp-link/sim`; this also enables `std`. Actual downstream
+compile probes check that default and no-default-feature consumers cannot name
+the helper. The fixture is development support, not a production verifier.
+
 The ESP32 readiness check builds the library for
 `riscv32imc-unknown-none-elf`, a bare-metal RISC-V target used for ESP32-C3
 integration. This is a library cross-compile check, not a board run or a firmware
@@ -95,22 +102,29 @@ From `rust/`, with rustup installed:
 rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 cargo +1.85.1 fmt --all -- --check
 cargo +1.85.1 clippy --workspace --all-targets --offline --locked -- -D warnings
+cargo +1.85.1 clippy --workspace --all-targets --all-features --offline --locked -- -D warnings
 cargo +1.85.1 test --workspace --offline --locked
+cargo +1.85.1 test --workspace --features rpp-link/sim --offline --locked
 cargo +1.85.1 test --workspace --no-default-features --offline --locked
+cargo +1.85.1 test --workspace --no-default-features --features alloc --offline --locked
 cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --offline --locked
 cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --offline --locked
 ```
 
-The Ubuntu/Windows workflow runs formatting, Clippy, default-feature host tests,
-host tests without default features, and both bare-metal cross-builds as ordinary
-failing jobs. None of those checks is advisory. The no-default-feature host run
+The Ubuntu/Windows workflow runs formatting, Clippy with default and all features,
+host tests with default features, explicit simulation, no default features and
+alloc-only features, and both bare-metal cross-builds as ordinary failing jobs.
+None of those checks is advisory. The no-default-feature host run
 also exercises the codec golden checks; it does not execute RISC-V code on a
 host CPU. CI has read-only contents permission and a SHA-pinned checkout.
 Required-check configuration is unchanged; TR controls branch protection.
 
-Python is development scaffolding only. From the repository root:
+Python is development scaffolding only. From the repository root, use the
+compatible Python 3.12 engine described below for the checker and its tests:
 
 ```sh
+python tools/rust_scaffold/check_corpora.py
+python -m unittest discover -s tools/rust_scaffold/tests -p test_check_corpora.py -v
 python tools/rust_scaffold/address_corpus.py --output-dir <scratch-corpus>
 python tools/rust_scaffold/mutation_check.py --cargo <cargo-1.85.1> --rustc <rustc-1.85.1> --work-dir <scratch-mutations> --output-dir <scratch-results>
 ```
@@ -119,9 +133,27 @@ Set `PYTHONPATH` to this checkout when invoking the address scaffold directly.
 The scaffold executes the unchanged Python address reference with explicit
 seeds 0 and 1. It is outside the Rust crate and is not shipped in its package.
 Rust final builds/tests consume committed data and require no Python. The
-manifest records the generator's Unicode version; another Python version may
-change that environment metadata, so compare TSV bytes separately when
-regenerating on Python 3.13.
+CI checker regenerates all nine committed oracle files into temporary scratch
+directories: the three address TSVs and address manifest, three overlay scenario
+artifacts, and the control TSV and control manifest. It compares every byte,
+including both manifests, and never rewrites committed evidence. Exit 0 means
+fresh; exit 1 means stale/missing/different data; exit 2 means an incomplete
+check or incompatible reference engine. No metadata difference is ignored.
+CI also runs the freshness guard's regressions for changed rows/manifests,
+missing/extra files and incompatible reference engines.
+
+Use a Python 3.12 reference engine with Unicode 15.0.0. CI pins **3.12.14 on
+Ubuntu** and **3.12.10 on Windows**, the exact available x64 builds in the
+official [actions/python-versions manifest](https://github.com/actions/python-versions/blob/main/versions-manifest.json).
+The inspected manifest blob was `b0c84be989675d2d78a4ac17491154d44075a04e`:
+3.12.14 supplied Linux builds and 3.12.10 was the latest listed Windows 3.12
+build. This is read-only availability evidence, not a hosted CI execution.
+The committed manifest records Unicode version rather than Python patch level;
+both selected engines must reproduce the same complete files. A Python 3.13
+launcher can select a compatible engine using
+`check_corpora.py --python <python-3.12>`. Its own newer Unicode tables are not
+silently substituted for the reference engine. CI installs no Python package
+dependencies for this stdlib-only checker.
 
 All committed test data is covered by `.gitattributes -text`. Test names are
 bounded and each test states a failing mutation. The development mutation runner

@@ -859,7 +859,8 @@
         "route": "[RFC] via TR; GOVERNANCE.md:63-71; DECISIONS.md absent at source revision"
       },
       "source_revision": "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a",
-      "decision_id": "CX-006-D4"
+      "decision_id": "CX-006-D4",
+      "note": "Line 269 is the start of the function docstring passage; the CX-006 finding's line 276 identifies the first changed line inside that passage."
     },
     {
       "id": "F-BASE-0039",

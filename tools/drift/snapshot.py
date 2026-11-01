@@ -3,8 +3,9 @@
 import argparse
 import json
 from pathlib import Path
+import sys
 
-from .checker import DATA, blob, git, resolve
+from .checker import DATA, ToolError, blob, git, resolve
 from .passages import classify, digest, extract, in_scope
 from .rulings import DECIDED, REVISION, RULED, apply_rulings
 
@@ -151,13 +152,18 @@ def revise_catalog(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
-    catalog = revise_catalog(Path.cwd())
+    try:
+        catalog = revise_catalog(Path.cwd())
+    except (ToolError, OSError, UnicodeError, ValueError, SyntaxError, RecursionError):
+        print("snapshot: tool error: invalid ruling source or catalog", file=sys.stderr)
+        return 2
     print(f"SUMMARY scanned_paths={len(catalog['scanned_paths'])} "
           f"open_baselines={sum(e['status'] == STATUS for e in catalog['baselines'])} "
           f"ruled_baselines={sum(e['status'] == RULED for e in catalog['baselines'])} "
           f"open_steward_items={sum(e['status'] != DECIDED for e in catalog['steward_items'])} "
           f"open_advisories={sum(e['status'] != DECIDED for e in catalog['advisories'])}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

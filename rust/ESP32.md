@@ -5,7 +5,8 @@ stacked on `codex/rust-rpp-crate`. Their names may change when PL/FP lifts the
 workspace into its separate repository. Publishing remains disabled.
 
 Both crate roots declare `#![no_std]`, use fixed-size codec types and forbid unsafe
-code. `rpp-link` imports `std` explicitly only behind its host-simulation feature.
+code. `rpp-link` imports `std` explicitly behind its `std` feature; host simulation
+is separately gated by the non-default `sim` feature, which enables `std`.
 They provide an experimental control codec and adapter interfaces, with host-side
 simulations. They supply no board support, vendor HAL, radio driver, firmware
 image, tunnel, cipher, handshake, signing implementation or key exchange.
@@ -144,8 +145,12 @@ The adapter boundary preserves these responsibilities:
 | Decoded verified control notice | Check replay/sequence state, issuer authority, membership, consent and applicability before changing any operation state |
 
 The reference integration drives CX-007's overlay policy through host-side
-simulated adapters in the `std`-gated `rpp_link::simulated` module. This host
-simulation is excluded from the bare-metal no-default-feature build. Control
+simulated adapters in the opt-in `sim`-gated `rpp_link::simulated` module. Default
+features, `std` alone and bare-metal no-default-feature builds do not expose this
+module or its `verified_fixture` helper. Use `--features rpp-link/sim` for the
+host simulations; downstream compile probes check default/no-default visibility.
+This development feature uses assumed-verification fixtures, not a production
+verification backend. Control
 frames use the typed control-send path; the data-send
 path is used for application data. This is a tested dispatch boundary, not a
 claim that arbitrary caller-supplied bytes carry an automatically detectable
@@ -225,17 +230,24 @@ From `rust/`, with rustup installed:
 rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 cargo +1.85.1 fmt --all -- --check
 cargo +1.85.1 clippy --workspace --all-targets --offline --locked -- -D warnings
+cargo +1.85.1 clippy --workspace --all-targets --all-features --offline --locked -- -D warnings
 cargo +1.85.1 test --workspace --offline --locked
+cargo +1.85.1 test --workspace --features rpp-link/sim --offline --locked
 cargo +1.85.1 test --workspace --no-default-features --offline --locked
 cargo +1.85.1 test --workspace --no-default-features --features alloc --offline --locked
 cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --offline --locked
 cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --offline --locked
 ```
 
-The workspace CI covers all member crates on Ubuntu and Windows, with pinned
-Rust, a SHA-pinned read-only checkout and ordinary failing checks. No gate is
-advisory. Exact executed counts, corpus hashes, scenario byte comparisons and
-Python gates belong to [the CX-008 report](../docs/codex/OUTBOX/CX-008-001.md).
+The workspace CI covers all member crates on Ubuntu and Windows, including the
+alloc-only host profile and explicit simulation profile. It uses pinned Rust,
+SHA-pinned read-only checkout/setup actions and ordinary failing checks. A
+stdlib-only Python check regenerates all nine address/control/overlay oracle
+files in scratch and fails on any byte difference, including manifests; see
+[the workspace reproduction guide](README.md). No gate is advisory. Exact
+executed counts and follow-up evidence belong to
+[the CX-009 report](../docs/codex/OUTBOX/CX-009-001.md); the earlier implementation
+evidence is retained in [the CX-008 report](../docs/codex/OUTBOX/CX-008-001.md).
 The commands here are reproduction instructions, not an additional claim that
 hardware or hosted CI ran.
 

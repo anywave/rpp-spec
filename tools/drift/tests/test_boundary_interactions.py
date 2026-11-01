@@ -9,7 +9,6 @@ The fixed seed here is Git's fixture author/committer date, not random inputs.
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import textwrap
 import unicodedata

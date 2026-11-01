@@ -1,4 +1,4 @@
-#![cfg(feature = "std")]
+#![cfg(feature = "sim")]
 
 use rpp_control::ControlKind;
 use rpp_core::{

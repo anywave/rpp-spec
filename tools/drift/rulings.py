@@ -2,12 +2,18 @@
 
 from copy import deepcopy
 import hashlib
+import json
 
 from .passages import digest, extract
 
 
 REVISION = "5677ea21b5ba3320109dc7dcb61d4b4c22b5881a"
 BEFORE = "275a115efad591304221e832c194a75f7749f9b0"
+FOUNDATION_SHA256 = "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce"
+NOTE_0038 = (
+    "Line 269 is the start of the function docstring passage; the CX-006 finding's "
+    "line 276 identifies the first changed line inside that passage."
+)
 RULED = "ruled - RADIX CX-006"
 DECIDED = "decided - RADIX CX-006"
 BASELINE_DECISIONS = {"F-BASE-0038": "D4", "F-BASE-0049": "D2", "F-BASE-0213": "D3", "F-BASE-0221": "D3"}
@@ -37,20 +43,44 @@ FINDING_KEYS = [
 ]
 
 
+class RulingError(ValueError):
+    """The input or source falls outside the exact released ruling scope."""
+
+
+def require_ruling(condition, message):
+    """Unlike assert, this validation remains active under python -O."""
+    if not condition:
+        raise RulingError(message)
+
+
+def validate_foundation(catalog):
+    """Reject altered pending entries, guards or provenance before mutation."""
+    try:
+        encoded = json.dumps(catalog, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise RulingError("Frozen ruling input is not canonical JSON") from exc
+    require_ruling(hashlib.sha256(encoded).hexdigest() == FOUNDATION_SHA256,
+                   "Frozen ruling input differs from the approved foundation")
+
+
 def passage_record(passage):
     return dict(path=passage.path, line=passage.line, end=passage.end,
                 kind=passage.kind, text=passage.text, sha256=passage.sha256)
 
 
 def containing(read, revision, path, line):
-    return next(p for p in extract(path, read(revision, path)) if p.line <= line <= p.end)
+    for passage in extract(path, read(revision, path)):
+        if passage.line <= line <= passage.end:
+            return passage
+    raise RulingError(f"Ruling source passage is missing: {path}:{line}")
 
 
 def section(read, code):
     text = read(REVISION, "DECISIONS.md")
     lines = text.split("\n")
     first = DECISION_LINES[code]
-    assert lines[first - 1].startswith(f"### [RFC] CX-006-{code} ")
+    require_ruling(first <= len(lines) and lines[first - 1].startswith(f"### [RFC] CX-006-{code} "),
+                   "Ruling decision section header differs from its pinned source")
     end = next((i for i in range(first, len(lines)) if lines[i].startswith("### ")), len(lines))
     value = "\n".join(lines[first - 1:end]).rstrip()
     return dict(id="CX-006-" + code, path="DECISIONS.md", line=first, end=end,
@@ -63,6 +93,7 @@ def ruling_route(code):
 
 def apply_rulings(catalog, read):
     """Overlay only authorized entries on a freshly reconstructed original scan."""
+    validate_foundation(catalog)
     decisions = {"CX-006-" + code: section(read, code) for code in DECISION_LINES}
     catalog["catalog_revision"] = 2
     catalog["rulings"] = dict(source_revision=REVISION, original_range_base=BEFORE,
@@ -73,10 +104,12 @@ def apply_rulings(catalog, read):
             continue
         original = deepcopy(entry)
         current = containing(read, REVISION, entry["path"], entry["line"])
-        assert current.kind == entry["kind"]
+        require_ruling(current.kind == entry["kind"], "Ruled baseline passage kind changed")
         entry.update(passage_record(current), status=RULED, original=original,
                      source_revision=REVISION, decision_id="CX-006-" + BASELINE_DECISIONS[entry["id"]],
                      route=ruling_route(BASELINE_DECISIONS[entry["id"]]))
+        if entry["id"] == "F-BASE-0038":
+            entry["note"] = NOTE_0038
 
     # These two wording substitutions are the entire allowed guard change.
     for guard in catalog["guards"]:
@@ -90,11 +123,11 @@ def apply_rulings(catalog, read):
             expected = guard["text"].replace("Normalized 0-1", "Encoded byte; API radius = byte / 255 in 0–1")
             old_ranges = [line.split("|")[1:4] for line in guard["text"].split("\n")]
             new_ranges = [line.split("|")[1:4] for line in expected.split("\n")]
-            assert old_ranges == new_ranges, "A1 cannot change fields or ranges"
+            require_ruling(old_ranges == new_ranges, "A1 cannot change fields or ranges")
         else:
-            assert guard["text"] in read(REVISION, guard["path"]), "A1 cannot change field widths or positions"
+            require_ruling(guard["text"] in read(REVISION, guard["path"]), "A1 cannot change field widths or positions")
             continue
-        assert expected in read(REVISION, guard["path"]), "A1 guard differs beyond approved wording"
+        require_ruling(expected in read(REVISION, guard["path"]), "A1 guard differs beyond approved wording")
         guard.update(text=expected, original=original, source_revision=REVISION, decision_id="CX-006-A1")
 
     for group in ("steward_items", "advisories"):

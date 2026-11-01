@@ -9,6 +9,7 @@ description = "Heap-free link readings and typed adapter hooks with host-only ov
 
 [features]
 default = ["std"]
+sim = ["std"]
 std = ["alloc", "rpp-core/std"]
 alloc = ["dep:rpp-core", "rpp-core/alloc"]
 
