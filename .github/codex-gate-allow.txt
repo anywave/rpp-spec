@@ -1,0 +1,5 @@
+# Exact generated paths; only the base branch's TR-reviewed list is effective.
+rust/Cargo.lock
+rust/rpp-fleet/tests/data/fleet-scenarios.tsv
+rust/rpp-fleet/tests/data/fleet-scenarios.md
+rust/rpp-fleet/tests/data/fleet-manifest.json
