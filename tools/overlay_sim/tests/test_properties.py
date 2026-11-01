@@ -87,7 +87,7 @@ def test_available_channel_all_masks_and_live_measurements():
 
 
 def test_available_control_clean():
-    """Clean mutation control: available trusted status path remains selectable."""
+    """Mutation always-no-channel: an available trusted path must remain selectable; clean control."""
     assert simulator().choose("A", "B", 0, [link("up")])[0].name == "up"
 
 
@@ -161,7 +161,7 @@ def test_billboard_half_open_expiry_and_future_hold():
 
 
 def test_billboard_unexpired_clean():
-    """Clean mutation control: a verified current rule is present before expiry."""
+    """Mutation drop-accepted-rule: a verified current rule must remain present before expiry; clean control."""
     sim = simulator()
     board = Billboard("B", "rule", "Pause the application.", 0, 2, "r1")
     assert sim.deliver_billboard(0, board, Auth("A", True), "A", "B", [link("lan")])["status"] == "DELIVERED"
@@ -196,7 +196,7 @@ def test_before_token_retry_preserves_every_meter_row():
 
 
 def test_success_meter_clean():
-    """Clean mutation control: successful attempts still have one row."""
+    """Mutation drop-success-row: a successful attempt must have one meter row; clean control."""
     sim = simulator()
     sim.send_data(0, "A", "B", [link("lan")])
     assert len(sim.rows) == 1 and sim.rows[0]["status"] == "OK"
@@ -284,7 +284,7 @@ def test_control_requires_known_path_and_disjoint_verified_tunnel():
 
 
 def test_control_valid_independent_fixture_clean():
-    """Clean independence control: known LAN reference and verified Bluetooth path succeed."""
+    """Mutation always-deny-control: known LAN reference and verified Bluetooth must succeed; clean independence control."""
     sim = simulator()
     data = sim.choose("A", "B", 0, [link("lan")])
     assert sim.send_control(0, dict(source="A", target="B", kind="ALIVE", sequence=0),
