@@ -1,8 +1,11 @@
 """Offline lift guard witnesses; every test states its failing mutation."""
 import importlib.util
+from contextlib import chdir
 from pathlib import Path
 import subprocess
 import tempfile
+import textwrap
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -95,6 +98,11 @@ include_str!(r"../data.txt");'''
         original = Path.is_symlink
         with mock.patch.object(Path, "is_symlink", lambda path: path == alias or original(path)):
             self.assertTrue(any("symlink" in error for error in lift.check(self.root)[1]))
+        lstat = Path.lstat
+        def reparse(path):
+            return SimpleNamespace(st_mode=0, st_file_attributes=0x400) if path == alias else lstat(path)
+        with mock.patch.object(Path, "lstat", reparse):
+            self.assertTrue(any("junction" in error for error in lift.check(self.root)[1]))
 
     def test_empty_malformed_and_oversized_sources_fail_closed(self):
         """Mutation: empty input, malformed tokens or over-limit source returns a clean result."""
@@ -122,3 +130,29 @@ include_str!(r"../data.txt");'''
         """Mutation: invoke Cargo while checking paths instead of remaining an offline scanner."""
         with mock.patch.object(subprocess, "run", side_effect=AssertionError("subprocess forbidden")):
             self.assertEqual(self.inspect()[1], [])
+
+    def test_ci_copies_outside_checkout_preserves_nested_targets_and_pins_commands(self):
+        """Mutation: build original checkout, omit nested target sources, or drop the pinned offline locked commands."""
+        workflow = Path(__file__).parents[3] / ".github/workflows/rust.yml"
+        step = workflow.read_text(encoding="utf-8").split("      - name: Prove copied Rust workspace\n", 1)[1].split("\n      - name:", 1)[0]
+        self.assertIn("        shell: python", step)
+        script = textwrap.dedent(step.split("        run: |\n", 1)[1])
+        self.inspect()
+        for directory in ("target", "src/target"):
+            (self.root / directory).mkdir()
+            (self.root / directory / "kept.rs").write_text("fixture", encoding="utf-8")
+        calls = []
+        def capture(command, *, cwd, env, check, timeout):
+            copied = Path(cwd)
+            self.assertFalse(copied.is_relative_to(self.root))
+            self.assertEqual((copied / "src/lib.rs").read_bytes(), (self.root / "src/lib.rs").read_bytes())
+            self.assertTrue((copied / "src/target/kept.rs").is_file())
+            self.assertFalse((copied / "target/kept.rs").exists())
+            self.assertEqual(env["CARGO_NET_OFFLINE"], "true")
+            self.assertEqual(env["CARGO_TARGET_DIR"], str(copied / "target"))
+            self.assertTrue(check)
+            self.assertEqual(timeout, 300)
+            calls.append(command)
+        with chdir(self.root.parent), mock.patch.object(subprocess, "run", side_effect=capture):
+            exec(compile(script, str(workflow), "exec"), {})
+        self.assertEqual(calls, [["cargo", "+1.85.1", command, "--workspace", "--locked"] for command in ("build", "test")])

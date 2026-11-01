@@ -66,6 +66,14 @@ jobs:
           PYTHONPATH: .
         run: python -m unittest discover -s tools/rust_scaffold/tests -p test_check_corpora.py -v
 
+      - name: Check Rust lift boundaries
+        working-directory: .
+        run: python tools/rust_scaffold/check_lift.py
+
+      - name: Test offline lift guard
+        working-directory: .
+        run: python -m unittest discover -s tools/rust_scaffold/tests -p test_check_lift.py -v
+
       - name: Install pinned Rust and check components
         run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
@@ -73,6 +81,26 @@ jobs:
         run: |
           rustc +1.85.1 --version
           cargo +1.85.1 --version
+
+      - name: Prove copied Rust workspace
+        working-directory: .
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import tempfile
+
+          source = Path("rust").resolve()
+          def ignore(directory, names):
+              return set(names) & {"target", ".git"} if Path(directory) == source else set()
+          with tempfile.TemporaryDirectory(prefix="rpp-rust-lift-") as temporary:
+              copied = Path(temporary) / "rust"
+              shutil.copytree(source, copied, ignore=ignore)
+              env = dict(os.environ, CARGO_NET_OFFLINE="true", CARGO_TARGET_DIR=str(copied / "target"))
+              for command in ("build", "test"):
+                  subprocess.run(["cargo", "+1.85.1", command, "--workspace", "--locked"], cwd=copied, env=env, check=True, timeout=300)
 
       - name: Format
         run: cargo +1.85.1 fmt --all -- --check

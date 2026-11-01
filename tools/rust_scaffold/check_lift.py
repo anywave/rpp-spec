@@ -180,7 +180,7 @@ def check(root):
     counts = dict(manifests=0, rust_sources=0, references=0)
     def issue(path, line, error):
         errors.append(f"{path.relative_to(root).as_posix()}:{line}: {str(error)}")
-    if root.is_symlink() or getattr(root, "is_junction", lambda: False)() or not root.is_dir():
+    if not root.is_dir() or root.is_symlink() or getattr(root.lstat(), "st_file_attributes", 0) & 0x400:
         return counts, ["rust/:0: source root must be a regular directory"]
     root = root.resolve(strict=True)
     def walk_error(error):
@@ -193,7 +193,8 @@ def check(root):
                 return counts, [*errors, "rust/:0: source entry limit"]
             path = Path(directory) / name
             try:
-                if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
+                # Windows reparse points also cover junctions on Python 3.11.
+                if path.is_symlink() or getattr(path.lstat(), "st_file_attributes", 0) & 0x400:
                     raise ValueError("source symlink/junction requires review")
                 contained(root, path.parent, path.name)
                 if len(path.relative_to(root).parts) > MAX_DEPTH:
