@@ -11,8 +11,9 @@ use alloc::{
 use rpp_core::canonical::CanonicalAddress;
 use rpp_link::LinkReading;
 
-use crate::endpoint::Endpoint;
-use crate::identity::{derive, AddressBinding, AssignmentError, DeviceId, NodeIdentity};
+use crate::endpoint::{validate_reading, Endpoint};
+use crate::identity::{lookup_binding, AddressBinding, AssignmentError, DeviceId, NodeIdentity};
+use crate::limits::{MAX_ENDPOINTS_PER_NODE, MAX_NODES};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RegisteredNode {
@@ -44,10 +45,14 @@ impl RegisteredNode {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RegistryError {
+    /// Local implementation node or per-node endpoint count limit exceeded.
+    Capacity,
     InvalidAddress,
     DuplicateIdentity,
     DuplicateDeviceId,
-    AddressCollision { word: u32 },
+    AddressCollision {
+        word: u32,
+    },
     InvalidEndpoint,
     DuplicateEndpointId,
     UnknownIdentity,
@@ -68,12 +73,19 @@ impl Registry {
     }
 
     /// Insert exactly one ordinary address and one control-device ID per full pair.
+    /// Count limits are checked before endpoint validation or index changes.
     /// Errors leave all existing records and indices unchanged.
     pub fn register(
         &mut self,
         binding: AddressBinding,
         endpoints: Vec<Endpoint>,
     ) -> Result<&RegisteredNode, RegistryError> {
+        if self.nodes.len() >= MAX_NODES {
+            return Err(RegistryError::Capacity);
+        }
+        if endpoints.len() > MAX_ENDPOINTS_PER_NODE {
+            return Err(RegistryError::Capacity);
+        }
         let identity = binding.identity();
         let device_id = *identity.device_id();
         let word = binding.word();
@@ -120,7 +132,7 @@ impl Registry {
     }
 
     pub fn address(&self, identity: &NodeIdentity) -> Result<CanonicalAddress, AssignmentError> {
-        derive(
+        lookup_binding(
             identity,
             self.nodes.get(identity).map(RegisteredNode::binding),
         )
@@ -149,7 +161,7 @@ impl Registry {
             .iter_mut()
             .find(|endpoint| endpoint.id == endpoint_id)
             .ok_or(RegistryError::UnknownEndpoint)?;
-        if !reading.valid() {
+        if validate_reading(reading).is_err() {
             return Err(RegistryError::InvalidReading);
         }
         endpoint.last_reading = reading;
@@ -161,6 +173,9 @@ impl Registry {
         identity: &NodeIdentity,
         endpoints: Vec<Endpoint>,
     ) -> Result<(), RegistryError> {
+        if endpoints.len() > MAX_ENDPOINTS_PER_NODE {
+            return Err(RegistryError::Capacity);
+        }
         if !self.nodes.contains_key(identity) {
             return Err(RegistryError::UnknownIdentity);
         }

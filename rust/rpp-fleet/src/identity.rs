@@ -170,7 +170,7 @@ impl AddressBinding {
 
 /// Deterministic explicit binding lookup, never a context-free identity hash.
 /// A successful value is not proof of ownership, authorization or routability.
-pub fn derive(
+pub fn lookup_binding(
     identity: &NodeIdentity,
     binding: Option<&AddressBinding>,
 ) -> Result<CanonicalAddress, AssignmentError> {
@@ -196,13 +196,16 @@ mod tests {
             AssignmentPolicy::ExplicitCallerAssignmentV1,
         );
         assert_eq!(
-            derive(&identity, Some(&binding)).unwrap().to_word(),
+            lookup_binding(&identity, Some(&binding)).unwrap().to_word(),
             address.to_word()
         );
-        assert_eq!(derive(&identity, None), Err(AssignmentError::Unassigned));
+        assert_eq!(
+            lookup_binding(&identity, None),
+            Err(AssignmentError::Unassigned)
+        );
         let other_lender = NodeIdentity::new([3; 16], [2; 16]);
         assert_eq!(
-            derive(&other_lender, Some(&binding)),
+            lookup_binding(&other_lender, Some(&binding)),
             Err(AssignmentError::IdentityMismatch)
         );
         assert_eq!(binding.policy().as_str(), "explicit-caller-assignment-v1");

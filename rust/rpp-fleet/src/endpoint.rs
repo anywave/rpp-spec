@@ -7,6 +7,8 @@ use alloc::{format, string::String};
 use rpp_core::overlay::Underlay;
 use rpp_link::{LinkKind, LinkReading};
 
+use crate::limits::MAX_URI_LEN;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EndpointKind {
     Lan,
@@ -75,27 +77,89 @@ pub struct Endpoint {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EndpointError {
+    Capacity,
     InvalidUri,
     InvalidReading,
+}
+
+/// Fleet-specific input checks; core LinkReading policy remains unchanged.
+pub(crate) fn validate_reading(reading: LinkReading) -> Result<(), EndpointError> {
+    if !reading.valid() || reading.latency_ms == u64::MAX || reading.jitter_ms == u64::MAX {
+        return Err(EndpointError::InvalidReading);
+    }
+    Ok(())
+}
+
+fn validate_uri(kind: EndpointKind, uri: &str) -> Result<(), EndpointError> {
+    // Check the borrowed length before scanning or allocating an owned URI.
+    if uri.len() > MAX_URI_LEN {
+        return Err(EndpointError::Capacity);
+    }
+    if uri.is_empty() || !uri.bytes().all(|byte| (0x20..=0x7e).contains(&byte)) {
+        return Err(EndpointError::InvalidUri);
+    }
+    let (scheme, rest) = uri.split_once("://").ok_or(EndpointError::InvalidUri)?;
+    if scheme.is_empty()
+        || !scheme.as_bytes()[0].is_ascii_alphabetic()
+        || !scheme
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'+' | b'-' | b'.'))
+        || (kind == EndpointKind::WebSocketGateway && scheme != "ws")
+    {
+        return Err(EndpointError::InvalidUri);
+    }
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or("");
+    if authority.is_empty() || authority.contains('@') || authority.bytes().any(|byte| byte == b' ')
+    {
+        return Err(EndpointError::InvalidUri);
+    }
+    let network_port = !matches!(kind, EndpointKind::Ble | EndpointKind::Lora);
+    let (host, suffix) = if let Some(bracketed) = authority.strip_prefix('[') {
+        let (host, suffix) = bracketed.split_once(']').ok_or(EndpointError::InvalidUri)?;
+        if host.contains(['[', ']']) || (!suffix.is_empty() && !suffix.starts_with(':')) {
+            return Err(EndpointError::InvalidUri);
+        }
+        (host, suffix.strip_prefix(':'))
+    } else {
+        if authority.contains(['[', ']']) {
+            return Err(EndpointError::InvalidUri);
+        }
+        match authority.split_once(':') {
+            Some((host, port)) => (host, Some(port)),
+            None => (authority, None),
+        }
+    };
+    if host.is_empty()
+        || (network_port
+            && suffix.is_some_and(|port| {
+                port.is_empty()
+                    || !port.bytes().all(|byte| byte.is_ascii_digit())
+                    || port.parse::<u16>().is_err()
+            }))
+    {
+        return Err(EndpointError::InvalidUri);
+    }
+    Ok(())
 }
 
 impl Endpoint {
     pub fn new(
         id: u32,
         kind: EndpointKind,
-        uri: impl Into<String>,
+        uri: impl AsRef<str>,
         last_reading: LinkReading,
         capabilities: EndpointCapabilities,
     ) -> Result<Self, EndpointError> {
-        let endpoint = Self {
+        let uri = uri.as_ref();
+        validate_uri(kind, uri)?;
+        validate_reading(last_reading)?;
+        Ok(Self {
             id,
             kind,
-            uri: uri.into(),
+            uri: String::from(uri),
             last_reading,
             capabilities,
-        };
-        endpoint.validate()?;
-        Ok(endpoint)
+        })
     }
 
     pub fn valid(&self) -> bool {
@@ -103,25 +167,8 @@ impl Endpoint {
     }
 
     pub fn validate(&self) -> Result<(), EndpointError> {
-        if self.uri.is_empty() || self.uri.chars().any(char::is_control) {
-            return Err(EndpointError::InvalidUri);
-        }
-        if self.kind == EndpointKind::WebSocketGateway {
-            let authority = self
-                .uri
-                .strip_prefix("ws://")
-                .unwrap_or("")
-                .split('/')
-                .next()
-                .unwrap_or("");
-            if authority.is_empty() || authority.chars().any(char::is_whitespace) {
-                return Err(EndpointError::InvalidUri);
-            }
-        }
-        if !self.last_reading.valid() {
-            return Err(EndpointError::InvalidReading);
-        }
-        Ok(())
+        validate_uri(self.kind, &self.uri)?;
+        validate_reading(self.last_reading)
     }
 
     /// Safe reversible name scoped by the registry-unique canonical word.
@@ -133,5 +180,189 @@ impl Endpoint {
 
     pub(crate) fn failure_domain_name(&self) -> String {
         format!("domain{:08x}", self.capabilities.failure_domain)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn reading() -> LinkReading {
+        LinkReading {
+            latency_ms: 1,
+            loss_ppm: 0,
+            jitter_ms: 0,
+            available: true,
+            observed: 1,
+        }
+    }
+
+    fn endpoint(kind: EndpointKind, uri: &str) -> Result<Endpoint, EndpointError> {
+        Endpoint::new(1, kind, uri, reading(), EndpointCapabilities::default())
+    }
+
+    const KINDS: [EndpointKind; 6] = [
+        EndpointKind::Lan,
+        EndpointKind::Wifi,
+        EndpointKind::Internet,
+        EndpointKind::Ble,
+        EndpointKind::Lora,
+        EndpointKind::WebSocketGateway,
+    ];
+
+    #[test]
+    fn uri_capacity_accepts_limit_and_rejects_one_past_and_literal_struct() {
+        // Mutation: remove the borrowed length guard, or skip it for literal Endpoint validation.
+        let prefix = "ws://host/";
+        let exact = alloc::format!("{prefix}{}", "x".repeat(MAX_URI_LEN - prefix.len()));
+        let oversized = alloc::format!("{exact}x");
+        for kind in KINDS {
+            let mut value = endpoint(kind, &exact).unwrap();
+            assert_eq!(value.uri.len(), MAX_URI_LEN);
+            assert_eq!(endpoint(kind, &oversized), Err(EndpointError::Capacity));
+            value.uri = oversized.clone();
+            assert_eq!(value.validate(), Err(EndpointError::Capacity));
+        }
+    }
+
+    #[test]
+    fn uri_rejects_non_ascii_invisible_and_control_characters() {
+        // Mutation: restore control-character-only filtering and admit invisible Unicode/bidi text.
+        for uri in [
+            "ws://host/\u{200b}",
+            "ws://host/\u{202e}",
+            "ws://host/\u{2066}",
+            "ws://host/\u{feff}",
+            "ws://h\u{00f6}st/path",
+            "ws://host/\u{001b}",
+            "ws://host/\u{0000}",
+            "ws://host/\u{007f}",
+            "ws://host/\n",
+            "ws://host/\r",
+        ] {
+            assert_eq!(
+                endpoint(EndpointKind::WebSocketGateway, uri),
+                Err(EndpointError::InvalidUri)
+            );
+        }
+    }
+
+    #[test]
+    fn gateway_authority_requires_a_host_without_userinfo() {
+        // Mutation: accept nonempty authority text as a host, allowing userinfo or a port with no host.
+        for uri in [
+            "ws://@x",
+            "ws://:",
+            "ws://:80",
+            "ws:///path",
+            "ws://?query",
+            "ws://#fragment",
+            "ws://user@host/path",
+            "ws://host:",
+            "ws://host:65536/path",
+            "ws://[]:80/path",
+            "ws://[::1/path",
+            "ws://[::1]:",
+            "ws://[::1]extra/path",
+            "ws://a b/path",
+            "http://host/path",
+        ] {
+            assert_eq!(
+                endpoint(EndpointKind::WebSocketGateway, uri),
+                Err(EndpointError::InvalidUri)
+            );
+        }
+        for uri in [
+            "ws://host",
+            "ws://voice-gateway.lan/xiaozhi",
+            "ws://host:0/",
+            "ws://host:65535/",
+            "ws://[::1]:8000/rpp",
+        ] {
+            assert!(endpoint(EndpointKind::WebSocketGateway, uri).is_ok());
+        }
+    }
+
+    #[test]
+    fn every_endpoint_kind_requires_a_nonempty_hierarchical_host() {
+        // Mutation: apply authority/userinfo checks only to WebSocket gateways.
+        for kind in KINDS {
+            for uri in ["host-only", "ws://", "ws://:", "ws://user@host/path"] {
+                assert_eq!(endpoint(kind, uri), Err(EndpointError::InvalidUri));
+            }
+        }
+        assert!(endpoint(EndpointKind::Ble, "bt://AA:BB:CC:DD:EE:FF/control").is_ok());
+        assert!(endpoint(EndpointKind::Lora, "lora://fleet:channel/1").is_ok());
+        assert!(endpoint(EndpointKind::Internet, "ipv6://[2001:db8::1]:9000/rpp").is_ok());
+    }
+
+    #[test]
+    fn printable_ascii_path_boundaries_remain_accepted() {
+        // Mutation: reject the permitted printable ASCII space or tilde boundary in path metadata.
+        assert!(endpoint(EndpointKind::WebSocketGateway, "ws://host/ ~").is_ok());
+        assert_eq!(
+            endpoint(EndpointKind::WebSocketGateway, "ws:// host/path"),
+            Err(EndpointError::InvalidUri)
+        );
+    }
+
+    #[test]
+    fn fleet_reading_rejects_sentinels_without_changing_core_validity() {
+        // Mutation: delegate only to core ppm validation and allow u64::MAX latency/jitter sentinels.
+        for invalid in [
+            LinkReading {
+                latency_ms: u64::MAX,
+                ..reading()
+            },
+            LinkReading {
+                jitter_ms: u64::MAX,
+                ..reading()
+            },
+        ] {
+            assert!(invalid.valid());
+            assert_eq!(
+                validate_reading(invalid),
+                Err(EndpointError::InvalidReading)
+            );
+            assert_eq!(
+                Endpoint::new(
+                    1,
+                    EndpointKind::Lan,
+                    "lan://host",
+                    invalid,
+                    EndpointCapabilities::default()
+                ),
+                Err(EndpointError::InvalidReading)
+            );
+        }
+        assert_eq!(
+            validate_reading(LinkReading {
+                loss_ppm: 1_000_001,
+                ..reading()
+            }),
+            Err(EndpointError::InvalidReading)
+        );
+        assert_eq!(
+            validate_reading(LinkReading {
+                latency_ms: u64::MAX - 1,
+                jitter_ms: u64::MAX - 1,
+                loss_ppm: 1_000_000,
+                ..reading()
+            }),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn literal_endpoint_readings_share_constructor_validation() {
+        // Mutation: validate sentinels in new() but let public struct fields bypass validate().
+        let mut value = endpoint(EndpointKind::Lan, "lan://host").unwrap();
+        value.last_reading.latency_ms = u64::MAX;
+        assert_eq!(value.validate(), Err(EndpointError::InvalidReading));
+        value.last_reading = LinkReading {
+            jitter_ms: u64::MAX,
+            ..reading()
+        };
+        assert_eq!(value.validate(), Err(EndpointError::InvalidReading));
     }
 }

@@ -550,13 +550,14 @@ fn control_requires_the_last_actual_data_selection_for_its_target() {
         .to_vec();
     assert_ne!(old, current);
     let notice = verified(1);
+    let before = fleet.policy_rows().to_vec();
+    let before_stats = fleet.stats();
     assert_eq!(
-        fleet
-            .resolve_control(target(), 1, &notice, &old, TrafficPath::Control)
-            .unwrap()
-            .status,
-        ResolutionStatus::Denied
+        fleet.resolve_control(target(), 1, &notice, &old, TrafficPath::Control),
+        Err(FleetResolveError::InvalidDataReference)
     );
+    assert_eq!(fleet.policy_rows(), before);
+    assert_eq!(fleet.stats(), before_stats);
     assert_eq!(
         fleet
             .resolve_control(target(), 1, &notice, &current, TrafficPath::Control)
@@ -699,6 +700,8 @@ fn endpoint_namespace_is_reversible_and_references_remain_target_bound() {
     let other = fleet.resolve_data(third, 0).unwrap();
     let first_path = first.selected().unwrap().path().to_vec();
     let other_path = other.selected().unwrap().path().to_vec();
+    assert_eq!(fleet.stats().known_data_references, 2);
+    assert_eq!(fleet.stats().current_data_references, 2);
     assert_eq!(
         first.selected().unwrap().endpoint_id,
         other.selected().unwrap().endpoint_id
@@ -724,13 +727,14 @@ fn endpoint_namespace_is_reversible_and_references_remain_target_bound() {
         },
     )
     .unwrap();
+    let before = fleet.policy_rows().to_vec();
+    let before_stats = fleet.stats();
     assert_eq!(
-        fleet
-            .resolve_control(third, 1, &notice, &first_path, TrafficPath::Control)
-            .unwrap()
-            .status,
-        ResolutionStatus::Denied
+        fleet.resolve_control(third, 1, &notice, &first_path, TrafficPath::Control),
+        Err(FleetResolveError::InvalidDataReference)
     );
+    assert_eq!(fleet.policy_rows(), before);
+    assert_eq!(fleet.stats(), before_stats);
 }
 
 /// Failing mutation: enumerate control alternatives in real state or reserve the sequence twice.

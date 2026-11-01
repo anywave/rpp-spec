@@ -1,6 +1,6 @@
 --- a/spec/RESOLVER.md
 +++ b/spec/RESOLVER.md
-@@ -802,6 +802,85 @@
+@@ -802,6 +802,106 @@
  No tunnel, cipher, handshake or key exchange is implemented by this text.
 
 
@@ -23,7 +23,9 @@
 +identifier and a 16-byte device identifier; these are identifiers, not keys.
 +The existing 16-byte device identifier is also the explicit control-frame ID.
 +These sizes are local implementation choices, not new published RPP fields.
-+There is no default assignment mode and no identity-only address computation.
++There is no default assignment mode. lookup_binding is a binding lookup: it
++returns the explicitly supplied address only for the matching identity.
++No address is computed from identity; a missing binding is Unassigned.
 +The same identity and owner binding produce the same encoded address bytes;
 +changing endpoint readings does not reassign the address.
 +This is registry configuration, not permanent object identity or a future
@@ -62,6 +64,16 @@
 +locality, reachability, encryption, authentication or device compatibility.
 +The profile opens no WebSocket and defines no voice protocol or vendor HAL.
 +
++This local resource profile allows at most 16 registered nodes, four endpoints
++per node and 192 URI bytes per endpoint. Capacity errors leave registry state
++unchanged. URI construction checks the borrowed length before allocating an
++owned copy; literal endpoint records are checked by the same validator. URIs
++use only printable ASCII bytes 0x20 through 0x7e and a hierarchical authority
++with a nonempty host and no userinfo. Network-kind port shape and the gateway
++ws:// scheme are checked without a network parser or device probing.
++The shared fleet reading validator rejects loss over 1,000,000 ppm and
++u64::MAX latency/jitter sentinels; core LinkReading policy is unchanged.
++
 +Endpoint records are adapted to existing core overlay policy for eligibility,
 +freshness, live ordering, consent, tunnels and deterministic tie breaks. Data
 +on BLE remains ineligible unless that existing policy permits the declared
@@ -79,6 +91,15 @@
 +Resolution reports selection, failover order or an explicit no-channel/denied
 +outcome; it is not a transport send or a new retry/breaker/meter implementation.
 +Actual adapters remain responsible for the selected physical path and outcomes.
++Failover previews query existing routing policy without cloning full simulator
++history or spending real request/sequence state. The fleet retains only the
++latest successful data reference per pair and at most 16 local diagnostic meter
++rows. Each completed control result still returns its row for caller accounting;
++retained rows are not a full history. Host-boundary errors need caller metering.
++Empty, forged or superseded data references are explicit errors; historical
++reference age alone is not expiry. Only actual clock rollback is ClockRollback;
++other invalid inputs have their own error. These are local implementation
++budgets and guards, not new RPP wire constants, score weights or timing policy.
 +No board/network operation, cryptography, tunnel or discovery implementation is
 +introduced by this informative proposal.
 +

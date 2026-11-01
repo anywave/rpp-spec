@@ -1,9 +1,10 @@
-//! Identity inputs are opaque host data; explicit assignments confer no authority.
+//! Identity inputs are opaque host data; explicit binding lookup confers no authority.
 
 use core::fmt::{self, Write};
 use rpp_core::canonical::CanonicalError;
 use rpp_fleet::identity::{
-    derive, AddressBinding, AssignmentError, AssignmentPolicy, CanonicalFields, NodeIdentity,
+    lookup_binding, AddressBinding, AssignmentError, AssignmentPolicy, CanonicalFields,
+    NodeIdentity,
 };
 
 const POLICY: AssignmentPolicy = AssignmentPolicy::ExplicitCallerAssignmentV1;
@@ -24,21 +25,27 @@ fn identity(lender: u8, device: u8) -> NodeIdentity {
 
 /// Failing mutations: hash identity into a default address, ignore the lender or device, or alter encoding.
 #[test]
-fn explicit_assignment_is_repeatable_unassigned_without_binding_and_checks_full_identity() {
+fn explicit_binding_lookup_is_repeatable_unassigned_without_binding_and_checks_full_identity() {
     let identity = identity(17, 29);
     let assigned = AddressBinding::from_fields(identity, fields(14, 0.5, 17), POLICY).unwrap();
     assert_eq!(assigned.word(), 0x7250_0011);
     assert_eq!(assigned.policy(), POLICY);
     assert_eq!(POLICY.as_str(), "explicit-caller-assignment-v1");
     for _ in 0..3 {
-        assert_eq!(derive(&identity, Some(&assigned)), Ok(assigned.address()));
-        assert_eq!(derive(&identity, None), Err(AssignmentError::Unassigned));
+        assert_eq!(
+            lookup_binding(&identity, Some(&assigned)),
+            Ok(assigned.address())
+        );
+        assert_eq!(
+            lookup_binding(&identity, None),
+            Err(AssignmentError::Unassigned)
+        );
     }
     let different_lender = NodeIdentity::new([18; 16], [29; 16]);
     let different_device = NodeIdentity::new([17; 16], [30; 16]);
     for other in [different_lender, different_device] {
         assert_eq!(
-            derive(&other, Some(&assigned)),
+            lookup_binding(&other, Some(&assigned)),
             Err(AssignmentError::IdentityMismatch)
         );
     }

@@ -161,8 +161,11 @@ dependencies for this stdlib-only checker.
 
 All committed test data is covered by `.gitattributes -text`. Test names are
 bounded and each test states a failing mutation. The development mutation runner
-uses disposable Rust workspace copies; field shift, rounding, post-token retry
-and expired-billboard mutants must fail an actual selected assertion test, while
+uses disposable Rust workspace copies. The core runner checks field shift,
+rounding, post-token retry, expired-billboard application, latest-reference
+retention, meter-window retention and global row numbering. Fleet boundary
+mutants additionally exercise capacities, URI text, input classification and
+explicit references. Each must fail an actual selected assertion test while
 clean controls pass. Compile errors and unrelated panics never count as kills.
 
 This library does not promote the overall coherence/sector verdict, adopt an

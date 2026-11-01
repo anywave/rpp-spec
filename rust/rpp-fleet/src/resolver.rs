@@ -18,6 +18,7 @@ use rpp_link::{
 use crate::{
     endpoint::{Endpoint, EndpointKind},
     identity::NodeIdentity,
+    limits::MAX_RETAINED_METER_ROWS,
     registry::{Registry, RegistryError},
 };
 
@@ -34,6 +35,8 @@ pub enum FleetResolveError {
     UnregisteredTarget,
     InvalidEndpoint,
     ClockRollback,
+    InvalidInput,
+    InvalidDataReference,
     ControlOnDataPath,
     FrameIdentityMismatch,
     CorePolicy,
@@ -114,6 +117,15 @@ pub struct ControlResolution<'frame> {
     pub meter: MeterRow,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FleetResolverStats {
+    pub retained_meter_rows: usize,
+    pub known_data_references: usize,
+    pub current_data_references: usize,
+    pub admitted_members: usize,
+    pub consent_pairs: usize,
+}
+
 pub struct FleetResolver<'registry> {
     registry: &'registry mut Registry,
     source: NodeIdentity,
@@ -133,18 +145,63 @@ impl<'registry> FleetResolver<'registry> {
         members: &[NodeIdentity],
         consents: &[(NodeIdentity, NodeIdentity)],
     ) -> Self {
-        let admitted = members.iter().map(NodeIdentity::label).collect();
-        let consent_pairs = consents
+        // Filter and deduplicate opaque identities before allocating labels.
+        // Registration is only an upper bound: it supplies no extra admission
+        // or consent beyond the caller's explicit inputs.
+        let admitted_ids: BTreeSet<_> = members
+            .iter()
+            .copied()
+            .filter(|identity| registry.get(identity).is_some())
+            .collect();
+        let consent_ids: BTreeSet<_> = consents
+            .iter()
+            .copied()
+            .filter(|(a, b)| registry.get(a).is_some() && registry.get(b).is_some())
+            .collect();
+        let admitted = admitted_ids.iter().map(NodeIdentity::label).collect();
+        let consent_pairs = consent_ids
             .iter()
             .map(|(a, b)| (a.label(), b.label()))
             .collect();
+        let source_label = source.label();
+        // Invalid prior context is denied without retaining caller-controlled
+        // String capacity. Reconstruct the valid label instead of keeping it.
+        let auth = if auth.signature_verified && auth.issuer == source_label {
+            Auth {
+                issuer: source_label.clone(),
+                signature_verified: true,
+            }
+        } else {
+            Auth {
+                issuer: String::new(),
+                signature_verified: false,
+            }
+        };
         Self {
             registry,
             source,
-            source_label: source.label(),
+            source_label,
             auth,
             policy: Simulator::new(admitted, consent_pairs, BTreeSet::new()),
             current_data: BTreeMap::new(),
+        }
+    }
+
+    pub fn stats(&self) -> FleetResolverStats {
+        FleetResolverStats {
+            retained_meter_rows: self.policy.rows().len(),
+            known_data_references: self.policy.known_data_path_count(),
+            current_data_references: self.current_data.len(),
+            admitted_members: self.policy.members().len(),
+            consent_pairs: self.policy.consents().len(),
+        }
+    }
+
+    fn invalid_input_error(&self, tick: u64) -> FleetResolveError {
+        if tick < self.policy.clock() {
+            FleetResolveError::ClockRollback
+        } else {
+            FleetResolveError::InvalidInput
         }
     }
 
@@ -229,47 +286,41 @@ impl<'registry> FleetResolver<'registry> {
                 routes: Vec::new(),
             });
         }
-        // Ask the existing policy to classify authorization/time using no paths.
-        // The clone keeps this explanatory denial/no-channel probe out of the
-        // real request/sequence state and avoids a second authorization matrix.
         let target_label = target.label();
-        let mut gate = self.policy.clone();
-        gate.send_data(
-            i128::from(tick),
-            &self.source_label,
-            &target_label,
-            &[],
-            &BTreeMap::new(),
-        );
-        match gate.rows().last().map(|row| row.status) {
-            Some(Status::Denied | Status::DeniedSelfTarget) => {
+        let links: Vec<_> = entries.iter().map(|(_, link)| link.clone()).collect();
+        // Read-only core preview classifies the same request without cloning
+        // retained history or allocating a throwaway meter/request record.
+        let selection =
+            self.policy
+                .preview_data(i128::from(tick), &self.source_label, &target_label, &links);
+        match selection.status {
+            Status::Denied | Status::DeniedSelfTarget => {
                 return Ok(DataResolution {
                     status: ResolutionStatus::Denied,
                     routes: Vec::new(),
                 })
             }
-            Some(Status::InvalidInput) => return Err(FleetResolveError::ClockRollback),
-            Some(Status::NoChannel) => {}
+            Status::InvalidInput => return Err(self.invalid_input_error(tick)),
+            Status::NoChannel => {
+                return Ok(DataResolution {
+                    status: ResolutionStatus::NoChannel,
+                    routes: Vec::new(),
+                })
+            }
+            Status::Ok => {}
             _ => return Err(FleetResolveError::CorePolicy),
         }
-        let links: Vec<_> = entries.iter().map(|(_, link)| link.clone()).collect();
         let first = self
             .policy
-            .choose(&self.source_label, &target_label, i128::from(tick), &links)
-            .map_err(|_| FleetResolveError::CorePolicy)?;
+            .choose_latest(&self.source_label, &target_label, i128::from(tick), &links)
+            .map_err(|_| self.invalid_input_error(tick))?;
         if first.is_empty() {
-            // Keep the last selected reference during an outage: independent
-            // STOP/PAUSE can still concern the last active data path.
-            return Ok(DataResolution {
-                status: ResolutionStatus::NoChannel,
-                routes: Vec::new(),
-            });
+            return Err(FleetResolveError::CorePolicy);
         }
         self.current_data.insert(target, first.clone());
         let mut routes = Vec::new();
         let mut remaining = entries;
         let mut chosen = first;
-        let mut preview = self.policy.clone();
         loop {
             // Fleet endpoints are direct links. Match the complete generated
             // name, never split opaque URI text or arbitrary user names.
@@ -280,14 +331,18 @@ impl<'registry> FleetResolver<'registry> {
             routes.push(Self::resolved(&selected.0, chosen.clone()));
             remaining.retain(|(_, link)| !chosen.iter().any(|used| used.name == link.name));
             let alternatives: Vec<_> = remaining.iter().map(|(_, link)| link.clone()).collect();
-            chosen = preview
-                .choose(
-                    &self.source_label,
-                    &target_label,
-                    i128::from(tick),
-                    &alternatives,
-                )
-                .map_err(|_| FleetResolveError::CorePolicy)?;
+            let alternative = self.policy.preview_data(
+                i128::from(tick),
+                &self.source_label,
+                &target_label,
+                &alternatives,
+            );
+            chosen = match alternative.status {
+                Status::Ok => alternative.path,
+                Status::NoChannel => Vec::new(),
+                Status::InvalidInput => return Err(self.invalid_input_error(tick)),
+                _ => return Err(FleetResolveError::CorePolicy),
+            };
             if chosen.is_empty() {
                 break;
             }
@@ -306,6 +361,7 @@ impl<'registry> FleetResolver<'registry> {
         known_data: &[Link],
         path: TrafficPath,
     ) -> Result<ControlResolution<'frame>, FleetResolveError> {
+        self.policy.retain_meter_rows(MAX_RETAINED_METER_ROWS);
         // Preserve this guard before any accepted sequence/state transition.
         if path == TrafficPath::Data {
             return Err(FleetResolveError::ControlOnDataPath);
@@ -325,15 +381,16 @@ impl<'registry> FleetResolver<'registry> {
             .iter()
             .map(|(_, link)| link.clone())
             .collect::<Vec<_>>();
-        let current = self
+        // Reject absent, forged, wrong-target and superseded references as an
+        // explicit caller error before any core sequence, request or clock state.
+        let reference = self
             .current_data
             .get(&target)
-            .filter(|current| current.as_slice() == known_data);
-        // This is the historical last-successful data-path reference, retained
-        // through outages until a newer selection replaces it. Its storage has
-        // no extra TTL; current control-link freshness and all independence,
-        // authorization and identity checks remain the core policy's contract.
-        let reference = current.map_or(&[][..], Vec::as_slice);
+            .filter(|current| !known_data.is_empty() && current.as_slice() == known_data)
+            .ok_or(FleetResolveError::InvalidDataReference)?
+            .as_slice();
+        // This historical last-successful reference has no new TTL. Current
+        // control eligibility and independence stay entirely in core policy.
         let kind = match frame.kind() {
             WireControlKind::Alive => ControlKind::Alive,
             WireControlKind::MemberChanged => ControlKind::MemberChanged,
@@ -342,9 +399,35 @@ impl<'registry> FleetResolver<'registry> {
             WireControlKind::RouteAround => ControlKind::RouteAround,
             WireControlKind::Resume => ControlKind::Resume,
         };
-        let before = self.policy.clone();
         let notice =
             ControlFrame::notice(&self.source_label, &target.label(), kind, frame.sequence());
+        let mut failover_order = Vec::new();
+        let mut remaining = entries
+            .iter()
+            .map(|(_, link)| link.clone())
+            .collect::<Vec<_>>();
+        loop {
+            // Immutable core preview uses the unchanged PRE-CALL sequence and
+            // clock context, without copying retained simulator state.
+            let candidate = self.policy.preview_control(
+                i128::from(tick),
+                &notice,
+                Some(&self.auth),
+                &remaining,
+                reference,
+            );
+            if candidate.status != Status::Ok {
+                break;
+            }
+            let selected = entries
+                .iter()
+                .find(|(_, link)| candidate.path.len() == 1 && link.name == candidate.path[0].name)
+                .ok_or(FleetResolveError::RouteMismatch)?;
+            failover_order.push(selected.0.id);
+            remaining.retain(|link| !candidate.path.iter().any(|chosen| chosen.name == link.name));
+        }
+        // Exactly one real transition; returned rows retain their global IDs
+        // while this bounded local diagnostic window drops older copies.
         let row = self.policy.send_control(
             i128::from(tick),
             &notice,
@@ -352,35 +435,7 @@ impl<'registry> FleetResolver<'registry> {
             &links,
             reference,
         );
-        let mut failover_order = Vec::new();
-        if row.status == Status::Ok {
-            let mut remaining = entries.clone();
-            loop {
-                // Every preview begins from PRE-CALL state. Only core policy
-                // chooses alternatives; no extra real sequence/clock is spent.
-                let mut preview = before.clone();
-                let candidate_links = remaining
-                    .iter()
-                    .map(|(_, link)| link.clone())
-                    .collect::<Vec<_>>();
-                let candidate = preview.send_control(
-                    i128::from(tick),
-                    &notice,
-                    Some(&self.auth),
-                    &candidate_links,
-                    reference,
-                );
-                if candidate.status != Status::Ok {
-                    break;
-                }
-                let selected = remaining
-                    .iter()
-                    .find(|(_, link)| link.name == candidate.path)
-                    .ok_or(FleetResolveError::RouteMismatch)?;
-                failover_order.push(selected.0.id);
-                remaining.retain(|(_, link)| link.name != candidate.path);
-            }
-        }
+        self.policy.retain_meter_rows(MAX_RETAINED_METER_ROWS);
         let (status, route) = match row.status {
             Status::Ok => {
                 let endpoint = entries
@@ -398,7 +453,7 @@ impl<'registry> FleetResolver<'registry> {
             }
             Status::Denied | Status::DeniedSelfTarget => (ResolutionStatus::Denied, None),
             Status::NoIndependentChannel | Status::NoChannel => (ResolutionStatus::NoChannel, None),
-            Status::InvalidInput => return Err(FleetResolveError::ClockRollback),
+            Status::InvalidInput => return Err(self.invalid_input_error(tick)),
             _ => return Err(FleetResolveError::CorePolicy),
         };
         Ok(ControlResolution {
@@ -407,5 +462,28 @@ impl<'registry> FleetResolver<'registry> {
             failover_order,
             meter: row,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn malformed_core_input_at_current_clock_is_not_clock_rollback() {
+        // Mutation invalid-input-as-rollback: a non-past CoreInvalidInput must
+        // remain generic InvalidInput; integration tests cover actual rollback.
+        let mut registry = Registry::new();
+        let source = NodeIdentity::new([1; 16], [2; 16]);
+        let auth = Auth::fixture(&source.label(), true);
+        let resolver = FleetResolver::new(&mut registry, source, auth, &[], &[]);
+        assert_eq!(
+            resolver.invalid_input_error(0),
+            FleetResolveError::InvalidInput
+        );
+        assert_eq!(
+            resolver.invalid_input_error(1),
+            FleetResolveError::InvalidInput
+        );
     }
 }

@@ -1,4 +1,4 @@
-"""Execute three bounded fleet path-policy mutants in Rust copies.
+"""Execute eleven bounded fleet path-policy and boundary mutants in Rust copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -65,6 +65,60 @@ MUTATIONS = (
         "if path == TrafficPath::Data {", "if false && path == TrafficPath::Data {",
         Test("scenarios", "control_resolution_rejects_data_path_without_consuming_sequence"),
         Test("scenarios", "verified_control_route_dispatch_uses_control_hook_only"),
+    ),
+    Mutation(
+        "node_capacity_bypass", "rpp-fleet", "rpp-fleet/src/registry.rs",
+        "if self.nodes.len() >= MAX_NODES {", "if false && self.nodes.len() >= MAX_NODES {",
+        Test("capacity", "exactly_sixteen_nodes_fit_and_seventeenth_rejection_preserves_all_registry_indices"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "endpoint_registration_capacity_bypass", "rpp-fleet", "rpp-fleet/src/registry.rs",
+        "if endpoints.len() > MAX_ENDPOINTS_PER_NODE {\n            return Err(RegistryError::Capacity);\n        }\n        let identity",
+        "if false && endpoints.len() > MAX_ENDPOINTS_PER_NODE {\n            return Err(RegistryError::Capacity);\n        }\n        let identity",
+        Test("capacity", "registration_accepts_four_endpoints_and_five_is_an_atomic_capacity_error"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "endpoint_replacement_capacity_bypass", "rpp-fleet", "rpp-fleet/src/registry.rs",
+        "if endpoints.len() > MAX_ENDPOINTS_PER_NODE {\n            return Err(RegistryError::Capacity);\n        }\n        if !self.nodes.contains_key(identity)",
+        "if false && endpoints.len() > MAX_ENDPOINTS_PER_NODE {\n            return Err(RegistryError::Capacity);\n        }\n        if !self.nodes.contains_key(identity)",
+        Test("capacity", "replacement_accepts_four_endpoints_and_five_keeps_the_entire_registry_unchanged"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "uri_capacity_bypass", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
+        "if uri.len() > MAX_URI_LEN {", "if false && uri.len() > MAX_URI_LEN {",
+        Test("negative", "uri_byte_limit_accepts_exactly_limit_and_rejects_plus_one_atomically"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "uri_ascii_bypass", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
+        "if uri.is_empty() || !uri.bytes().all(|byte| (0x20..=0x7e).contains(&byte)) {",
+        "if uri.is_empty() {",
+        Test("negative", "hostile_uri_characters_and_empty_websocket_authorities_are_rejected"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "silent_invalid_reference", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        ".ok_or(FleetResolveError::InvalidDataReference)?\n            .as_slice();",
+        ".map(Vec::as_slice)\n            .unwrap_or(&[]);",
+        Test("negative", "invalid_reference_errors_precede_all_policy_state_changes"),
+        Test("scenarios", "verified_control_route_dispatch_uses_control_hook_only"),
+    ),
+    Mutation(
+        "non_clock_invalid_input_mislabeled", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        "} else {\n            FleetResolveError::InvalidInput\n        }",
+        "} else {\n            FleetResolveError::ClockRollback\n        }",
+        Test("lib", "resolver::tests::malformed_core_input_at_current_clock_is_not_clock_rollback"),
+        Test("lib", "identity::tests::explicit_binding_preserves_core_encoding_and_checks_full_identity"),
+    ),
+    Mutation(
+        "sentinel_reading_bypass", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
+        "if !reading.valid() || reading.latency_ms == u64::MAX || reading.jitter_ms == u64::MAX {",
+        "if !reading.valid() {",
+        Test("negative", "rejected_reading_updates_preserve_good_data_control_and_registry_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
     ),
 )
 
@@ -176,8 +230,8 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
-    if len(MUTATIONS) != 3:
-        raise RuntimeError("three fleet policy mutations must be configured")
+    if len(MUTATIONS) != 11:
+        raise RuntimeError("eleven fleet policy and boundary mutations must be configured")
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name

@@ -14,6 +14,8 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 pub mod endpoint;
 pub mod identity;
+pub mod limits;
+pub use limits::{MAX_ENDPOINTS_PER_NODE, MAX_NODES, MAX_RETAINED_METER_ROWS, MAX_URI_LEN};
 #[cfg(feature = "alloc")]
 pub mod registry;
 #[cfg(feature = "alloc")]
