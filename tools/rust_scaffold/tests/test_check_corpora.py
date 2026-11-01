@@ -25,6 +25,11 @@ class CorpusFreshnessTests(unittest.TestCase):
             shutil.copytree(REPO / relative, self.repo / relative, ignore=shutil.ignore_patterns("__pycache__"))
         for relative in ("rust/rpp-core/tests/data", "rust/rpp-control/tests/data", "rust/rpp-fleet/tests/data"):
             shutil.copytree(REPO / relative, self.repo / relative)
+        # Fleet boundary provenance hashes these two existing producer contracts.
+        for relative in ("rust/rpp-fleet/src/endpoint.rs", "rust/rpp-fleet/src/resolver.rs"):
+            target = self.repo / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(REPO / relative, target)
 
     def test_fresh_and_edited_oracle_rows_in_all_four_groups(self):
         """Mutation witnesses: change one saved address/control/overlay/fleet row byte."""
