@@ -1,3 +1,5 @@
+#![cfg(feature = "alloc")]
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use rpp_core::overlay::{

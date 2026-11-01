@@ -1,7 +1,15 @@
 //! In-memory equivalent of `tools.overlay_sim.scenarios.artifacts()`.
 //! All inputs are scripted fixtures; no verification, transport or file I/O occurs.
+//! Rendering uses `alloc` only; it does not require `std`.
 
-use std::collections::{BTreeMap, BTreeSet};
+use alloc::{
+    borrow::ToOwned,
+    collections::{BTreeMap, BTreeSet},
+    format,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 use crate::overlay::{
     json_string, serialize_csv, Auth, Billboard, BillboardKind, ControlFrame, Link, MeterRow,

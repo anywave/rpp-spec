@@ -10,8 +10,16 @@
 //! and billboard intervals use `i128`. Path scores use checked `u128` sums. These
 //! representability choices do not claim equivalence for arbitrary Python big
 //! integers, malformed dynamic objects or invalid UTF-8.
+//!
+//! This policy model requires the `alloc` feature but never requires `std`.
 
-use std::collections::{BTreeMap, BTreeSet};
+use alloc::{
+    borrow::ToOwned,
+    collections::{BTreeMap, BTreeSet},
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Underlay {

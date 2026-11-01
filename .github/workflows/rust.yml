@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
 
       - name: Install pinned Rust and check components
-        run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy
+        run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
       - name: Tool versions
         run: |
@@ -58,3 +58,12 @@ jobs:
 
       - name: Tests
         run: cargo +1.85.1 test --workspace --locked
+
+      - name: Host tests without default features
+        run: cargo +1.85.1 test --workspace --no-default-features --locked
+
+      - name: Cross-compile allocation-free codecs
+        run: cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --locked
+
+      - name: Cross-compile alloc-only policy models
+        run: cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked

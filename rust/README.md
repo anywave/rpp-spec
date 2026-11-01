@@ -4,6 +4,12 @@
 The name is provisional and publishing is disabled; PL/FP may rename it. The
 workspace pins Rust **1.85.1** and commits its lockfile.
 
+The ESP32 readiness check builds the library for
+`riscv32imc-unknown-none-elf`, a bare-metal RISC-V target used for ESP32-C3
+integration. This is a library cross-compile check, not a board run or a firmware
+image. No board, radio, transport, linker script, HAL, flashing or boot behavior
+is implemented or validated here. Xtensa targets are outside this CI check.
+
 The library operates entirely on caller-provided values. It performs no I/O,
 networking, discovery probes, threading, randomness, inference or cryptography.
 `#![forbid(unsafe_code)]` applies to every module. Collections use deterministic
@@ -26,9 +32,31 @@ There is no `Default` policy. This adds no Python migration API or wire field.
 Resolver discovery is input: the crate does not probe devices, authenticate
 identities, persist data or implement the legacy Python storage backends.
 
+## Embedded feature profiles
+
+| Cargo selection | Library profile | Allocation and integration boundary |
+|---|---|---|
+| `--no-default-features` | `no_std` canonical and Mobius32 codecs | Word/byte encoding and decoding require no heap. Allocating convenience APIs and policy models are excluded. |
+| `--no-default-features --features alloc` | `no_std` with `alloc` | Adds allocating helpers and resolver/overlay/scenario policy models. A firmware application using these allocations must supply its own allocator and memory budget. |
+| Default features (`std`) | Host library with `std` and `alloc` | Preserves host APIs, parity tests and in-memory scenario artifacts; still performs no I/O or transport operations. |
+
+The allocation-free codec profile does not require an allocator. A successful
+`alloc` library cross-build checks that the policy models compile without `std`;
+it does not provide an allocator or establish that their dynamic collections fit
+a particular device. Hosts remain responsible for input sizes, heap limits,
+timing, transport outcomes, identity and consent. These feature boundaries add no
+protocol profile, wire field or crypto implementation.
+
+Without `alloc`, canonical URI support uses `from_uri_ascii`: numeric fields
+accept ASCII digits, with the documented Greek field keys. The full Unicode Nd
+parser remains available with `alloc`. Heap-free `write_uri` and `write_hex`
+write through a caller-supplied `core::fmt::Write`; callers choose their buffer
+and handle its capacity errors. The owned `String`-returning `to_uri`/`to_hex`
+helpers require `alloc`. No allocator implementation is supplied by the crate.
+
 ## Fidelity and input domain
 
-The canonical binding is checked against **9497 actual Python-reference rows**:
+The default/alloc canonical binding is checked against **9497 actual Python-reference rows**:
 4110 constructor cases, 2119 raw words and 3268 URI cases. Coverage includes all
 2048 accepted discrete field combinations, decoded radius codes, all quantizer
 ties with adjacent floats, fixed-seed sweeps, reserved/null/wildcard states and
@@ -59,14 +87,20 @@ compared as bytes, including line endings and JSON/CSV escaping.
 From `rust/`, with rustup installed:
 
 ```sh
-rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy
+rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 cargo +1.85.1 fmt --all -- --check
 cargo +1.85.1 clippy --workspace --all-targets --offline --locked -- -D warnings
 cargo +1.85.1 test --workspace --offline --locked
+cargo +1.85.1 test --workspace --no-default-features --offline --locked
+cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --offline --locked
+cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --offline --locked
 ```
 
-The Ubuntu/Windows workflow performs those checks as ordinary failing jobs, not
-advisory jobs. It has read-only contents permission and a SHA-pinned checkout.
+The Ubuntu/Windows workflow runs formatting, Clippy, default-feature host tests,
+host tests without default features, and both bare-metal cross-builds as ordinary
+failing jobs. None of those checks is advisory. The no-default-feature host run
+also exercises the codec golden checks; it does not execute RISC-V code on a
+host CPU. CI has read-only contents permission and a SHA-pinned checkout.
 Required-check configuration is unchanged; TR controls branch protection.
 
 Python is development scaffolding only. From the repository root:

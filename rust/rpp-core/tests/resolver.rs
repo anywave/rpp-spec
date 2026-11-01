@@ -1,3 +1,5 @@
+#![cfg(feature = "alloc")]
+
 use rpp_core::resolver::{
     resolve, AccessGate, AttemptOutcome, AttemptResult, DiscoveredEndpoint, Modality,
     ResolutionErrorCode,

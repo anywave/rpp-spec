@@ -15,7 +15,7 @@ Cargo cache; rustup installations can use `cargo +1.85.1` instead.
 |---|---|
 | `cargo fmt --manifest-path rust/Cargo.toml --all -- --check` | exit 0 |
 | `cargo clippy --manifest-path rust/Cargo.toml --workspace --all-targets --offline --locked -- -D warnings` | exit 0 |
-| `cargo test --manifest-path rust/Cargo.toml --workspace --offline --locked` | **36 passed**: 7 Mobius32, 5 canonical, 18 overlay, 6 resolver; 0 failures; 0 doctests |
+| `cargo test --manifest-path rust/Cargo.toml --workspace --offline --locked` | **37 passed**: 7 Mobius32, 1 heap-free canonical unit, 5 canonical corpus, 18 overlay, 6 resolver; 0 failures; 0 doctests |
 | `cargo package --manifest-path rust/rpp-core/Cargo.toml --list --allow-dirty --offline` | library package lists **20 files**, no Python scaffold or binary targets |
 | `PYTHONPATH=. python -m pytest tests/ -q` | **1256 passed**, 1 existing legacy-format warning |
 | `python tests/test_golden_vectors_mobius32.py` | **SUMMARY pass=5 fail=0** |
@@ -24,8 +24,30 @@ Cargo cache; rustup installations can use `cargo +1.85.1` instead.
 | `git diff --cached --check`; `git diff --check 5677ea2 HEAD` | exit 0 |
 | `python -m tools.drift check --base 5677ea2 --head <resolved SHA> --output-dir <scratch>` | exit 0; **0 HIGH / 0 MEDIUM / 0 LOW** |
 
+ESP32-readiness addendum executed on the final feature split:
+
+| Command | Observed result |
+|---|---|
+| `cargo test --workspace --no-default-features --offline --locked` | **8 passed**, including the same heap-free canonical golden and seven Mobius32 tests |
+| `cargo test --workspace --no-default-features --features alloc --offline --locked` | **37 passed** |
+| `cargo clippy --workspace --all-targets --no-default-features --features alloc --offline --locked -- -D warnings` | exit 0 |
+| `cargo build --workspace --no-default-features --target riscv32imc-unknown-none-elf --offline --locked` | exit 0, actual target library build |
+| Same build with `--features alloc` | exit 0, actual no_std resolver/overlay build |
+
+The cross-build used official Rust 1.85.1 `(4eb161250)` and the matching target
+component, both verified against the official SHA-256 manifest before extraction.
+The Debian host compiler has distinct metadata and was not mixed with the target.
+Manifest SHA-256: `1e7dae690cd12e27405a97e64704917489a27c650201bf47780a936055d67909`.
+Rustc archive SHA-256: `92a5c532b9e87912190128704e0d65825912e3b08a6ee9203c4068d6d1df62c4`.
+Target archive SHA-256: `30bbd341a134bb10395c8c6904053c6239e49ac37acfc4c33b06b8b6b064071c`.
+The shared quantizer's rounding-mode mutation was updated to half-away-from-zero
+and re-executed: **4 killed / 0 survived**, **4 baseline + 4 clean controls**.
+Final mutation summary SHA-256:
+`c33201b3270ff9eda56f82b7af244a1b92e0c5bca9e5fd5926dcb7f74cd9c29c`.
+
 The pre-existing pytest-asyncio configuration notice is also visible. Rust tests
-have fixed titles and each names its failing mutation. The original five golden
+have fixed titles and each names its failing mutation. The same heap-free canonical byte/ASCII-URI golden test runs with default
+features and with no features. The original five golden
 check families are implemented in the separate Mobius32 module; two additional
 unit cases test all field values and raw-word rejection. Canonical v2 is a
 different profile, checked independently against Python.
@@ -111,14 +133,24 @@ denial; no implicit migration policy; preserve existing URI quirks. The library
 does not reproduce arbitrary Python dynamic types, unlimited integers or a
 host's configurable huge-URI integer-conversion limit.
 
+Features are `default = ["std"]`, `std = ["alloc"]`, and optional `alloc`.
+The crate uses `no_std` without `std`. Word/byte codecs, named migration, ASCII
+numeric URI parsing and caller-buffer URI/hex writers use `core` without a heap.
+The full Unicode-digit parser and String helpers require `alloc`; resolver,
+overlay and renderers also require `alloc` and compile without `std`. The shared
+quantizer uses bounded binary64 multiplication and explicit half-even arithmetic
+with no math-library dependency. All 9497 corpus rows still match.
+
 CI is **non-advisory** on Ubuntu and Windows: read-only contents permission,
 SHA-pinned checkout, exact Rust 1.85.1 with rustfmt/Clippy, fmt, Clippy `-D
-warnings` and locked offline tests. Repository required-check settings are
+warnings`, locked offline tests, no-default host tests, and both no-default
+and alloc-only RISC-V library builds. Xtensa needs Espressif's toolchain and was
+not added to CI; no board/firmware/radio or physical result is claimed. Repository required-check settings are
 unchanged. No hosted outcome is claimed before observing the new run.
 
 TR's Windows 11 / Python 3.13 repeat: run README's Cargo commands and the common
 Python gates, then the mutation scaffold with native Cargo/Rustc paths. Expect
-36 Rust tests, 1256 Python tests, golden 5/0 and 4 killed mutants. Compare corpus
+37 Rust tests, 1256 Python tests, golden 5/0 and 4 killed mutants. Compare corpus
 TSV and overlay hashes. A different Python Unicode version may change generator
 manifest environment metadata; native Windows was not executed here. Python
 scaffolds are outside the library package; final Cargo builds need no Python.

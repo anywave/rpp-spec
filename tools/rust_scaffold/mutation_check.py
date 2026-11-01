@@ -46,7 +46,7 @@ MUTATIONS = (
     ),
     Mutation(
         "rounding_mode", "rpp-core/src/canonical.rs",
-        "(self.radius * 255.0).round_ties_even() as u32", "(self.radius * 255.0).round() as u32",
+        "if fraction > 0.5 || (fraction == 0.5 && lower & 1 != 0) {", "if fraction >= 0.5 {",
         Test("canonical", "constructor_corpus_matches_python_words_and_bytes"),
         Test("lib", "mobius32::tests::golden_vectors_encode"),
     ),

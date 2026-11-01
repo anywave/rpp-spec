@@ -2,3 +2,4 @@
 channel = "1.85.1"
 profile = "minimal"
 components = ["rustfmt", "clippy"]
+targets = ["riscv32imc-unknown-none-elf"]

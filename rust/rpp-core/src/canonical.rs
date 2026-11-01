@@ -5,6 +5,8 @@
 //! zero radius still produces a URI that this parser rejects. Typed Rust fields
 //! do not represent Python bool-as-number constructor arguments.
 
+#[cfg(feature = "alloc")]
+use alloc::{format, string::String};
 use core::fmt;
 use core::str::FromStr;
 
@@ -29,7 +31,7 @@ impl fmt::Display for CanonicalError {
     }
 }
 
-impl std::error::Error for CanonicalError {}
+impl core::error::Error for CanonicalError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ThetaSector {
@@ -151,7 +153,7 @@ impl CanonicalAddress {
     }
 
     pub fn to_word(self) -> u32 {
-        let radius_encoded = (self.radius * 255.0).round_ties_even() as u32;
+        let radius_encoded = quantize_radius(self.radius);
         ((self.theta as u32) << 27)
             | (((self.phi as u32) - 1) << 24)
             | ((self.omega as u32) << 21)
@@ -191,10 +193,26 @@ impl CanonicalAddress {
         Ok(Self::from_word(u32::from_be_bytes(bytes)))
     }
 
+    /// Write to a caller-provided formatter without requiring a heap.
+    pub fn write_hex(self, output: &mut impl fmt::Write) -> fmt::Result {
+        write!(output, "0x{:08X}", self.to_word())
+    }
+
+    #[cfg(feature = "alloc")]
     pub fn to_hex(self) -> String {
         format!("0x{:08X}", self.to_word())
     }
 
+    /// Write to a caller-provided formatter without requiring a heap.
+    pub fn write_uri(self, output: &mut impl fmt::Write) -> fmt::Result {
+        write!(
+            output,
+            "spiral://θ:{}/φ:{}/h:{}/r:{:.2}",
+            self.theta, self.phi, self.omega, self.radius
+        )
+    }
+
+    #[cfg(feature = "alloc")]
     pub fn to_uri(self) -> String {
         format!(
             "spiral://θ:{}/φ:{}/h:{}/r:{:.2}",
@@ -202,7 +220,39 @@ impl CanonicalAddress {
         )
     }
 
+    /// Heap-free parser for ASCII numeric fields, retaining prefix semantics.
+    /// The Unicode digit normalizing compatibility parser needs `alloc`.
+    pub fn from_uri_ascii(uri: &str) -> Result<Self, CanonicalError> {
+        let rest = uri
+            .strip_prefix("spiral://θ:")
+            .ok_or(CanonicalError::InvalidUri)?;
+        let (theta, rest) = decimal_field_ascii(rest, 31)?;
+        let rest = rest.strip_prefix("/φ:").ok_or(CanonicalError::InvalidUri)?;
+        let (phi, rest) = decimal_field_ascii(rest, 8)?;
+        let rest = rest.strip_prefix("/h:").ok_or(CanonicalError::InvalidUri)?;
+        let (omega, rest) = decimal_field_ascii(rest, 7)?;
+        let rest = rest.strip_prefix("/r:").ok_or(CanonicalError::InvalidUri)?;
+        let length = rest
+            .bytes()
+            .take_while(|byte| byte.is_ascii_digit() || *byte == b'.')
+            .count();
+        // A non-ASCII decimal digit belongs to the numeric token in Python's
+        // grammar. Reject it here instead of silently parsing a shorter value.
+        if rest[length..]
+            .chars()
+            .next()
+            .is_some_and(|character| decimal_digit(character).is_some())
+        {
+            return Err(CanonicalError::InvalidUri);
+        }
+        let radius = rest[..length]
+            .parse::<f64>()
+            .map_err(|_| CanonicalError::InvalidUri)?;
+        Self::new(theta, phi, omega, radius, 0)
+    }
+
     /// Prefix parser matching the shipped Python re.match, including suffixes.
+    #[cfg(feature = "alloc")]
     pub fn from_uri(uri: &str) -> Result<Self, CanonicalError> {
         let rest = uri
             .strip_prefix("spiral://θ:")
@@ -230,6 +280,40 @@ impl CanonicalAddress {
     }
 }
 
+// The validated radius is in 0..=1, so truncation gives a nonnegative floor.
+// This preserves Python half-even at the exact binary64 product and requires
+// neither std floating-point rounding methods nor a libm dependency.
+fn quantize_radius(radius: f64) -> u32 {
+    let scaled = radius * 255.0;
+    let lower = scaled as u32;
+    let fraction = scaled - lower as f64;
+    if fraction > 0.5 || (fraction == 0.5 && lower & 1 != 0) {
+        lower + 1
+    } else {
+        lower
+    }
+}
+
+fn decimal_field_ascii(text: &str, maximum: i64) -> Result<(i64, &str), CanonicalError> {
+    let mut value = 0_i64;
+    let mut consumed = 0;
+    for byte in text.bytes().take_while(u8::is_ascii_digit) {
+        value = value
+            .checked_mul(10)
+            .and_then(|number| number.checked_add((byte - b'0') as i64))
+            .ok_or(CanonicalError::InvalidUri)?;
+        if value > maximum {
+            return Err(CanonicalError::InvalidUri);
+        }
+        consumed += 1;
+    }
+    if consumed == 0 {
+        return Err(CanonicalError::InvalidUri);
+    }
+    Ok((value, &text[consumed..]))
+}
+
+#[cfg(feature = "alloc")]
 fn decimal_field(text: &str, maximum: i64) -> Result<(i64, &str), CanonicalError> {
     let mut value = 0_i64;
     let mut consumed = 0;
@@ -327,4 +411,134 @@ pub fn migrate_v1(
         radius,
         0,
     )
+}
+
+#[cfg(test)]
+mod codec_core_tests {
+    use super::CanonicalAddress;
+    use core::fmt;
+
+    struct StackText {
+        bytes: [u8; 96],
+        length: usize,
+    }
+
+    impl StackText {
+        fn new() -> Self {
+            Self {
+                bytes: [0; 96],
+                length: 0,
+            }
+        }
+        fn as_str(&self) -> &str {
+            core::str::from_utf8(&self.bytes[..self.length]).unwrap()
+        }
+    }
+
+    impl fmt::Write for StackText {
+        fn write_str(&mut self, value: &str) -> fmt::Result {
+            let end = self.length.checked_add(value.len()).ok_or(fmt::Error)?;
+            if end > self.bytes.len() {
+                return Err(fmt::Error);
+            }
+            self.bytes[self.length..end].copy_from_slice(value.as_bytes());
+            self.length = end;
+            Ok(())
+        }
+    }
+
+    /// Failing mutation: shift a field, round every half away, or require a heap.
+    /// This exact test also runs with default features and with none enabled.
+    #[test]
+    fn canonical_golden_bytes_and_ascii_uri_without_heap() {
+        for (theta, phi, omega, radius, reserved, word, hexadecimal, uri) in [
+            (
+                1,
+                1,
+                0,
+                0.0,
+                0,
+                0x0800_0000_u32,
+                "0x08000000",
+                "spiral://θ:1/φ:1/h:0/r:0.00",
+            ),
+            (
+                14,
+                3,
+                2,
+                0.5,
+                0,
+                0x7250_0000,
+                "0x72500000",
+                "spiral://θ:14/φ:3/h:2/r:0.50",
+            ),
+            (
+                27,
+                6,
+                4,
+                1.0,
+                8191,
+                0xdd9f_ffff,
+                "0xDD9FFFFF",
+                "spiral://θ:27/φ:6/h:4/r:1.00",
+            ),
+            (
+                31,
+                8,
+                7,
+                1.0,
+                8191,
+                0xffff_ffff,
+                "0xFFFFFFFF",
+                "spiral://θ:31/φ:8/h:7/r:1.00",
+            ),
+            (
+                0,
+                1,
+                0,
+                -0.0,
+                0,
+                0,
+                "0x00000000",
+                "spiral://θ:0/φ:1/h:0/r:-0.00",
+            ),
+        ] {
+            let address = CanonicalAddress::new(theta, phi, omega, radius, reserved).unwrap();
+            assert_eq!(address.to_bytes(), word.to_be_bytes());
+            assert_eq!(
+                CanonicalAddress::from_bytes(&word.to_be_bytes())
+                    .unwrap()
+                    .to_word(),
+                word
+            );
+            let mut text = StackText::new();
+            address.write_uri(&mut text).unwrap();
+            assert_eq!(text.as_str(), uri);
+            let mut hex_text = StackText::new();
+            address.write_hex(&mut hex_text).unwrap();
+            assert_eq!(hex_text.as_str(), hexadecimal);
+        }
+        for (radius, byte) in [(1.0 / 510.0, 0), (5.0 / 510.0, 2), (0.5, 128)] {
+            let address = CanonicalAddress::new(1, 1, 0, radius, 0).unwrap();
+            assert_eq!((address.to_word() >> 13) & 255, byte);
+        }
+        let parsed =
+            CanonicalAddress::from_uri_ascii("spiral://θ:14/φ:3/h:2/r:0.50suffix").unwrap();
+        assert_eq!(parsed.to_bytes(), 0x7250_0000_u32.to_be_bytes());
+        assert!(CanonicalAddress::from_uri_ascii("spiral://θ:0/φ:1/h:0/r:-0.00").is_err());
+        assert!(CanonicalAddress::from_uri_ascii("spiral://θ:١/φ:1/h:0/r:0.50").is_err());
+        assert!(CanonicalAddress::from_uri_ascii("spiral://θ:1/φ:1/h:0/r:0.٥").is_err());
+        for (suffix, expected_radius) in [
+            (".5", 0.5),
+            ("1.", 1.0),
+            ("0.5e-1", 0.5),
+            ("0.50/extra", 0.5),
+        ] {
+            let mut text = StackText::new();
+            fmt::Write::write_fmt(&mut text, format_args!("spiral://θ:1/φ:1/h:0/r:{suffix}"))
+                .unwrap();
+            let parsed = CanonicalAddress::from_uri_ascii(text.as_str()).unwrap();
+            assert_eq!(parsed.radius(), expected_radius);
+        }
+    }
 }

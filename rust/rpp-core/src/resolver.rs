@@ -3,6 +3,9 @@
 //! This does not discover endpoints, authenticate a caller, perform I/O, cache
 //! data or implement a network adapter. Input discovery/outcomes must concern
 //! the requested address; the identity layer supplies the consent/trust gate.
+//! Allocating result values require the `alloc` feature, without `std`.
+
+use alloc::{format, string::String, vec::Vec};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Modality {

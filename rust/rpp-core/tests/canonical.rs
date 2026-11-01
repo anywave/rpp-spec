@@ -1,4 +1,5 @@
 //! Python-oracle fixtures; test titles are fixed and do not embed corpus rows.
+#![cfg(feature = "alloc")]
 
 use rpp_core::canonical::{migrate_v1, CanonicalAddress, MigrationPolicy};
 
