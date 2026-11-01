@@ -24,7 +24,7 @@ decisions as `[RFC]` under `GOVERNANCE.md:63–71`; the cited source had no
 | D3 `STEWARD-T2-1` | Real-device Shell-0 conformance/attestation | Treat device support as experimental until characterized; the repository supplies no device evidence that settles the contradictory bounds. |
 | D4 `STEWARD-CLAIM-1` | Honest package documentation of timeout enforcement | Describe the returned value as a software deadline; a function returning an integer proves no physical-erasure claim. |
 | D5 CX-003 quantities/profile adoption | A cross-binding or generic “coherence/sector proved” claim | Keep explicit reference quantities optional and profile-tagged; demonstrated reproducibility does not establish confidence, content meaning or calibration. |
-| D6 E2 disposition | Closing the two RA testbench failures | Review the isolated expectation corrections; neither failure requires a header, constant or RTL change. |
+| D6 E2 expectations and RTL scaling bug | Closing the original assertions and establishing a valid scorer | Retain corrected expectations, but review the numeric RTL repair separately; 33 passing checks did not establish arithmetic agreement. |
 | D7 E5 resolver/overlay adoption | A normative multi-channel encrypted overlay contract | Review the additive resolver proposal and reuse an established tunnel implementation; the simulator is a policy model. |
 | B1–B6 Boundary F classes | Closing any of 243 frozen baseline entries | Approve only a class review/annotation step initially; grouping is not evidence that every claim in a class is valid. |
 | A1–A2 LOW radius advisories | Consistent radius wording and strict edge behavior | Approve precise wording separately from behavior; the wording ruling already distinguishes normalized API values from encoded bytes. |
@@ -239,6 +239,23 @@ New actual finite evidence extends the original 256-row comparison:
 | Fallback, 207,360 cases | Theta 134,400 differences; phi/omega/radius 0 under explicit raw-phi + 1 adapter | A common one-based versus zero-based theta-XOR contract |
 | Registered completion, 256 cases | 31 differences | Input-field completion versus derived weighted-score completion |
 
+Evidence labels: these RTL counts describe a recorded Icarus run over the
+declared finite grids. Reprinting a committed summary or analyzing a snapshot is
+not an independent RTL rerun. The first handoff committed the raw log's digest,
+domain counts and 16 fallback counterexamples, rather than the complete log.
+The log remains uncommitted in round 2 by the conservative reproducibility
+choice: recorded commands can produce a new log, but a committed summary cannot
+regenerate the original raw log. Snapshot-only checks establish artifact
+integrity, not execution.
+
+The foreign Python models are source transcriptions. Their property tests check
+those models and are not independent Rust/Clash execution. The separate native
+Rust harness executed the pinned public `ra_core` gate functions on 6,042
+grid/boundary points, with zero differences from the transcription. A normal
+pytest check of its committed CSV establishes snapshot integrity and does not
+rerun Rust. Native GHC/Clash execution and synthesis remain unrun. No equality
+between the foreign policies and the RPP weighted score is asserted.
+
 For score and completion, RADIX may require the existing Python weighted policy
 across bindings or retain explicitly named legacy profiles. Recommend preserving
 the legacy profiles until the authority/rounding/cycle contract is approved;
@@ -395,24 +412,72 @@ legacy names as separate profiles and block claims of interchangeability. A
 three-bit five-state adapter must be reviewed as a header/core adoption, not
 smuggled in as a testbench repair. No future edit is implied until RADIX chooses.
 
-## D6 — E2 RA testbench disposition
+## D6 — E2 expected values and confirmed RTL scaling bug
 
-Both original failures are expected-value defects: E15/C3 is low in both the
-Python reference (297 < 300) and the approximate RTL (160), while the testbench
-expected medium. Its unchanged header `0x61500000` has raw phi bits `[26:24]` = 1
-(canonical external phi 2), while the testbench expected 3. Parsing that unchanged
-header does not justify changing the parser, layout or golden vectors.
+Both original assertions have incorrect expected values: E15/C3 is low in the
+Python reference (297 < 300) and the shipped approximate RTL (160), while the
+testbench expected medium. The unchanged header `0x61500000` has raw phi bits
+`[26:24]` = 1 (canonical external phi 2), while the testbench expected 3.
+Correcting those expectations does not justify changing the parser, header,
+layout or golden vectors, and does not establish scorer agreement.
 
-Options: (1) review corrected expectations and a separate medium probe;
-(2) change fixture bytes to fit the old expectation; (3) change the decoder.
-Recommend option 1: expected values should describe the unchanged inputs.
-E2 branch `codex/ra-testbench` at `b0bd4d1b249a368d4c9703612845c5dc4cf45688`
-carries the exact edits and evidence in `hardware/verilog/CX005_RA_VALIDATION.md`:
-before **32 checks / 30 passed / 2 failed**, after **33 / 33 / 0**, with an
-additional E15/C4 medium probe (RTL 450, Python 369). Its four exercised mutations
-were killed, zero survived; one shared compiled clean control passed. There is
-**no E2 core diff** to approve. This disposition does not excuse the independent approximate
-and LUT score mismatches or completion semantics documented by E1/CX-003.
+The initial E2 head `b0bd4d1b249a368d4c9703612845c5dc4cf45688` changed
+**32 checks / 30 passed / 2 failed** into **33 / 33 / 0**. The added E15/C4
+probe produced RTL 450 versus Python 369. Its medium classification was an
+overflow/scaling artifact, not arithmetic agreement: the RTL entropy term is
+312; the full completion reciprocal product 19,053,216 truncates to 2,276,000
+in 24 bits, producing 138; their sum is 450. The earlier passing count remains
+a historical testbench result, not evidence that this scorer is correct.
+
+### Confirmed numeric defect and exact diagnostic patch
+
+At `hardware/verilog/spiral_ra_coherence.v:136–140`, the reciprocal comments
+specify division by 65,536 (right shift 16), while the active slices shift by
+14. This is an arithmetic bug independent of choosing which coherence profile
+should be authoritative. Separately, the completion reciprocal product can
+overflow its 24-bit wire. Fixing the shift alone leaves that overflow intact.
+
+The exact two-line proposed shift correction is **unapplied and incomplete**.
+It is reproduced byte-for-byte from E2's `CX005_RA_SHIFT_ONLY.diff` in
+[RA_SHIFT_ONLY.diff](steward/RA_SHIFT_ONLY.diff):
+
+```diff
+--- a/hardware/verilog/spiral_ra_coherence.v
++++ b/hardware/verilog/spiral_ra_coherence.v
+@@ -136,7 +136,7 @@ module CoherenceEvaluator_Ra (
+     wire [23:0] phi_div  = term_phi * 24'd211;   // ×211/65536 ≈ /310
+     wire [23:0] ankh_div = term_ankh * 24'd936;  // ×936/65536 ≈ /70
+
+-    wire [9:0] score_phi  = phi_div[23:14];   // Result after >>14
+-    wire [9:0] score_ankh = ankh_div[23:14];
++    wire [9:0] score_phi  = phi_div[23:16];   // Result after >>16
++    wire [9:0] score_ankh = ankh_div[23:16];
+
+     wire [9:0] final_score = score_phi + score_ankh;
+```
+
+Executed only on a disposable RTL copy: compile exit 0; **33 checks / 32 passed /
+1 failed**, runtime exit 1. Only the E15/C4 implementation-only classification smoke probe fails: its score becomes
+112 (78 + 34), so it is low. E15/C3 becomes 296; the maximum-input score changes
+632 → 413. These observations prove that the shift-only patch is not a complete
+repair and that the added classification smoke probe was coupled to faulty arithmetic.
+The updated E2 runner verifies **33/33** on shipped RTL and **4 killed / 0 survived**
+against its existing mutations, then separately verifies this disposable proposal
+produces **32/33** and runtime exit **1**. No complete width/oracle repair has
+been tested or proposed in this round.
+
+Options: (1) keep the legacy scorer explicitly experimental with both numeric
+defects recorded; (2) approve a reviewed arithmetic repair that corrects the
+shift and intermediate widths while preserving the separately selected profile;
+(3) adopt the exact weighted Python/registered-RTL policy through D5. Recommend
+option 2 as a separate repair proposal, with D5 deciding the advertised policy:
+an incorrect bit shift cannot be validated by changing an expected value.
+Do not apply the diagnostic patch as a complete fix. After RADIX chooses the
+numeric/profile contract, the follow-up must propose the full width/rounding/
+normalization diff and rerun every 256-input score, declared threshold and both
+monotonic axes, plus the original and revised testbench checks. No header,
+published constant or RTL is changed by this packet, and this numeric item
+remains unresolved — steward decision (RADIX).
 
 ## D7 — E5 proposed resolver additions
 
@@ -571,7 +636,7 @@ tests; no such core edit is made in CX-005.
 
 TR can relay one line per decision, for example `D1=explicit-alternatives`,
 `D2=reference-25ns`, `D3=experimental`, `D4=software-docstring`, `D5=experiments`,
-`D6=expectation-fix`, `D7=review-proposal`, `B1..B6=annotate`, `A1=clarify`,
+`D6=review-numeric-repair`, `D7=review-proposal`, `B1..B6=annotate`, `A1=clarify`,
 `A2=separate-core-proposal`, followed by any exceptions identified by baseline ID.
 Those example answers are **not** RADIX's decisions. A later approved change
 must preserve its RFC rationale, apply only the selected patch, run the full
