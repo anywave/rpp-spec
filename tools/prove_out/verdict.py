@@ -36,13 +36,13 @@ def native(args, name, bench, top, sources):
         paths.append(str(path))
     command = [str(args.iverilog)] + (["-B", str(args.ivl_dir)] if args.ivl_dir else [])
     bench_copy = directory / Path(bench).name
-    bench_copy.write_text((args.repo / bench).read_text().replace("$finish;", "$finish(0);"), encoding="utf-8", newline="\n")
+    bench_copy.write_text((args.repo / bench).read_text(encoding="utf-8").replace("$finish;", "$finish(0);"), encoding="utf-8", newline="\n")
     command += ["-g2012", "-s", top, "-o", str(directory / "image.vvp"), str(bench_copy), *paths]
-    result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=120)
-    (directory / "compile.log").write_text(result.stdout + result.stderr)
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
+    (directory / "compile.log").write_text(result.stdout + result.stderr, encoding="utf-8", newline="\n")
     command = [str(args.vvp)] + (["-M", str(args.ivl_dir)] if args.ivl_dir else []) + [str(directory / "image.vvp")]
-    result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=120)
-    (directory / "run.log").write_text(result.stdout + result.stderr)
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
+    (directory / "run.log").write_text(result.stdout + result.stderr, encoding="utf-8", newline="\n")
     return result.stdout
 
 
@@ -171,8 +171,8 @@ def python_checks():
 
 
 def ra_evidence(args):
-    spiral = (args.repo / "hardware/verilog/spiral_ra_coherence.v").read_text()
-    registered = (args.repo / "hardware/verilog/coherence_evaluator_ra.v").read_text()
+    spiral = (args.repo / "hardware/verilog/spiral_ra_coherence.v").read_text(encoding="utf-8")
+    registered = (args.repo / "hardware/verilog/coherence_evaluator_ra.v").read_text(encoding="utf-8")
     rows = rtl_repair.run_grid(args, "ra-current", spiral, registered)
     summary = rtl_repair.analyze(rows)
     rtl_repair.require_agreement(summary)
@@ -284,9 +284,9 @@ def run(args):
     args.output_dir.mkdir(parents=True, exist_ok=True)
     python = python_checks()
     ra, ra_bytes = ra_evidence(args)
-    source = (args.repo / "hardware/verilog/spiral_consolidated.v").read_text()
+    source = (args.repo / "hardware/verilog/spiral_consolidated.v").read_text(encoding="utf-8")
     models, model_artifacts = other_models(args, source)
-    canonical = (args.repo / "hardware/verilog/rpp_canonical.v").read_text()
+    canonical = (args.repo / "hardware/verilog/rpp_canonical.v").read_text(encoding="utf-8")
     sources = {"spiral_consolidated.v": source, "rpp_canonical.v": canonical}
     rows = affinity_rows(native(args, "affinity-current", "tools/prove_out/verdict_tb.v", "CX017Affinity",
                                 sources))
@@ -372,6 +372,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--iverilog", type=Path, required=True)
     parser.add_argument("--vvp", type=Path, required=True)
+    parser.add_argument("--cargo", type=Path)
     parser.add_argument("--ivl-dir", type=Path)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)

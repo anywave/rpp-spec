@@ -190,9 +190,9 @@ def native_grid(args, name, source, canonical):
     canonical_path = work / "canonical.v"
     canonical_path.write_text(canonical, encoding="utf-8", newline="\n")
     compiler = [str(args.iverilog)] + (["-B", str(args.ivl_dir)] if args.ivl_dir else [])
-    result = subprocess.run(compiler + ["-g2012", "-s", "SectorVerdict", "-o", str(image), str(args.repo / "tools/prove_out/sector_verdict_tb.v"), str(rtl), str(canonical_path)], capture_output=True, text=True, encoding="utf-8", check=True)
+    result = subprocess.run(compiler + ["-g2012", "-s", "SectorVerdict", "-o", str(image), str(args.repo / "tools/prove_out/sector_verdict_tb.v"), str(rtl), str(canonical_path)], capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
     (work / "compile.log").write_text(result.stdout + result.stderr, encoding="utf-8")
-    result = subprocess.run([str(args.vvp)] + (["-M", str(args.ivl_dir)] if args.ivl_dir else []) + [str(image)], capture_output=True, text=True, encoding="utf-8", check=True)
+    result = subprocess.run([str(args.vvp)] + (["-M", str(args.ivl_dir)] if args.ivl_dir else []) + [str(image)], capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
     (work / "native.log").write_text(result.stdout + result.stderr, encoding="utf-8")
     grouped = {binding: [] for binding in ("consolidated", "canonical", "decoder")}
     for line in result.stdout.splitlines():
@@ -243,12 +243,15 @@ def run_sector(args):
             raise AssertionError("survived sector mutation: " + name)
         require_grids(native_grid(args, "clean-" + name, source, canonical))
     d1 = d1_checks()
-    cargo = getattr(args, "cargo", None) or shutil.which("cargo") or "/workspace/work/cx005/rust/usr/bin/cargo"
+    cargo = getattr(args, "cargo", None) or shutil.which("cargo")
+    rustc = os.environ.get("RUSTC") or shutil.which("rustc")
+    require(bool(cargo and rustc), "supply --cargo and configure RUSTC/PATH for Rust 1.85.1")
+    for tool, prefix in ((cargo, "cargo 1.85.1 "), (rustc, "rustc 1.85.1 ")):
+        version = subprocess.run([str(tool), "--version"], capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
+        require(version.stdout.startswith(prefix), "migration evidence requires Rust 1.85.1")
     env = dict(os.environ, CARGO_HOME=str(args.work_dir / "cargo"), CARGO_TARGET_DIR=str(args.work_dir / "rust-target"))
-    if str(cargo).startswith("/workspace/work/cx005/rust/"):
-        env.update(RUSTC="/workspace/work/cx005/rust/usr/bin/rustc", LD_LIBRARY_PATH="/workspace/work/cx005/rust/usr/lib/x86_64-linux-gnu")
     command = [str(cargo), "test", "--manifest-path", str(args.repo / "rust/Cargo.toml"), "-p", "rpp-core", "--test", "canonical", "--offline", "--locked", "migration_requires_named_policy_and_retains_lossy_mapping", "--", "--exact"]
-    result = subprocess.run(command, env=env, capture_output=True, text=True, encoding="utf-8", check=True)
+    result = subprocess.run(command, env=env, capture_output=True, text=True, encoding="utf-8", check=True, timeout=120)
     (args.work_dir / "rust-migration.log").write_text(result.stdout + result.stderr, encoding="utf-8")
     require("1 passed; 0 failed" in result.stdout, "actual Rust migration test did not execute")
     artifacts = {"sector-python.csv": csv_bytes(("profile", "theta", "index", "label"), python_rows),
@@ -272,6 +275,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("repo", "work-dir", "output-dir", "iverilog", "vvp", "ivl-dir"):
         parser.add_argument("--" + name, type=Path, required=name != "ivl-dir")
+    parser.add_argument("--cargo", type=Path)
     result = run_sector(parser.parse_args())
     print(json.dumps({key: value for key, value in result.items() if key != "artifacts"}, sort_keys=True, indent=2))
 
