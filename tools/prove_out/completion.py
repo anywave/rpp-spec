@@ -12,6 +12,7 @@ from rpp.consent_header import ConsentState, derive_consent_state
 from rpp.sector_router import RoutableSector, can_access_sector
 from rpp.transitions import FallbackGate
 from tools.prove_out.experiments import sector_rows, write_csv
+from tools.prove_out.evidence import evidence_bytes
 
 
 THRESHOLDS = (0, 136, 137, 138, 299, 300, 499, 500, 673, 674, 675, 1023)
@@ -70,7 +71,7 @@ def analyze(path):
     scores, derives, fallbacks, triggers = read_log(path)
     result = dict(score_points=len(scores), derivation_points=len(derives),
                   fallback_points=len(fallbacks), trigger_points=len(triggers),
-                  log_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+                  log_sha256=hashlib.sha256(evidence_bytes(path)).hexdigest())
     score_bad, valid_bad, decreases = Counter(), Counter(), Counter()
     for (e, c, threshold), fields in scores.items():
         reference = compute_coherence(e / 31, c / 7)

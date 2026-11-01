@@ -1,0 +1,3 @@
+# Keep deterministic evidence byte-identical in autocrlf checkouts.
+tools/prove_out/results/** -text
+tools/overlay_sim/results/** -text

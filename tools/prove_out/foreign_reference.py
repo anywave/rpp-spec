@@ -13,6 +13,8 @@ import json
 import math
 from pathlib import Path
 
+from tools.prove_out.evidence import evidence_bytes
+
 
 SOURCE_REVISION = "e685d3abacca3105a7c377e9db80df33ce7c2985"
 SOURCE_HASHES = {
@@ -28,7 +30,7 @@ def verify_sources(source_root):
     """Reject unreviewed input before generating evidence from its transcription."""
     hashes = {}
     for name, expected in SOURCE_HASHES.items():
-        actual = hashlib.sha256((Path(source_root) / name).read_bytes()).hexdigest()
+        actual = hashlib.sha256(evidence_bytes(Path(source_root) / name)).hexdigest()
         if actual != expected:
             raise ValueError(f"unreviewed source: {name}")
         hashes[name] = actual

@@ -65,8 +65,12 @@ def test_sector_projection_table_has_every_theta_once():
         assert int(fields[2]) == theta * 27 // 512 + 1
 
 
-def test_real_rtl_comparisons_keep_disagreements_visible():
-    """Mutation: silently report equality or remove one threshold/grid point."""
+def test_committed_rtl_summary_snapshot_keeps_disagreements_visible():
+    """Snapshot check; mutation: rewrite a saved mismatch count as equality.
+
+    This does not rerun RTL or regenerate the summary from a committed raw log;
+    the raw simulator log was kept only in the original execution's scratch.
+    """
     data = json.loads((ROOT / "results/completion/summary.json").read_text(encoding="utf-8"))
     assert data["score_points"] == 3072
     assert data["score_mismatches"] == {"exact": 0, "approximate": 3060, "lut": 2940}

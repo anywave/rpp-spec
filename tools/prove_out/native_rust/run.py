@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 
 from tools.prove_out.foreign_reference import render_csv, rust_rows, verify_sources
+from tools.prove_out.evidence import evidence_bytes
 
 
 def run(source_root, output_dir, cargo):
@@ -25,16 +26,16 @@ def run(source_root, output_dir, cargo):
     output_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="cx005-native-rust-") as scratch:
         project = Path(scratch)
-        manifest = (here / "Cargo.toml").read_text(encoding="utf-8")
+        manifest = evidence_bytes(here / "Cargo.toml").decode("utf-8")
         start = manifest.index("ra_core = ")
         manifest = manifest[:start] + "ra_core = { path = " + json.dumps(str(source_root / "rust")) + " }\n"
         (project / "Cargo.toml").write_text(manifest, encoding="utf-8", newline="\n")
         (project / "src").mkdir()
-        (project / "src/main.rs").write_bytes((here / "src/main.rs").read_bytes())
+        (project / "src/main.rs").write_bytes(evidence_bytes(here / "src/main.rs"))
         raw = project / "native-raw.csv"
         subprocess.run([str(cargo), "run", "--release", "--manifest-path", str(project / "Cargo.toml"),
                         "--target-dir", str(project / "target"), "--", str(raw)], check=True)
-        rows = list(csv.DictReader(io.StringIO(raw.read_text(encoding="utf-8"))))
+        rows = list(csv.DictReader(io.StringIO(evidence_bytes(raw).decode("utf-8"))))
         if len(rows) != 6042:
             raise ValueError("native Rust probe rows missing or duplicated")
         for row in rows:
