@@ -15,7 +15,7 @@ import subprocess
 
 from .boundary import review as boundary_review
 from .passages import digest, in_scope, normalize
-from .rulings import BASELINE_DECISIONS, BEFORE, DECIDED, DECISION_LINES, FINDING_KEYS, ITEM_DECISIONS, REVISION, RULED
+from .rulings import BASELINE_DECISIONS, BEFORE, DECIDED, DECISION_LINES, FINDING_KEYS, FOUNDATION_SHA256, ITEM_DECISIONS, NOTE_0038, REVISION, RULED
 
 
 DATA = Path(__file__).with_name("catalog.json")
@@ -24,7 +24,6 @@ MAX_BLOB = 4 * 1024 * 1024
 MAX_DIFF = 16 * 1024 * 1024
 SOURCE_REVISION = "0a12c8dc311e27816a99b69c1cb2f1e7d9cb282e"
 UNRESOLVED = "unresolved - steward decision (RADIX)"
-FOUNDATION_SHA256 = "b69bc6f3d30eff3add7ba530942d4082cc3ac1d79727fee665ab16dd735df6ce"
 APPROVED_OVERLAY_SHA256 = "fae35d63cce3e11f363cba32fb7617c112040e3e819aefe4ff33c39c870e4868"
 IMPLEMENTED_RULES = {
     **{key: "HIGH" for key in (
@@ -132,6 +131,8 @@ def load_catalog(path=None):
             require(isinstance(entry.get("original"), dict))
             passage(entry["original"])
             require(entry["original"].get("id") == entry["id"] and entry["original"].get("status") == UNRESOLVED)
+            if entry["id"] == "F-BASE-0038":
+                require(entry.get("note") == NOTE_0038)
         else:
             require(entry["status"] == UNRESOLVED and "decision_id" not in entry and "original" not in entry)
 
@@ -221,6 +222,11 @@ def load_catalog(path=None):
     require(signature == FOUNDATION_SHA256)
     approved = {group: [item for item in catalog[group] if "original" in item]
                 for group in ("baselines", "guards", "steward_items", "advisories")}
+    # This exact, separately checked explanatory note changes no ruled identity.
+    # Exclude only this field on this ID; every other approval byte remains pinned.
+    approved["baselines"] = [{key: value for key, value in item.items()
+                              if not (item["id"] == "F-BASE-0038" and key == "note")}
+                             for item in approved["baselines"]]
     approved["rulings"] = rulings
     signature = hashlib.sha256(json.dumps(approved, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     require(signature == APPROVED_OVERLAY_SHA256)

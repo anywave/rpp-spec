@@ -1,4 +1,4 @@
-"""Execute six bounded control-codec and adapter mutants in Rust copies.
+"""Execute seven bounded control-codec and adapter mutants in Rust copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -25,6 +25,7 @@ TOOLCHAIN = "1.85.1"
 class Test:
     target: str
     name: str
+    features: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -76,8 +77,14 @@ MUTATIONS = (
         "separator_alias_dispatch", "rpp-link", "rpp-link/src/simulated.rs",
         "if adapters.iter().any(|adapter| adapter.name().contains('/')) {",
         "if false && adapters.iter().any(|adapter| adapter.name().contains('/')) {",
-        Test("simulated", "separator_alias_names_fail_before_control_billboard_policy_or_callbacks"),
-        Test("simulated", "adapter_driven_scenarios_match_three_python_artifacts"),
+        Test("simulated", "separator_alias_names_fail_before_control_billboard_policy_or_callbacks", ("sim",)),
+        Test("simulated", "adapter_driven_scenarios_match_three_python_artifacts", ("sim",)),
+    ),
+    Mutation(
+        "default_simulation_feature_leak", "rpp-link", "rpp-link/src/lib.rs",
+        '#[cfg(feature = "sim")]\npub mod simulated;', '#[cfg(feature = "std")]\npub mod simulated;',
+        Test("feature_visibility", "production_consumers_cannot_import_simulation_fixture"),
+        Test("adapter", "valid_data_dispatch_succeeds"),
     ),
 )
 
@@ -136,6 +143,8 @@ def run_test(args, workspace, label, package, test, environment, target):
     command = [str(args.cargo), "test", "--manifest-path", str(workspace / "Cargo.toml"),
                "--offline", "--locked", "--package", package]
     command += ["--lib"] if test.target == "lib" else ["--test", test.target]
+    if test.features:
+        command += ["--features", ",".join(test.features)]
     command += [test.name, "--", "--exact", "--color", "never"]
     result = subprocess.run(command, cwd=workspace, env=dict(environment, CARGO_TARGET_DIR=str(target)),
                             capture_output=True, text=True, encoding="utf-8", timeout=180)
@@ -181,8 +190,8 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
-    if len(MUTATIONS) != 6:
-        raise RuntimeError("four codec mutations and both adapter mutations must be configured")
+    if len(MUTATIONS) != 7:
+        raise RuntimeError("four codec mutations and three adapter/feature mutations must be configured")
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name
@@ -216,6 +225,8 @@ def main():
                          "original_sha256": sha256(original.encode("utf-8")).hexdigest(),
                          "mutated_sha256": sha256(changed.encode("utf-8")).hexdigest(),
                          "positive_test": mutation.positive.name, "clean_test": mutation.clean.name,
+                         "positive_features": list(mutation.positive.features),
+                         "clean_features": list(mutation.clean.features),
                          "baseline_passed": True, "assertion_failed": True, "clean_control_passed": True})
         print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass")
     summary = {"toolchain": tools, "mutants": evidence, "killed": len(evidence), "survived": 0,

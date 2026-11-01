@@ -183,6 +183,10 @@ impl ControlFrame {
 ///
 /// Fields and construction are private. This evidence must still be combined
 /// with current host authorization, consent and replay policy before any effect.
+/// Sequence freshness and replay are not checked by `decode`: the same bytes
+/// may decode repeatedly when the caller's verifier accepts them each time.
+/// The host must enforce freshness before acting, for example with the strictly
+/// increasing per-endpoint sequence check in `rpp_core::overlay::Simulator`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VerifiedControlFrame {
     frame: ControlFrame,
@@ -219,6 +223,10 @@ impl VerifiedControlFrame {
 /// Length is checked before any indexing. All malformed structural fields and
 /// a wrong target are rejected before invoking the verifier. There is no raw
 /// parse API that can produce the verified transport type without this check.
+/// This function keeps no sequence or replay state. Successful decoding does
+/// not establish freshness; the host must apply its replay/sequence policy,
+/// such as `rpp_core::overlay::Simulator`'s monotonic control-sequence check,
+/// before any effect. A verifier may enforce additional host policy itself.
 pub fn decode<V: Verifier + ?Sized>(
     input: &[u8],
     expected_recipient: &NodeId,

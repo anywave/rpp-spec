@@ -209,6 +209,21 @@ fn opaque_signature_verdict_is_required() {
     assert_eq!(fixture.calls.get(), 1);
 }
 
+/// Failing mutation: add replay rejection or cache a verifier verdict in the codec.
+/// Freshness belongs to host policy even when an identical frame decodes twice.
+#[test]
+fn decode_does_not_track_sequence_freshness_or_replays() {
+    let frame = baseline();
+    let bytes = frame.encode();
+    let fixture = Fixture::new(FixtureMode::Bound, frame.header(), signature());
+    let first = decode(&bytes, &recipient(), &fixture).unwrap();
+    let repeated = decode(&bytes, &recipient(), &fixture).unwrap();
+    assert_eq!(first, repeated);
+    assert_eq!(first.sequence(), 0);
+    assert_eq!(repeated.sequence(), 0);
+    assert_eq!(fixture.calls.get(), 2);
+}
+
 /// Failing mutation: omit recipient equality while a verifier accepts the frame.
 /// This fixture intentionally does not check the caller's expected recipient.
 #[test]

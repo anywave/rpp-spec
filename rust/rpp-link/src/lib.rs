@@ -4,6 +4,10 @@
 //! consent and path independence remain overlay policy decisions. The typed
 //! dispatcher enforces traffic class before calling an adapter. Opaque data is
 //! already-classified application data, not a decoder for arbitrary wire bytes.
+//!
+//! Assumed-verification fixtures and host simulation helpers exist only with the
+//! explicit, non-default `sim` feature, which requires `std`. Enabling `std` or
+//! using the default feature set does not expose those helpers.
 
 #![forbid(unsafe_code)]
 #![no_std]
@@ -13,7 +17,7 @@ extern crate std;
 
 use rpp_control::VerifiedControlFrame;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "sim")]
 pub mod simulated;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

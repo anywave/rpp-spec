@@ -10,7 +10,7 @@ use alloc::{format, string::String};
 use core::fmt;
 use core::str::FromStr;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CanonicalError {
     FieldOutOfRange { field: &'static str, value: i64 },
     RadiusOutOfRange,
@@ -415,7 +415,7 @@ pub fn migrate_v1(
 
 #[cfg(test)]
 mod codec_core_tests {
-    use super::CanonicalAddress;
+    use super::{CanonicalAddress, CanonicalError};
     use core::fmt;
 
     struct StackText {
@@ -451,6 +451,9 @@ mod codec_core_tests {
     /// This exact test also runs with default features and with none enabled.
     #[test]
     fn canonical_golden_bytes_and_ascii_uri_without_heap() {
+        // Failing mutation: remove Eq from the public canonical error type.
+        fn requires_eq<T: Eq>(_: &T) {}
+        requires_eq(&CanonicalError::InvalidUri);
         for (theta, phi, omega, radius, reserved, word, hexadecimal, uri) in [
             (
                 1,
