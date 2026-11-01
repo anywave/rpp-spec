@@ -145,3 +145,10 @@ without silently multiplying it into the 674-point profile.
 Existing deterministic sweeps also cover HRDA, complement geometry, caller
 consent and SpinSite simulation; their names do not turn them into one quantity.
 This closes the source inventory without changing an earlier acceptance test.
+
+Before the affinity native runs, the fixed-anchor magnitude grid is supplemented
+by all 27 by 27 ordinary theta pairs and all eight reversals of the phi, omega
+and radius endpoints (5,832 probes per affinity binding). These explicitly test
+circular wrap and both subtraction orientations. The magnitude grid is finite
+byte-domain evidence plus the stated separable formula, not an enumeration of
+all pairs of arbitrary binary64 radius values.
