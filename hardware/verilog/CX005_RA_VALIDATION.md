@@ -84,6 +84,14 @@ Observed **1256 passed, 1 pre-existing warning**; golden **pass=5 fail=0**;
 Ruff **0.14.10**, lint **exit 0**; whitespace **exit 0**.
 The package test count stays 1256 because the added assertion is an HDL check.
 
+```bash
+PYTHONPATH=. "$PY" -m tools.drift check --base 95c67ef --head "$(git rev-parse HEAD)" --output-dir /workspace/work/cx005/e2-drift
+```
+
+Observed **exit 0**, findings **high=0 medium=0 low=0**; unresolved inventory
+**baselines=243, steward_items=4, advisories=2**. The tool requires the resolved
+hexadecimal head passed above; literal `--head HEAD` exits 2 without a review.
+
 ## Conservative choices and Windows repeat
 
 Keep the existing input bytes and report the parser's encoded field explicitly.
