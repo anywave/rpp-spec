@@ -1,4 +1,4 @@
-"""Execute four named Rust policy mutants in disposable workspace copies.
+"""Execute seven named Rust policy/bookkeeping mutants in workspace copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -19,6 +19,14 @@ import sys
 
 
 TOOLCHAIN = "1.85.1"
+REVIEWED_SOURCES = (
+    "rpp-core/src/canonical.rs",
+    "rpp-core/src/mobius32.rs",
+    "rpp-core/src/overlay.rs",
+    "rpp-core/tests/canonical.rs",
+    "rpp-core/tests/overlay.rs",
+    "rpp-core/tests/selection_preview.rs",
+)
 
 
 @dataclass(frozen=True)
@@ -61,6 +69,25 @@ MUTATIONS = (
         "&& tick < candidate.until", "&& true",
         Test("overlay", "billboard_expiry_and_clock_rollback"),
         Test("overlay", "billboard_unexpired_delivery"),
+    ),
+    Mutation(
+        "latest_appends_history", "rpp-core/src/overlay.rs",
+        "self.known_data_paths\n                .retain(|path| path.source != source || path.target != target);",
+        "",
+        Test("selection_preview", "latest_paths_bound_varying_snapshots_and_preserve_each_other_pair"),
+        Test("selection_preview", "unavailable_or_invalid_latest_selection_preserves_historical_reference_without_new_ttl"),
+    ),
+    Mutation(
+        "retention_noop", "rpp-core/src/overlay.rs",
+        "self.rows.drain(..remove);", "let _ = remove;",
+        Test("selection_preview", "retained_meter_window_stays_flat_and_preserves_global_ids_across_ten_thousand_controls"),
+        Test("selection_preview", "ten_thousand_previews_do_not_spend_clock_sequence_requests_rows_or_references"),
+    ),
+    Mutation(
+        "row_id_from_vector_length", "rpp-core/src/overlay.rs",
+        "row: self.next_row,", "row: self.rows.len() as u64 + 1,",
+        Test("selection_preview", "retention_preserves_retry_rows_with_one_request_and_default_history"),
+        Test("selection_preview", "data_preview_preserves_validation_ranking_and_relay_outcomes"),
     ),
 )
 
@@ -136,6 +163,11 @@ def version(executable, program, environment):
     return value
 
 
+def source_fingerprints(workspace):
+    return {name: sha256((workspace / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+            for name in REVIEWED_SOURCES}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cargo", type=Path, required=True)
@@ -147,9 +179,10 @@ def main():
     for name in ("cargo", "rustc", "library_dir", "work_dir", "output_dir"):
         if getattr(args, name) is not None:
             setattr(args, name, getattr(args, name).resolve())
-    source_workspace = Path(__file__).resolve().parents[2] / "rust"
-    if args.work_dir.is_relative_to(source_workspace):
-        parser.error("work-dir must be outside the source Rust workspace")
+    repository = Path(__file__).resolve().parents[2]
+    source_workspace = repository / "rust"
+    if args.work_dir.is_relative_to(repository) or args.output_dir.is_relative_to(repository):
+        parser.error("mutation work/output directories must be outside the repository worktree")
     if not (source_workspace / "Cargo.lock").is_file():
         parser.error("the committed Rust lockfile is required")
     args.work_dir.mkdir(parents=True, exist_ok=True)
@@ -163,6 +196,9 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
+    if len(MUTATIONS) != 7:
+        raise RuntimeError("seven core policy/bookkeeping mutations must be configured")
+    fingerprints = source_fingerprints(source_workspace)
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name
@@ -198,7 +234,10 @@ def main():
                          "positive_test": mutation.positive.name, "clean_test": mutation.clean.name,
                          "baseline_passed": True, "assertion_failed": True, "clean_control_passed": True})
         print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass")
+    if source_fingerprints(source_workspace) != fingerprints:
+        raise RuntimeError("reviewed source changed during the mutation run; re-review and repeat")
     summary = {"toolchain": tools, "mutants": evidence, "killed": len(evidence), "survived": 0,
+               "reviewed_sources_sha256_lf": fingerprints,
                "baseline_controls_passed": len(evidence), "clean_controls_passed": len(evidence),
                "controls_failed": 0, "nonassertion_classifier_controls_rejected": rejected}
     encoded = (json.dumps(summary, sort_keys=True, indent=2) + "\n").encode("utf-8")

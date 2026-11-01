@@ -46,6 +46,11 @@ GROUPS = (
         ("control-corpus.tsv", "control-corpus.tsv"),
         ("control-manifest.json", "control-manifest.json"),
     )),
+    CorpusGroup("fleet", "tools.fleet_scaffold.scenarios", "rust/rpp-fleet/tests/data", (
+        ("fleet-scenarios.tsv", "fleet-scenarios.tsv"),
+        ("fleet-scenarios.md", "fleet-scenarios.md"),
+        ("fleet-manifest.json", "fleet-manifest.json"),
+    )),
 )
 
 

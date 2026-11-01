@@ -1,0 +1,18 @@
+[package]
+name = "rpp-fleet"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Proposed fleet address bindings and endpoint resolution using existing RPP policy"
+
+[features]
+default = ["std"]
+std = ["alloc", "rpp-core/std", "rpp-link/std"]
+alloc = ["rpp-core/alloc", "rpp-link/alloc"]
+
+[dependencies]
+rpp-core = { path = "../rpp-core", version = "=0.1.0", default-features = false }
+rpp-link = { path = "../rpp-link", version = "=0.1.0", default-features = false }
+rpp-control = { path = "../rpp-control", version = "=0.1.0", default-features = false }

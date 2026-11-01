@@ -1,0 +1,14 @@
+{
+  "bytes": {
+    "fleet-scenarios.md": 994,
+    "fleet-scenarios.tsv": 580
+  },
+  "evidence": "actual merged Python overlay policy applied to fixed fleet endpoint scenarios",
+  "identity_scope": "explicit fixture assignments; not an identity derivation oracle",
+  "policy_source_sha256_lf": "e387e8063fd3ffe1ca91d9ab059adb6f9fa37c9ab31dda7ea443275d220fefb2",
+  "rows": 9,
+  "sha256": {
+    "fleet-scenarios.md": "d90b47956a263ddf18a50899bd5b041e3d19fe033eb0549c8b353b9c3f63426e",
+    "fleet-scenarios.tsv": "2d2775776c6abea3edf3d7bfd7621ce372703131e304494a07ab36639a715def"
+  }
+}

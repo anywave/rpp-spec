@@ -317,6 +317,25 @@ pub enum PolicyError {
     Capacity,
 }
 
+/// A read-only policy decision. It does not reserve a request, sequence or time,
+/// remember a data reference, emit a meter row or report physical delivery.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SelectionPreview {
+    pub status: Status,
+    pub path: Vec<Link>,
+    pub detail: &'static str,
+}
+
+impl SelectionPreview {
+    fn empty(status: Status, detail: &'static str) -> Self {
+        Self {
+            status,
+            path: Vec::new(),
+            detail,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct Operation {
     tick: i128,
@@ -359,6 +378,7 @@ pub struct Simulator {
     scopes: BTreeSet<(String, String, BillboardKind)>,
     rows: Vec<MeterRow>,
     next_id: u64,
+    next_row: u64,
     failures: BTreeMap<String, u8>,
     open_until: BTreeMap<String, u128>,
     billboards: BTreeMap<(String, String), Billboard>,
@@ -380,6 +400,7 @@ impl Simulator {
             scopes,
             rows: Vec::new(),
             next_id: 1,
+            next_row: 1,
             failures: BTreeMap::new(),
             open_until: BTreeMap::new(),
             billboards: BTreeMap::new(),
@@ -403,6 +424,25 @@ impl Simulator {
         &self.consents
     }
 
+    /// Number of remembered data references. Legacy choose/send calls retain
+    /// history; choose_latest instead keeps one successful selection per pair.
+    pub fn known_data_path_count(&self) -> usize {
+        self.known_data_paths.len()
+    }
+
+    /// Keep only the newest rows without renumbering any row or request.
+    /// A host requiring a complete ledger must persist returned rows separately.
+    /// No retention limit is imposed unless the caller opts into this method.
+    pub fn retain_meter_rows(&mut self, limit: usize) {
+        let remove = self.rows.len().saturating_sub(limit);
+        self.rows.drain(..remove);
+        // Release a previously large allocation, but avoid reallocating on each
+        // push/trim when a continuously retained window briefly grows by one.
+        if self.rows.capacity() > limit.saturating_mul(2) {
+            self.rows.shrink_to(limit);
+        }
+    }
+
     fn begin(&mut self, tick: i128, traffic: Traffic, source: &str, target: &str) -> Operation {
         let request = self.next_id;
         // An in-memory vector cannot practically reach this count; saturation
@@ -420,7 +460,7 @@ impl Simulator {
         detail: &str,
     ) -> MeterRow {
         let row = MeterRow {
-            row: self.rows.len() as u64 + 1,
+            row: self.next_row,
             tick: op.tick,
             request: op.request,
             traffic: op.traffic,
@@ -435,6 +475,7 @@ impl Simulator {
             tokens,
             detail: detail.into(),
         };
+        self.next_row = self.next_row.saturating_add(1);
         self.rows.push(row.clone());
         row
     }
@@ -489,7 +530,7 @@ impl Simulator {
         tick: i128,
         links: &[Link],
     ) -> Result<Vec<Link>, PolicyError> {
-        self.choose_filtered(
+        let chosen = self.select_path(
             source,
             target,
             tick,
@@ -499,11 +540,53 @@ impl Simulator {
                 excluded: &BTreeSet::new(),
                 avoid_domains: &BTreeSet::new(),
             },
-        )
+        )?;
+        self.remember_data_path(source, target, tick, &chosen);
+        Ok(chosen)
     }
 
-    fn choose_filtered(
+    /// The same selection query as choose, with one retained successful path
+    /// per endpoint pair. An empty/no-channel selection preserves the old path;
+    /// no expiry or extra clock rule is added to historical references.
+    pub fn choose_latest(
         &mut self,
+        source: &str,
+        target: &str,
+        tick: i128,
+        links: &[Link],
+    ) -> Result<Vec<Link>, PolicyError> {
+        let chosen = self.select_path(
+            source,
+            target,
+            tick,
+            links,
+            RouteFilter {
+                traffic: Traffic::Data,
+                excluded: &BTreeSet::new(),
+                avoid_domains: &BTreeSet::new(),
+            },
+        )?;
+        if !chosen.is_empty() {
+            self.known_data_paths
+                .retain(|path| path.source != source || path.target != target);
+            self.remember_data_path(source, target, tick, &chosen);
+        }
+        Ok(chosen)
+    }
+
+    fn remember_data_path(&mut self, source: &str, target: &str, tick: i128, path: &[Link]) {
+        if !path.is_empty() {
+            self.known_data_paths.insert(KnownPath {
+                source: source.into(),
+                target: target.into(),
+                selected: tick,
+                path: path.into(),
+            });
+        }
+    }
+
+    fn select_path(
+        &self,
         source: &str,
         target: &str,
         tick: i128,
@@ -545,16 +628,60 @@ impl Simulator {
             scored.push(((score, path.len(), names), path));
         }
         scored.sort_by(|a, b| a.0.cmp(&b.0));
-        let chosen = scored.into_iter().next().map_or_else(Vec::new, |x| x.1);
-        if !chosen.is_empty() && filter.traffic == Traffic::Data {
-            self.known_data_paths.insert(KnownPath {
-                source: source.into(),
-                target: target.into(),
-                selected: tick,
-                path: chosen.clone(),
-            });
+        Ok(scored.into_iter().next().map_or_else(Vec::new, |x| x.1))
+    }
+
+    /// Evaluate a data choice using the same checks as send_data, without
+    /// copying simulator state or changing its ledger, references or clock.
+    pub fn preview_data(
+        &self,
+        tick: i128,
+        source: &str,
+        target: &str,
+        links: &[Link],
+    ) -> SelectionPreview {
+        self.evaluate_data(tick, source, target, links, &BTreeSet::new())
+    }
+
+    fn evaluate_data(
+        &self,
+        tick: i128,
+        source: &str,
+        target: &str,
+        links: &[Link],
+        excluded: &BTreeSet<String>,
+    ) -> SelectionPreview {
+        if !self.time_valid(tick) || !Self::links_valid(links) {
+            return SelectionPreview::empty(Status::InvalidInput, "");
         }
-        Ok(chosen)
+        if source == target {
+            return SelectionPreview::empty(Status::DeniedSelfTarget, "");
+        }
+        if !self.authorized(source, target) {
+            return SelectionPreview::empty(Status::Denied, "");
+        }
+        match self.select_path(
+            source,
+            target,
+            tick,
+            links,
+            RouteFilter {
+                traffic: Traffic::Data,
+                excluded,
+                avoid_domains: &BTreeSet::new(),
+            },
+        ) {
+            Err(_) => SelectionPreview::empty(Status::InvalidInput, ""),
+            Ok(path) if path.is_empty() => SelectionPreview::empty(Status::NoChannel, ""),
+            Ok(path) => {
+                let detail = if path.len() > 1 { "relay" } else { "direct" };
+                SelectionPreview {
+                    status: Status::Ok,
+                    path,
+                    detail,
+                }
+            }
+        }
     }
 
     fn visit(
@@ -597,44 +724,19 @@ impl Simulator {
         failures: &BTreeMap<String, i128>,
     ) {
         let op = self.begin(tick, Traffic::Data, source, target);
-        if !self.time_valid(tick)
-            || !Self::links_valid(links)
-            || failures.values().any(|x| u64::try_from(*x).is_err())
-        {
+        if failures.values().any(|x| u64::try_from(*x).is_err()) {
             self.meter(&op, &[], Status::InvalidInput, 0, "");
-            return;
-        }
-        if source == target {
-            self.meter(&op, &[], Status::DeniedSelfTarget, 0, "");
-            return;
-        }
-        if !self.authorized(source, target) {
-            self.meter(&op, &[], Status::Denied, 0, "");
             return;
         }
         let mut excluded = BTreeSet::new();
         loop {
-            let path = match self.choose_filtered(
-                source,
-                target,
-                tick,
-                links,
-                RouteFilter {
-                    traffic: Traffic::Data,
-                    excluded: &excluded,
-                    avoid_domains: &BTreeSet::new(),
-                },
-            ) {
-                Ok(path) => path,
-                Err(_) => {
-                    self.meter(&op, &[], Status::InvalidInput, 0, "");
-                    return;
-                }
-            };
-            if path.is_empty() {
-                self.meter(&op, &[], Status::NoChannel, 0, "");
+            let selection = self.evaluate_data(tick, source, target, links, &excluded);
+            if selection.status != Status::Ok {
+                self.meter(&op, &selection.path, selection.status, 0, selection.detail);
                 return;
             }
+            let path = selection.path;
+            self.remember_data_path(source, target, tick, &path);
             self.advance(tick);
             let failure = path.iter().find(|x| failures.contains_key(&x.name));
             let Some(failure) = failure else {
@@ -685,27 +787,39 @@ impl Simulator {
             })
     }
 
-    pub fn send_control(
-        &mut self,
+    /// Evaluate the existing control policy without spending a sequence, clock
+    /// transition, request ID or meter row. Historical-reference rules match
+    /// send_control exactly; no extra expiry is introduced.
+    pub fn preview_control(
+        &self,
         tick: i128,
         frame: &ControlFrame,
         auth: Option<&Auth>,
         links: &[Link],
         data_path: &[Link],
-    ) -> MeterRow {
+    ) -> SelectionPreview {
+        self.evaluate_control(tick, frame, auth, links, data_path).0
+    }
+
+    // The bool retains legacy endpoint redaction for malformed initial input;
+    // later path-capacity errors retain the parsed endpoints as before.
+    fn evaluate_control(
+        &self,
+        tick: i128,
+        frame: &ControlFrame,
+        auth: Option<&Auth>,
+        links: &[Link],
+        data_path: &[Link],
+    ) -> (SelectionPreview, bool) {
         let (source, target) = frame.endpoints();
-        let mut op = self.begin(tick, Traffic::Control, source, target);
         if !self.time_valid(tick) || !Self::links_valid(links) {
-            // Match Python's invalid-input row, which has no parsed endpoints.
-            op.source.clear();
-            op.target.clear();
-            return self.meter(&op, &[], Status::InvalidInput, 0, "");
+            return (SelectionPreview::empty(Status::InvalidInput, ""), true);
         }
         if identifier(source) && identifier(target) && source == target {
-            return self.meter(&op, &[], Status::DeniedSelfTarget, 0, "");
+            return (SelectionPreview::empty(Status::DeniedSelfTarget, ""), false);
         }
         let ControlFrame::Notice { kind, sequence, .. } = frame else {
-            return self.meter(&op, &[], Status::Denied, 0, "");
+            return (SelectionPreview::empty(Status::Denied, ""), false);
         };
         let good = auth.is_some_and(|a| a.valid() && a.issuer == source)
             && self.authorized(source, target)
@@ -714,13 +828,16 @@ impl Simulator {
                 .get(&(source.into(), target.into()))
                 .is_none_or(|old| sequence > old);
         if !good {
-            return self.meter(&op, &[], Status::Denied, 0, "");
+            return (SelectionPreview::empty(Status::Denied, ""), false);
         }
         if !self.known_reference(source, target, tick, data_path) {
-            return self.meter(&op, &[], Status::Denied, 0, "unknown-data-path");
+            return (
+                SelectionPreview::empty(Status::Denied, "unknown-data-path"),
+                false,
+            );
         }
         let domains = data_path.iter().map(|x| x.failure_domain.clone()).collect();
-        let path = match self.choose_filtered(
+        let path = match self.select_path(
             source,
             target,
             tick,
@@ -732,15 +849,46 @@ impl Simulator {
             },
         ) {
             Ok(path) => path,
-            Err(_) => return self.meter(&op, &[], Status::InvalidInput, 0, ""),
+            Err(_) => return (SelectionPreview::empty(Status::InvalidInput, ""), false),
         };
         if path.is_empty() {
-            return self.meter(&op, &[], Status::NoIndependentChannel, 0, "");
+            return (
+                SelectionPreview::empty(Status::NoIndependentChannel, ""),
+                false,
+            );
         }
-        self.advance(tick);
-        self.control_sequences
-            .insert((source.into(), target.into()), *sequence);
-        self.meter(&op, &path, Status::Ok, 0, kind.as_str())
+        (
+            SelectionPreview {
+                status: Status::Ok,
+                path,
+                detail: kind.as_str(),
+            },
+            false,
+        )
+    }
+
+    pub fn send_control(
+        &mut self,
+        tick: i128,
+        frame: &ControlFrame,
+        auth: Option<&Auth>,
+        links: &[Link],
+        data_path: &[Link],
+    ) -> MeterRow {
+        let (source, target) = frame.endpoints();
+        let mut op = self.begin(tick, Traffic::Control, source, target);
+        let (selection, clear_endpoints) =
+            self.evaluate_control(tick, frame, auth, links, data_path);
+        if clear_endpoints {
+            op.source.clear();
+            op.target.clear();
+        }
+        if let (Status::Ok, ControlFrame::Notice { sequence, .. }) = (selection.status, frame) {
+            self.advance(tick);
+            self.control_sequences
+                .insert((source.into(), target.into()), *sequence);
+        }
+        self.meter(&op, &selection.path, selection.status, 0, selection.detail)
     }
 
     pub fn deliver_billboard(

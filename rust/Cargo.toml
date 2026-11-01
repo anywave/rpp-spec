@@ -1,5 +1,5 @@
 [workspace]
-members = ["rpp-core", "rpp-control", "rpp-link"]
+members = ["rpp-core", "rpp-control", "rpp-link", "rpp-fleet"]
 resolver = "2"
 
 [workspace.package]
