@@ -133,3 +133,15 @@ class GraphTests(unittest.TestCase):
         with mock.patch.object(self.runner, 'verify_owner') as verify:
             self.assertEqual(self.runner.owner_findings(self.base, head), [])
         verify.assert_not_called()
+
+    def test_redundant_base_parent_cannot_be_waived_by_owner_approval(self):
+        """Kills accepting current or historical redundant BASE parents in owner review."""
+        common = self.base
+        self.write('.github/branch.txt', 'branch\n')
+        feature = self.commit()
+        tree = self.git('rev-parse', common + '^{tree}')
+        head = self.git('commit-tree', tree, '-p', feature, '-p', common, input=b'redundant\n')
+        advanced = self.git('commit-tree', tree, '-p', common, input=b'advanced BASE\n')
+        for base in (common, advanced):
+            with mock.patch.object(self.runner, 'verify_owner', return_value=True):
+                self.assertTrue(any('redundant BASE-side parent' in error for error in self.runner.owner_findings(base, head)))

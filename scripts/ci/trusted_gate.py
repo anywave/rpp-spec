@@ -139,10 +139,13 @@ def owner_findings(base, head):
                 errors.append(f'{commit}: octopus merge refused')
                 continue
             if len(parents) == 2:
+                candidates = [parent for parent in parents if ancestor_of(parent, base)]
                 if ancestor_of(parents[0], base):
                     errors.append(f'{commit}: merge first parent is reachable from BASE')
-                elif sum(ancestor_of(parent, base) for parent in parents) != 1:
+                elif len(candidates) != 1:
                     errors.append(f'{commit}: merge requires one BASE-side parent')
+                elif ancestor_of(candidates[0], parents[0]):
+                    errors.append(f'{commit}: redundant BASE-side parent refused')
             paths = set()
             for parent in parents or [None]:
                 args = ('diff', parent, commit) if parent else ('diff-tree', '--root', '--no-commit-id', '-r', commit)
