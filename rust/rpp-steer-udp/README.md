@@ -49,13 +49,10 @@ the worker processes probes until it receives the authorized stop, and each
 worker is joined once. Counts and errors are retained. The timeout is a backstop, not a hard global
 shutdown deadline. Native Windows repeats remain a separate validation step.
 
-The checkout retains the earlier CX-023 ancestry. Actual HEAD lacks UDP PR#30
-and the newer selector constructor from PR#31. TR owns their later integration;
-this follow-up performs no merge, rebase, or dependency copy. Normal relative path
-dependencies keep the actual-checkout build and lift finding visible. Local
-evidence uses an outside exact Git-blob snapshot plus UDP core 36c5adec and the
-six changed Rust paths from reviewed #31 head 562c333, sharing one `rpp-link`
-identity. That proves the composition, not an integrated HEAD. After integration:
+The checkout now integrates master `21cfb0d`, including merged UDP PR#30 and
+the selector's explicit loss-ceiling API from PR#31. Relative path dependencies
+build this actual checkout; historical outside-composition evidence remains
+in published reports. Run the detached bridge checks from the repository root:
 
 ```text
 cargo +1.85.1 fmt --manifest-path rust/rpp-steer-udp/Cargo.toml -- --check
