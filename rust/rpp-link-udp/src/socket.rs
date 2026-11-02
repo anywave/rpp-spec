@@ -37,6 +37,12 @@ pub struct Counters {
     pub connection_resets: u64,
 }
 
+enum Datagram {
+    Packet(Vec<u8>),
+    Dropped,
+    Loss,
+}
+
 pub struct UdpAdapter {
     socket: UdpSocket,
     config: Config,
@@ -115,31 +121,33 @@ impl UdpAdapter {
         }
         Ok(())
     }
-    fn datagram(&mut self) -> Result<Option<Vec<u8>>, Error> {
+    fn datagram(&mut self) -> Result<Datagram, Error> {
         let mut bytes = [0; 65_536];
         let (size, peer) = match self.socket.recv_from(&mut bytes) {
             Ok(value) => value,
-            Err(error) if packet_loss(error.kind()) => {
-                if error.kind() == io::ErrorKind::ConnectionReset {
-                    self.counters.connection_resets =
-                        self.counters.connection_resets.saturating_add(1);
-                }
-                return Ok(None);
-            }
-            Err(error) => return Err(error.into()),
+            Err(error) => return self.receive_error(error),
         };
         if peer != self.config.peer {
             self.counters.wrong_peer = self.counters.wrong_peer.saturating_add(1);
-            return Ok(None);
+            return Ok(Datagram::Dropped);
         }
         if !(2..=MAX_DATAGRAM_LEN).contains(&size)
             || bytes[0] != VERSION
             || !(PROBE..=DATA).contains(&bytes[1])
         {
             self.counters.malformed = self.counters.malformed.saturating_add(1);
-            return Ok(None);
+            return Ok(Datagram::Dropped);
         }
-        Ok(Some(bytes[..size].to_vec()))
+        Ok(Datagram::Packet(bytes[..size].to_vec()))
+    }
+    fn receive_error(&mut self, error: io::Error) -> Result<Datagram, Error> {
+        if !packet_loss(error.kind()) {
+            return Err(error.into());
+        }
+        if error.kind() == io::ErrorKind::ConnectionReset {
+            self.counters.connection_resets = self.counters.connection_resets.saturating_add(1);
+        }
+        Ok(Datagram::Loss)
     }
     fn internal(&mut self, wire: &[u8]) -> Result<bool, Error> {
         if !matches!(wire[1], PROBE | REPLY) {
@@ -177,8 +185,8 @@ impl UdpAdapter {
         let wire = match self.pending.pop_front() {
             Some(wire) => wire,
             None => match self.datagram()? {
-                Some(wire) => wire,
-                None => return Ok(None),
+                Datagram::Packet(wire) => wire,
+                Datagram::Dropped | Datagram::Loss => return Ok(None),
             },
         };
         if self.internal(&wire)? {
@@ -206,33 +214,42 @@ impl LinkAdapter for UdpAdapter {
         let nonce = self.nonce.to_be_bytes();
         let start = Instant::now();
         let mut sample = None;
-        // Send failures resolve this actual probe as loss. Never retransmit.
-        if self.send(PROBE, &nonce).is_ok() {
-            for _ in 0..RECEIVE_BUDGET {
-                let remaining = self.config.timeout.saturating_sub(start.elapsed());
-                if remaining.is_zero() {
-                    break;
-                }
-                self.socket.set_read_timeout(Some(remaining))?;
-                let Some(wire) = self.datagram()? else {
-                    continue;
-                };
-                if wire.len() == PROBE_LEN && wire[1] == REPLY && wire[2..] == nonce {
-                    sample = Some(start.elapsed().as_millis().min(u128::from(u64::MAX - 1)) as u64);
-                    break;
-                }
-                if self.internal(&wire)? {
-                    continue;
-                }
-                if self.pending.len() < MAX_PENDING {
-                    self.pending.push_back(wire);
-                } else {
-                    self.counters.queue_full = self.counters.queue_full.saturating_add(1);
+        let result = (|| -> Result<Option<u64>, Error> {
+            // Send failures resolve this actual probe as loss. Never retransmit.
+            if self.send(PROBE, &nonce).is_ok() {
+                for _ in 0..RECEIVE_BUDGET {
+                    let remaining = self.config.timeout.saturating_sub(start.elapsed());
+                    if remaining.is_zero() {
+                        break;
+                    }
+                    self.socket.set_read_timeout(Some(remaining))?;
+                    let wire = match self.datagram()? {
+                        Datagram::Packet(wire) => wire,
+                        Datagram::Dropped => continue,
+                        Datagram::Loss => break,
+                    };
+                    if wire.len() == PROBE_LEN && wire[1] == REPLY && wire[2..] == nonce {
+                        sample =
+                            Some(start.elapsed().as_millis().min(u128::from(u64::MAX - 1)) as u64);
+                        break;
+                    }
+                    if self.internal(&wire)? {
+                        continue;
+                    }
+                    if self.pending.len() < MAX_PENDING {
+                        self.pending.push_back(wire);
+                    } else {
+                        self.counters.queue_full = self.counters.queue_full.saturating_add(1);
+                    }
                 }
             }
-        }
-        self.socket.set_read_timeout(Some(self.config.timeout))?;
-        self.measurements.observe(sample);
+            Ok(sample)
+        })();
+        let restore = self.socket.set_read_timeout(Some(self.config.timeout));
+        self.measurements
+            .observe(result.as_ref().ok().copied().flatten());
+        restore?;
+        result?;
         Ok(self.measurements.reading(tick))
     }
     fn send_verified_control_frame(&mut self, frame: &VerifiedControlFrame) -> Result<(), Error> {
@@ -345,6 +362,12 @@ mod tests {
     /// Mutation: propagate Windows ICMP reset instead of resolving an outstanding probe as loss.
     #[test]
     fn connection_reset_and_timeouts_are_packet_loss_not_errors() {
+        let (mut adapter, _) = endpoint();
+        assert!(matches!(
+            adapter.receive_error(io::ErrorKind::ConnectionReset.into()),
+            Ok(Datagram::Loss)
+        ));
+        assert_eq!(adapter.counters().connection_resets, 1);
         assert!(packet_loss(io::ErrorKind::ConnectionReset));
         assert!(packet_loss(io::ErrorKind::TimedOut));
         assert!(!packet_loss(io::ErrorKind::PermissionDenied));
