@@ -66,3 +66,6 @@ impl<'a, const MAX_LEN: usize> Fragmenter<'a, MAX_LEN> {
         Ok(Some(length))
     }
 }
+
+mod reassembly;
+pub use reassembly::Reassembler;
