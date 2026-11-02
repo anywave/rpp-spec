@@ -1,4 +1,5 @@
 """Counterfactuals for optional-tool skipping and bounded outside-only fuzz runs."""
+from contextlib import nullcontext
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ from tools.fuzz_scaffold import smoke
 
 class SmokeTests(unittest.TestCase):
     def setUp(self):
-        self.root = Path(self.enterContext(TemporaryDirectory(prefix="cx024-smoke-test-")))
+        self.root = Path(self.enterContext(TemporaryDirectory(prefix="cx024-smoke-test-"))).resolve()
         self.source = self.root / "source/tools/fuzz_scaffold"
         (self.source / "seeds").mkdir(parents=True)
         (self.root / "source/rust").mkdir()
@@ -40,6 +41,18 @@ class SmokeTests(unittest.TestCase):
                 patch.object(smoke, "execute", side_effect=["nightly-host", "rustc 1.86.0-nightly (fixture)", "cargo-fuzz 0.13.0"]):
             with self.assertRaisesRegex(RuntimeError, "match"):
                 smoke.preflight()
+
+    def test_temporary_directory_alias_runs_the_full_success_contract(self):
+        """Mutation: retain an aliased temporary root while execution resolves its paths."""
+        real = self.root / "canonical"
+        child = real / "child"
+        child.mkdir(parents=True)
+        alias = child / ".."  # Portable lexical alias; no symlink privilege needed.
+        result = unittest.TestResult()
+        with patch(__name__ + ".TemporaryDirectory", return_value=nullcontext(str(alias))):
+            type(self)("test_success_has_two_bounded_targets_offline_and_outside_checkout").run(result)
+        self.assertEqual(result.errors, [])
+        self.assertEqual(result.failures, [])
 
     def test_present_build_and_run_failures_are_never_skipped(self):
         """Mutation: swallow build/run failures as an optional-tool skip."""
