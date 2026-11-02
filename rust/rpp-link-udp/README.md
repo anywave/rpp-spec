@@ -54,7 +54,7 @@ Windows recv ConnectionReset and timeout resolve an outstanding probe as loss,
 never an error; idle receive drops them (reset counter increases) without
 inventing a probe. Other I/O errors propagate after recording the attempt and
 restoring the configured timeout. Each read processes at most 32 packets;
-blocking waits use the remaining 1..250 ms configured budget. Scheduling can
+blocking waits use the remaining configured budget (nonzero, at most 250 ms). Scheduling can
 extend wall time. Four opaque application packets can wait for `receive`; queue
 overflow is counted. A probe never becomes application/control content.
 
