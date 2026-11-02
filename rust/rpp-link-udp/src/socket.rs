@@ -18,7 +18,6 @@ const CONTROL: u8 = 3;
 const DATA: u8 = 4;
 const PROBE_LEN: usize = 10;
 const MAX_PENDING: usize = 4;
-const RECEIVE_BUDGET: usize = 32;
 const ECHO_BURST: u32 = 32;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -52,6 +51,7 @@ pub struct UdpAdapter {
     counters: Counters,
     pending: VecDeque<Vec<u8>>,
     last_echo: Option<u64>,
+    last_probe: Option<Instant>,
     echo_window: Instant,
     echo_count: u32,
 }
@@ -78,6 +78,7 @@ impl UdpAdapter {
             counters: Counters::default(),
             pending: VecDeque::new(),
             last_echo: None,
+            last_probe: None,
             echo_window: Instant::now(),
             echo_count: 0,
         })
@@ -150,6 +151,9 @@ impl UdpAdapter {
         Ok(Datagram::Loss)
     }
     fn internal(&mut self, wire: &[u8]) -> Result<bool, Error> {
+        self.internal_at(wire, Instant::now())
+    }
+    fn internal_at(&mut self, wire: &[u8], now: Instant) -> Result<bool, Error> {
         if !matches!(wire[1], PROBE | REPLY) {
             return Ok(false);
         }
@@ -161,8 +165,15 @@ impl UdpAdapter {
             return Ok(true);
         }
         let nonce = u64::from_be_bytes(wire[2..].try_into().expect("fixed probe length"));
-        if self.echo_window.elapsed() >= Duration::from_secs(1) {
-            self.echo_window = Instant::now();
+        if self
+            .last_probe
+            .is_some_and(|last| now.saturating_duration_since(last) >= Duration::from_secs(1))
+        {
+            self.last_echo = None;
+        }
+        self.last_probe = Some(now);
+        if now.saturating_duration_since(self.echo_window) >= Duration::from_secs(1) {
+            self.echo_window = now;
             self.echo_count = 0;
         }
         if self.last_echo.is_some_and(|last| nonce <= last) || self.echo_count >= ECHO_BURST {
@@ -217,7 +228,7 @@ impl LinkAdapter for UdpAdapter {
         let result = (|| -> Result<Option<u64>, Error> {
             // Send failures resolve this actual probe as loss. Never retransmit.
             if self.send(PROBE, &nonce).is_ok() {
-                for _ in 0..RECEIVE_BUDGET {
+                loop {
                     let remaining = self.config.timeout.saturating_sub(start.elapsed());
                     if remaining.is_zero() {
                         break;
@@ -267,6 +278,10 @@ fn packet_loss(kind: io::ErrorKind) -> bool {
             | io::ErrorKind::TimedOut
             | io::ErrorKind::ConnectionReset
             | io::ErrorKind::ConnectionRefused
+            | io::ErrorKind::HostUnreachable
+            | io::ErrorKind::NetworkUnreachable
+            | io::ErrorKind::NetworkDown
+            | io::ErrorKind::ConnectionAborted
     )
 }
 #[cfg(test)]
@@ -359,7 +374,70 @@ mod tests {
         assert_eq!(adapter.counters().echo_limited, 1);
         assert!(peer.recv_from(&mut [0; 64]).is_err());
     }
-    /// Mutation: propagate Windows ICMP reset instead of resolving an outstanding probe as loss.
+    /// Mutations: reject a restarted nonce after quiet time, or remove the quiet-gap reset.
+    #[test]
+    fn restarted_prober_on_same_address_succeeds_after_quiet_gap() {
+        let (mut responder, peer) = endpoint();
+        let timeout = Duration::from_millis(250);
+        responder.socket.set_read_timeout(Some(timeout)).unwrap();
+        let config = Config::new(
+            peer.local_addr().unwrap(),
+            responder.local_addr(),
+            LinkKind::Lan,
+            timeout,
+        )
+        .unwrap();
+        drop(peer);
+        let start = Instant::now();
+        for phase in 0..2 {
+            let mut client = UdpAdapter::bind(config).unwrap();
+            let worker = std::thread::spawn(move || client.read(phase));
+            let wire = match responder.datagram().unwrap() {
+                Datagram::Packet(wire) => wire,
+                _ => panic!("loopback probe missing"),
+            };
+            assert_eq!(&wire[2..], &1_u64.to_be_bytes());
+            responder
+                .internal_at(&wire, start + Duration::from_secs(phase))
+                .unwrap();
+            let reading = worker.join().expect("loopback worker").expect("probe I/O");
+            assert!(reading.available);
+        }
+        assert_eq!(responder.counters().echoes, 2);
+    }
+    /// Mutation: restore the 32-packet budget so dropped packets create premature loss.
+    #[test]
+    fn foreign_and_malformed_flood_before_reply_does_not_create_loss() {
+        let (mut client, peer) = endpoint();
+        client.config.timeout = Duration::from_millis(250);
+        peer.set_read_timeout(Some(client.config.timeout)).unwrap();
+        let third = UdpSocket::bind("127.0.0.1:0").unwrap();
+        for _ in 0..33 {
+            third
+                .send_to(&[VERSION, DATA], client.local_addr())
+                .unwrap();
+        }
+        let worker = std::thread::spawn(move || -> io::Result<()> {
+            let mut probe = [0; PROBE_LEN];
+            let (_, address) = peer.recv_from(&mut probe)?;
+            for _ in 0..33 {
+                peer.send_to(&[255], address)?;
+            }
+            probe[1] = REPLY;
+            peer.send_to(&probe, address)?;
+            Ok(())
+        });
+        let reading = client.read(1);
+        worker.join().expect("loopback worker").expect("reply I/O");
+        let reading = reading.expect("probe I/O");
+        assert!(reading.available);
+        assert_eq!(reading.loss_ppm, 0);
+        assert_eq!(
+            (client.counters().wrong_peer, client.counters().malformed),
+            (33, 33)
+        );
+    }
+    /// Mutation: propagate timeout or any listed network/ICMP error instead of packet loss.
     #[test]
     fn connection_reset_and_timeouts_are_packet_loss_not_errors() {
         let (mut adapter, _) = endpoint();
@@ -368,8 +446,20 @@ mod tests {
             Ok(Datagram::Loss)
         ));
         assert_eq!(adapter.counters().connection_resets, 1);
-        assert!(packet_loss(io::ErrorKind::ConnectionReset));
-        assert!(packet_loss(io::ErrorKind::TimedOut));
+        for kind in [
+            io::ErrorKind::WouldBlock,
+            io::ErrorKind::TimedOut,
+            io::ErrorKind::ConnectionRefused,
+            io::ErrorKind::HostUnreachable,
+            io::ErrorKind::NetworkUnreachable,
+            io::ErrorKind::NetworkDown,
+            io::ErrorKind::ConnectionAborted,
+        ] {
+            assert!(matches!(
+                adapter.receive_error(kind.into()),
+                Ok(Datagram::Loss)
+            ));
+        }
         assert!(!packet_loss(io::ErrorKind::PermissionDenied));
     }
 }

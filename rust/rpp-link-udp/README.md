@@ -46,22 +46,24 @@ comes from the caller and is not a clock synchronization or freshness grant.
 
 Jitter applies RFC 3550's integer estimator to successive RTT transit samples:
 Q4 state J += abs(RTT - previous_RTT) - ((J + 8) >> 4); report J >> 4 ms.
-The first success seeds RTT and leaves jitter zero; losses add no RTT sample.
+A loss clears RTT/jitter and its previous RTT; the next success starts a new series.
 This is RTT variation, not an RTP one-way jitter measurement. u128 arithmetic
 preserves fractional state and avoids unsigned delta overflow.
 
-Windows recv ConnectionReset and timeout resolve an outstanding probe as loss,
-never an error; idle receive drops them (reset counter increases) without
-inventing a probe. Other I/O errors propagate after recording the attempt and
-restoring the configured timeout. Each read processes at most 32 packets;
-blocking waits use the remaining configured budget (nonzero, at most 250 ms). Scheduling can
+Timeout, ConnectionReset/Refused/Aborted and HostUnreachable/NetworkUnreachable/
+NetworkDown resolve an outstanding probe as loss; idle receive drops them without
+inventing a probe (ConnectionReset alone increments its named counter). Other I/O
+errors propagate. Each read uses the remaining absolute deadline, including for
+foreign/malformed packets (nonzero, at most 250 ms), then restores its timeout. Scheduling can
 extend wall time. Four opaque application packets can wait for `receive`; queue
 overflow is counted. A probe never becomes application/control content.
 
 Echo is inspired by BFD echo [RFC 5880](https://www.rfc-editor.org/rfc/rfc5880)
 and [RFC 5881](https://www.rfc-editor.org/rfc/rfc5881), not BFD wire compatibility.
-Only exact-peer, 10-byte probes get a same-size reply. Nonces must increase;
-one reply attempt per nonce and at most 32 replies per one-second window.
+Only exact-peer, 10-byte probes get a same-size reply. Nonces increase within an
+active episode; one second without an exact-peer, correctly-sized probe resets
+nonce state, allowing a same-address prober to restart. Rejected duplicate probes
+also restart the quiet timer; the independent 32-reply/second limit remains.
 There is no amplification, outside-source reflection or automatic consent.
 [Jitter reference: RFC 3550 §6.4.1 / A.8](https://www.rfc-editor.org/rfc/rfc3550#appendix-A.8).
 

@@ -23,6 +23,10 @@ impl Measurements {
             }
             self.previous_rtt = Some(value);
             self.latency = value;
+        } else {
+            self.previous_rtt = None;
+            self.latency = 0;
+            self.jitter_q4 = 0;
         }
     }
     pub fn reading(&self, tick: u64) -> LinkReading {
@@ -61,7 +65,7 @@ mod tests {
         assert!(!r.available);
         assert_eq!(r.observed, 2);
     }
-    /// Mutation: use integer-ms smoothing without fractional state, or unsigned subtraction.
+    /// Mutations: integer-ms smoothing, unsigned delta, or stale latency/jitter/history after loss.
     #[test]
     fn rfc3550_fixed_point_jitter_handles_both_rtt_directions() {
         let mut m = Measurements::default();
@@ -73,5 +77,11 @@ mod tests {
         m.observe(Some(u64::MAX - 1));
         m.observe(Some(0));
         assert!(m.reading(0).jitter_ms < u64::MAX);
+        m.observe(Some(64));
+        m.observe(None);
+        assert_eq!((m.reading(1).latency_ms, m.reading(1).jitter_ms), (0, 0));
+        assert!(!m.reading(1).available);
+        m.observe(Some(0));
+        assert_eq!(m.reading(2).jitter_ms, 0);
     }
 }

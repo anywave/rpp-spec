@@ -33,7 +33,17 @@ CASES = (
     ("duplicate-echo", UDP+"socket.rs", "nonce <= last", "nonce < last", PROBE, JITTER),
     ("echo-budget", UDP+"socket.rs", "self.echo_count >= ECHO_BURST", "false", ("--lib", "socket::tests::exhausted_echo_budget_refuses_a_new_nonce"), JITTER),
     ("jitter-erased", UDP+"measure.rs", "self.jitter_q4 = self.jitter_q4 + d - ((self.jitter_q4 + 8) >> 4)", "self.jitter_q4 = 0", JITTER, KIND),
-    ("dead-available", UDP+"measure.rs", "self.latest = rtt.is_some()", "self.latest = true", FLOW, JITTER),
+    ("dead-available", UDP+"measure.rs", "self.latest = rtt.is_some()", "self.latest = true", FLOW, KIND),
+    ("restart-refused", UDP+"socket.rs", "            self.last_echo = None;\n", "", ("--lib", "socket::tests::restarted_prober_on_same_address_succeeds_after_quiet_gap"), JITTER),
+    ("foreign-packet-budget", UDP+"socket.rs", "                loop {\n                    let remaining", "                for _ in 0..32 {\n                    let remaining", ("--lib", "socket::tests::foreign_and_malformed_flood_before_reply_does_not_create_loss"), JITTER),
+    ("loss-retains-rtt", UDP+"measure.rs", "            self.latency = 0;\n", "", JITTER, KIND),
+    ("loss-retains-jitter", UDP+"measure.rs", "            self.jitter_q4 = 0;\n", "", JITTER, KIND),
+    ("loss-retains-previous-rtt", UDP+"measure.rs", "            self.previous_rtt = None;\n", "", JITTER, KIND),
+    ("loss-HostUnreachable", UDP+"socket.rs", "            | io::ErrorKind::HostUnreachable\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
+    ("loss-NetworkUnreachable", UDP+"socket.rs", "            | io::ErrorKind::NetworkUnreachable\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
+    ("loss-NetworkDown", UDP+"socket.rs", "            | io::ErrorKind::NetworkDown\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
+    ("loss-ConnectionAborted", UDP+"socket.rs", "            | io::ErrorKind::ConnectionAborted\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
+
 )
 
 
