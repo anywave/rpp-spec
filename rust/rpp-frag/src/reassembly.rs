@@ -25,12 +25,29 @@ impl<const N: usize> Slot<N> {
     };
 }
 
+#[derive(Clone, Copy)]
+struct Completed {
+    peer: NodeId,
+    tag: u16,
+    until: u64,
+    valid: bool,
+}
+impl Completed {
+    const EMPTY: Self = Self {
+        peer: [0; 16],
+        tag: 0,
+        until: 0,
+        valid: false,
+    };
+}
+
 /// Fixed slots; completed bytes are available only through verified decoding.
 /// `peer` must be bound by the caller to its actual ingress peer/link context.
 pub struct Reassembler<const SLOTS: usize, const MAX_LEN: usize = { rpp_control::FRAME_LEN }> {
     slots: [Slot<MAX_LEN>; SLOTS],
     timeout: u64,
     clock: Option<u64>,
+    completed: [Completed; 2],
 }
 impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
     pub fn new(timeout: u64) -> Result<Self, Error> {
@@ -44,6 +61,7 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
             slots: [Slot::EMPTY; SLOTS],
             timeout,
             clock: None,
+            completed: [Completed::EMPTY; 2],
         })
     }
     pub fn retained_slots(&self) -> usize {
@@ -73,6 +91,13 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
         if total == 0 || offset.checked_add(data.len()).is_none_or(|end| end > total) {
             return Err(Error::OutOfBounds);
         }
+        if self
+            .completed
+            .iter()
+            .any(|key| key.valid && key.peer == peer && key.tag == tag && tick < key.until)
+        {
+            return Err(Error::RecentlyCompleted);
+        }
         let existing = self
             .slots
             .iter()
@@ -89,11 +114,19 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
         }
         let index = match existing {
             Some(index) => index,
-            None => self
-                .slots
-                .iter()
-                .position(|s| !s.active || tick >= s.deadline)
-                .ok_or(Error::SlotsFull)?,
+            None => {
+                if let Some(empty) = self.slots.iter().position(|s| !s.active) {
+                    empty
+                } else if let Some(expired) = self.slots.iter().position(|s| tick >= s.deadline) {
+                    let peer = self.slots[expired].peer;
+                    let tag = self.slots[expired].tag;
+                    self.slots[expired] = Slot::EMPTY;
+                    self.clock = Some(tick);
+                    return Err(Error::ExpiredKey { peer, tag });
+                } else {
+                    return Err(Error::SlotsFull);
+                }
+            }
         };
         let is_new = existing.is_none();
         let deadline = if is_new {
@@ -137,9 +170,19 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
         }
         self.clock = Some(tick);
         if slot.covered == slot.total {
+            let until = slot.deadline;
             let result =
                 decode(&slot.bytes[..slot.total], recipient, verifier).map_err(Error::Decode);
             self.slots[index] = Slot::EMPTY;
+            if result.is_ok() {
+                self.completed[0] = self.completed[1];
+                self.completed[1] = Completed {
+                    peer,
+                    tag,
+                    until,
+                    valid: true,
+                };
+            }
             return result.map(Some);
         }
         Ok(None)
@@ -149,4 +192,4 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
 // Cross-target budget gate; the report also records the exact riscv32 size.
 const _: () = assert!(core::mem::size_of::<Reassembler<4, 112>>() <= 1200);
 #[cfg(target_arch = "riscv32")]
-const _: () = assert!(core::mem::size_of::<Reassembler<4, 112>>() == 1080);
+const _: () = assert!(core::mem::size_of::<Reassembler<4, 112>>() == 1144);
