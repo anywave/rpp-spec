@@ -146,11 +146,20 @@ def installed_target(rustc, sysroot, env):
     return None
 
 
-def compile_probe(rustc, target, sysroot, work, env):
+def compile_probe(rustc, target, sysroot, work, env, probe=None):
+    probe = Path(PROBE if probe is None else probe).resolve()
+    output = (work / 'memory_probe.ll').resolve()
+    if not probe.is_file() or output == probe or output in probe.parents or probe in output.parents:
+        raise CheckError('probe source must exist and source/output paths must be disjoint')
+    try:
+        if output.exists() and output.samefile(probe):
+            raise CheckError('probe source and output must not be hardlink aliases')
+    except OSError as error:
+        raise CheckError('cannot establish probe source/output identity') from error
     library = work / 'target' / target / 'debug'
     command = rustc + (['--sysroot', str(sysroot)] if sysroot else [])
     command += ['--crate-name', 'rpp_readiness_layout', '--crate-type', 'lib',
-                '--edition', '2021', '--target', target, '--emit=llvm-ir', str(PROBE),
+                '--edition', '2021', '--target', target, '--emit=llvm-ir', str(probe),
                 '-o', str(work / 'memory_probe.ll'), '-L', 'dependency=' + str(library / 'deps')]
     for package in PACKAGES:
         name = package.replace('-', '_')
@@ -210,6 +219,7 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
         output = execute(command, env, timeout=180)
         probe_command, probe_output = compile_probe(rustc, target, sysroot, work, env)
         return {'status': 'PASS', 'target': target, 'reason': 'three no-default libraries and safe memory probe compiled offline',
+                'budget_status': 'PASS' if target == 'riscv32imc-unknown-none-elf' else 'NOT_RISCV',
                 'command': command, 'build_output': output,
                 'probe_command': probe_command, 'probe_output': probe_output}
     finally:

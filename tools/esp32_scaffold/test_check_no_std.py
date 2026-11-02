@@ -135,6 +135,7 @@ class NoStdCheckTests(unittest.TestCase):
         self.install(THUMB)
         result = self.check()
         self.assertEqual((result["status"], result["target"]), ("PASS", RISCV))
+        self.assertEqual(result["budget_status"], "PASS")
         self.assertEqual(len(self.builds()), 1)
         self.assertIn(RISCV, self.builds()[0][0])
 
@@ -150,6 +151,7 @@ class NoStdCheckTests(unittest.TestCase):
         self.install(THUMB)
         result = self.check()
         self.assertEqual((result["status"], result["target"]), ("PASS", THUMB))
+        self.assertEqual(result["budget_status"], "NOT_RISCV")
         self.assertIn(THUMB, self.builds()[0][0])
 
     def test_partial_or_malformed_target_is_failure_not_skip(self):
@@ -323,6 +325,44 @@ class NoStdCheckTests(unittest.TestCase):
         self.assertEqual(externs, expected)
         self.assertTrue(all(Path(value.split("=", 1)[1]).is_file() for value in externs))
         self.assertEqual(env, self.builds()[0][1])
+
+    def test_explicit_probe_output_alias_is_refused_before_compiler(self):
+        """Kills explicit_probe_output_alias_accepted, hardlink_alias_accepted and identity_error_ignored."""
+        probe = self.root / "external-probe/source.rs"
+        probe.parent.mkdir()
+        source = "#![no_std]\n// explicit probe café\n"
+        probe.write_text(source, encoding="utf-8", newline="\n")
+        self.work.mkdir()
+        original = Path.resolve
+
+        def redirected(path, *args, **kwargs):
+            return probe if path == self.work / "memory_probe.ll" else original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "resolve", autospec=True, side_effect=redirected):
+            with mock.patch.object(guard, "execute") as execute:
+                with self.assertRaises(guard.CheckError):
+                    guard.compile_probe(["rustc-fixture"], RISCV, None, self.work,
+                                        guard.environment(), probe=probe)
+                execute.assert_not_called()
+        self.assertEqual(probe.read_text(encoding="utf-8"), source)
+        self.assertEqual(probe.read_bytes(), source.encode("utf-8"))
+        output = self.work / "memory_probe.ll"
+        os.link(probe, output)
+        self.assertTrue(output.samefile(probe))
+        with mock.patch.object(guard, "execute") as execute:
+            with self.assertRaises(guard.CheckError):
+                guard.compile_probe(["rustc-fixture"], RISCV, None, self.work,
+                                    guard.environment(), probe=probe)
+            execute.assert_not_called()
+        self.assertEqual(probe.read_bytes(), source.encode("utf-8"))
+        with mock.patch.object(Path, "samefile", autospec=True, side_effect=OSError("identity unavailable")) as identity:
+            with mock.patch.object(guard, "execute") as execute:
+                with self.assertRaises(guard.CheckError):
+                    guard.compile_probe(["rustc-fixture"], RISCV, None, self.work,
+                                        guard.environment(), probe=probe)
+                execute.assert_not_called()
+            identity.assert_called_once_with(output, probe)
+        self.assertEqual(probe.read_bytes(), source.encode("utf-8"))
 
     def test_memory_probe_failure_cannot_report_pass_or_skip(self):
         """Kills swallowing a failed probe compilation after successful library compilation."""

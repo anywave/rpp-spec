@@ -87,6 +87,12 @@ jobs:
         working-directory: .
         run: python tools/esp32_scaffold/check_no_std.py
 
+      - name: Test required RISC-V reservation boundaries and overflow
+        working-directory: .
+        env:
+          PYTHONPATH: .
+        run: python -m tools.esp32_scaffold.test_memory_budget --require-riscv
+
       - name: Tool versions
         run: |
           rustc +1.85.1 --version
