@@ -18,7 +18,7 @@ class LiftTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name) / "rust"
+        self.root = Path(self.temp.name).resolve() / "rust"
         (self.root / "src").mkdir(parents=True)
         (self.root / "data.txt").write_text("fixture\n", encoding="utf-8")
         (self.root.parent / "spec").mkdir()
@@ -103,6 +103,21 @@ include_str!(r"../data.txt");'''
             return SimpleNamespace(st_mode=0, st_file_attributes=0x400) if path == alias else lstat(path)
         with mock.patch.object(Path, "lstat", reparse):
             self.assertTrue(any("junction" in error for error in lift.check(self.root)[1]))
+
+    def test_noncanonical_temporary_parent_aliases_do_not_break_guard_fixtures(self):
+        """Mutation: omit fixture-parent resolve; parent/.. models Windows short/long temp-path aliases."""
+        with tempfile.TemporaryDirectory() as temporary:
+            failures = []
+            for index, target in enumerate(("test_symlink_aliases_are_refused_even_when_the_target_is_internal",
+                                            "test_unreadable_directories_and_excluded_output_references_fail_closed")):
+                parent = Path(temporary) / str(index)
+                (parent / "alias").mkdir(parents=True)
+                fixture = SimpleNamespace(name=str(parent / "alias/.."), cleanup=lambda: None)
+                result = unittest.TestResult()
+                with mock.patch.object(tempfile, "TemporaryDirectory", return_value=fixture):
+                    LiftTests(target).run(result)
+                failures.extend(result.failures + result.errors)
+            self.assertFalse(failures, [case.id() for case, _ in failures])
 
     def test_empty_malformed_and_oversized_sources_fail_closed(self):
         """Mutation: empty input, malformed tokens or over-limit source returns a clean result."""
