@@ -51,7 +51,7 @@ pub struct UdpAdapter {
     counters: Counters,
     pending: VecDeque<Vec<u8>>,
     last_echo: Option<u64>,
-    last_probe: Option<Instant>,
+    last_echo_at: Option<Instant>,
     echo_window: Instant,
     echo_count: u32,
 }
@@ -78,7 +78,7 @@ impl UdpAdapter {
             counters: Counters::default(),
             pending: VecDeque::new(),
             last_echo: None,
-            last_probe: None,
+            last_echo_at: None,
             echo_window: Instant::now(),
             echo_count: 0,
         })
@@ -166,12 +166,11 @@ impl UdpAdapter {
         }
         let nonce = u64::from_be_bytes(wire[2..].try_into().expect("fixed probe length"));
         if self
-            .last_probe
+            .last_echo_at
             .is_some_and(|last| now.saturating_duration_since(last) >= Duration::from_secs(1))
         {
             self.last_echo = None;
         }
-        self.last_probe = Some(now);
         if now.saturating_duration_since(self.echo_window) >= Duration::from_secs(1) {
             self.echo_window = now;
             self.echo_count = 0;
@@ -180,6 +179,7 @@ impl UdpAdapter {
             self.counters.echo_limited = self.counters.echo_limited.saturating_add(1);
             return Ok(true);
         }
+        self.last_echo_at = Some(now);
         self.last_echo = Some(nonce);
         self.echo_count += 1;
         self.send(REPLY, &wire[2..])?;
@@ -214,13 +214,11 @@ impl UdpAdapter {
         }
         Ok(Some(Received::Data(wire[2..].to_vec())))
     }
-}
-impl LinkAdapter for UdpAdapter {
-    type Error = Error;
-    fn kind(&self) -> LinkKind {
-        self.config.kind
-    }
-    fn read(&mut self, tick: u64) -> Result<LinkReading, Error> {
+    fn read_with(
+        &mut self,
+        tick: u64,
+        mut next: impl FnMut(&mut Self) -> Result<Datagram, Error>,
+    ) -> Result<LinkReading, Error> {
         self.nonce = self.nonce.checked_add(1).ok_or(Error::NonceExhausted)?;
         let nonce = self.nonce.to_be_bytes();
         let start = Instant::now();
@@ -234,10 +232,9 @@ impl LinkAdapter for UdpAdapter {
                         break;
                     }
                     self.socket.set_read_timeout(Some(remaining))?;
-                    let wire = match self.datagram()? {
+                    let wire = match next(self)? {
                         Datagram::Packet(wire) => wire,
-                        Datagram::Dropped => continue,
-                        Datagram::Loss => break,
+                        Datagram::Dropped | Datagram::Loss => continue,
                     };
                     if wire.len() == PROBE_LEN && wire[1] == REPLY && wire[2..] == nonce {
                         sample =
@@ -262,6 +259,15 @@ impl LinkAdapter for UdpAdapter {
         restore?;
         result?;
         Ok(self.measurements.reading(tick))
+    }
+}
+impl LinkAdapter for UdpAdapter {
+    type Error = Error;
+    fn kind(&self) -> LinkKind {
+        self.config.kind
+    }
+    fn read(&mut self, tick: u64) -> Result<LinkReading, Error> {
+        self.read_with(tick, Self::datagram)
     }
     fn send_verified_control_frame(&mut self, frame: &VerifiedControlFrame) -> Result<(), Error> {
         self.send(CONTROL, &frame.encode())
@@ -308,6 +314,16 @@ mod tests {
         )
         .unwrap();
         (UdpAdapter::bind(config).unwrap(), peer)
+    }
+    fn reply_once(peer: &UdpSocket, malformed: usize) -> io::Result<()> {
+        let mut probe = [0; PROBE_LEN];
+        let (_, address) = peer.recv_from(&mut probe)?;
+        for _ in 0..malformed {
+            peer.send_to(&[255], address)?;
+        }
+        probe[1] = REPLY;
+        peer.send_to(&probe, address)?;
+        Ok(())
     }
     /// Mutation: parse a third socket before exact-peer filtering, including oversized packets.
     #[test]
@@ -374,7 +390,7 @@ mod tests {
         assert_eq!(adapter.counters().echo_limited, 1);
         assert!(peer.recv_from(&mut [0; 64]).is_err());
     }
-    /// Mutations: reject a restarted nonce after quiet time, or remove the quiet-gap reset.
+    /// Mutations: refused probes refresh the gap, or remove the accepted-echo quiet reset.
     #[test]
     fn restarted_prober_on_same_address_succeeds_after_quiet_gap() {
         let (mut responder, peer) = endpoint();
@@ -389,20 +405,34 @@ mod tests {
         .unwrap();
         drop(peer);
         let start = Instant::now();
-        for phase in 0..2 {
-            let mut client = UdpAdapter::bind(config).unwrap();
-            let worker = std::thread::spawn(move || client.read(phase));
+        let mut client = UdpAdapter::bind(config).unwrap();
+        client.nonce = 7;
+        let mut answered = false;
+        for phase in 0_u64..=8 {
+            let worker = std::thread::spawn(move || {
+                let result = client.read(phase);
+                (client, result)
+            });
             let wire = match responder.datagram().unwrap() {
                 Datagram::Packet(wire) => wire,
                 _ => panic!("loopback probe missing"),
             };
-            assert_eq!(&wire[2..], &1_u64.to_be_bytes());
-            responder
-                .internal_at(&wire, start + Duration::from_secs(phase))
-                .unwrap();
-            let reading = worker.join().expect("loopback worker").expect("probe I/O");
-            assert!(reading.available);
+            let at = start + Duration::from_millis(phase.saturating_sub(1) * 250);
+            responder.internal_at(&wire, at).unwrap();
+            let (returned, reading) = worker.join().expect("loopback worker");
+            client = returned;
+            let reading = reading.expect("probe I/O");
+            if phase == 0 {
+                assert!(reading.available);
+                drop(client);
+                client = UdpAdapter::bind(config).unwrap();
+            } else if reading.available {
+                answered = true;
+                break;
+            }
         }
+        assert!(answered);
+        assert!(start.elapsed() <= Duration::from_secs(2));
         assert_eq!(responder.counters().echoes, 2);
     }
     /// Mutation: restore the 32-packet budget so dropped packets create premature loss.
@@ -417,16 +447,7 @@ mod tests {
                 .send_to(&[VERSION, DATA], client.local_addr())
                 .unwrap();
         }
-        let worker = std::thread::spawn(move || -> io::Result<()> {
-            let mut probe = [0; PROBE_LEN];
-            let (_, address) = peer.recv_from(&mut probe)?;
-            for _ in 0..33 {
-                peer.send_to(&[255], address)?;
-            }
-            probe[1] = REPLY;
-            peer.send_to(&probe, address)?;
-            Ok(())
-        });
+        let worker = std::thread::spawn(move || reply_once(&peer, 33));
         let reading = client.read(1);
         worker.join().expect("loopback worker").expect("reply I/O");
         let reading = reading.expect("probe I/O");
@@ -436,6 +457,28 @@ mod tests {
             (client.counters().wrong_peer, client.counters().malformed),
             (33, 33)
         );
+    }
+    /// Mutation: break the pending read after a stale reset/refused notice instead of waiting.
+    #[test]
+    fn stale_reset_and_refused_notice_before_reply_does_not_create_loss() {
+        let (mut client, peer) = endpoint();
+        client.config.timeout = Duration::from_millis(250);
+        peer.set_read_timeout(Some(client.config.timeout)).unwrap();
+        let worker = std::thread::spawn(move || reply_once(&peer, 0));
+        let mut stale = [
+            io::ErrorKind::ConnectionReset,
+            io::ErrorKind::ConnectionRefused,
+        ]
+        .into_iter();
+        let reading = client.read_with(1, |adapter| match stale.next() {
+            Some(kind) => adapter.receive_error(kind.into()),
+            None => adapter.datagram(),
+        });
+        worker.join().expect("loopback worker").expect("reply I/O");
+        let reading = reading.expect("probe I/O");
+        assert!(reading.available);
+        assert_eq!(reading.loss_ppm, 0);
+        assert_eq!(client.counters().connection_resets, 1);
     }
     /// Mutation: propagate timeout or any listed network/ICMP error instead of packet loss.
     #[test]

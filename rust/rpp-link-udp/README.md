@@ -53,7 +53,7 @@ preserves fractional state and avoids unsigned delta overflow.
 Timeout, ConnectionReset/Refused/Aborted and HostUnreachable/NetworkUnreachable/
 NetworkDown resolve an outstanding probe as loss; idle receive drops them without
 inventing a probe (ConnectionReset alone increments its named counter). Other I/O
-errors propagate. Each read uses the remaining absolute deadline, including for
+errors propagate. Each read continues after stale loss notices until the absolute deadline, including
 foreign/malformed packets (nonzero, at most 250 ms), then restores its timeout. Scheduling can
 extend wall time. Four opaque application packets can wait for `receive`; queue
 overflow is counted. A probe never becomes application/control content.
@@ -61,9 +61,9 @@ overflow is counted. A probe never becomes application/control content.
 Echo is inspired by BFD echo [RFC 5880](https://www.rfc-editor.org/rfc/rfc5880)
 and [RFC 5881](https://www.rfc-editor.org/rfc/rfc5881), not BFD wire compatibility.
 Only exact-peer, 10-byte probes get a same-size reply. Nonces increase within an
-active episode; one second without an exact-peer, correctly-sized probe resets
-nonce state, allowing a same-address prober to restart. Rejected duplicate probes
-also restart the quiet timer; the independent 32-reply/second limit remains.
+active episode; one second since the last accepted echo attempt resets nonce
+state, allowing a same-address prober to restart. Refused probes do not refresh
+that timer; the independent 32-reply/second limit remains.
 There is no amplification, outside-source reflection or automatic consent.
 [Jitter reference: RFC 3550 §6.4.1 / A.8](https://www.rfc-editor.org/rfc/rfc3550#appendix-A.8).
 

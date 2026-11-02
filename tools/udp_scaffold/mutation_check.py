@@ -44,6 +44,9 @@ CASES = (
     ("loss-NetworkDown", UDP+"socket.rs", "            | io::ErrorKind::NetworkDown\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
     ("loss-ConnectionAborted", UDP+"socket.rs", "            | io::ErrorKind::ConnectionAborted\n", "", ("--lib", "socket::tests::connection_reset_and_timeouts_are_packet_loss_not_errors"), JITTER),
 
+    ("refused-refreshes-gap", UDP+"socket.rs", "        if self.last_echo.is_some_and(|last| nonce <= last)", "        self.last_echo_at = Some(now);\n        if self.last_echo.is_some_and(|last| nonce <= last)", ("--lib", "socket::tests::restarted_prober_on_same_address_succeeds_after_quiet_gap"), JITTER),
+    ("stale-notice-ends-probe", UDP+"socket.rs", "Datagram::Dropped | Datagram::Loss => continue,", "Datagram::Dropped => continue,\n                        Datagram::Loss => break,", ("--lib", "socket::tests::stale_reset_and_refused_notice_before_reply_does_not_create_loss"), JITTER),
+
 )
 
 
