@@ -15,4 +15,3 @@ rust/rpp-billboard/tests/data/** -text
 
 # CX-021 local small-MTU vectors are exact-byte evidence.
 rust/rpp-frag/tests/data/** -text
-tools/fuzz_scaffold/seeds/** -text
