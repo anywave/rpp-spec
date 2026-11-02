@@ -12,6 +12,18 @@ use std::{
     time::{Duration, Instant},
 };
 
+fn fixture_peer_allowed(peer: SocketAddr) -> bool {
+    peer.ip().is_loopback()
+}
+/// Failing mutation: raw_fixture_accepts_nonloopback_source; no socket is opened here.
+#[test]
+fn fixture_refuses_nonloopback_sources_without_network_io() {
+    assert!(fixture_peer_allowed("127.0.0.1:9000".parse().unwrap()));
+    assert!(fixture_peer_allowed("[::1]:9000".parse().unwrap()));
+    assert!(!fixture_peer_allowed("192.0.2.1:9000".parse().unwrap()));
+    assert!(!fixture_peer_allowed("100.64.0.1:9000".parse().unwrap()));
+}
+
 struct Responder {
     address: SocketAddr,
     stop: Arc<AtomicBool>,
@@ -20,6 +32,9 @@ struct Responder {
 impl Responder {
     fn start(drops: &'static [u64]) -> Self {
         let socket = UdpSocket::bind("127.0.0.1:0").expect("loopback bind I/O");
+        socket
+            .set_write_timeout(Some(Duration::from_millis(10)))
+            .expect("bounded fixture write I/O");
         let address = socket.local_addr().expect("loopback address I/O");
         let stop = Arc::new(AtomicBool::new(false));
         let flag = Arc::clone(&stop);
@@ -48,6 +63,9 @@ impl Responder {
                     }
                     Err(error) => return Err(error),
                 };
+                if !fixture_peer_allowed(peer) {
+                    continue;
+                }
                 if size != 10 || bytes[..2] != [1, 1] {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,

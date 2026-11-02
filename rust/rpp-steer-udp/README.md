@@ -9,7 +9,7 @@ trust, and consent remain prerequisites on every candidate.
 | Selector input | Source |
 | --- | --- |
 | RTT, loss, jitter, availability, observed tick | Unchanged UDP `LinkReading` |
-| MTU | `MAX_DATA_LEN=1198`, configured atomic payload ceiling; not PMTU discovery |
+| MTU | `MAX_DATA_LEN = 1198`, configured atomic payload ceiling; not PMTU discovery |
 | Throughput, cost, link ID | Explicit caller input; not inferred from RTT/loss |
 | Hold and margins | Explicit existing `Hysteresis`; no defaults |
 
@@ -20,16 +20,16 @@ and billboard candidates bypass this bulk gate; their existing selector rules
 still apply. Withheld candidates retain their raw availability in observations.
 Loss bands do not alter the core ranking or its hold/margin rules.
 
-A decision batch contains 1..32 probes per endpoint and at most64 total, evaluated
+A decision batch contains 1..32 probes per endpoint and at most 64 total, evaluated
 once using each final reading. Invalid policies, endpoints, counts, empty payloads,
 and clock rollback fail before probe I/O. Accepted batches commit wrapper state;
 a later I/O failure can leave physical UDP history changed, without committing
 wrapper selection/gate/clock state. Callers control batch frequency and duration.
 
-The test fixture uses two real IPv4 loopback peers. A drops probes3,6,7 and echoes
-others; B echoes. At A counts2,4,8,10,31,32 the measured loss is respectively
-0,250000,375000,300000,96774,93750 ppm. Fixed **scripted**, independently supplied
-capacities1000/800, hold3, margin100, and bands100000/300000 produce
+The test fixture uses two real IPv4 loopback peers. A drops probes 3, 6, 7 and echoes
+others; B echoes. At A counts 2, 4, 8, 10, 31, 32 the measured loss is respectively
+0, 250000, 375000, 300000, 96774, 93750 ppm. Fixed **scripted**, independently supplied
+capacities 1000/800, hold 3, margin 100, and bands 100000/300000 produce
 A Initial, A Best, B Ineligible, B Best, B Hold, A Improved. Both final readings
 remain available. RTT/jitter vary and are excluded from deterministic assertions.
 These fixtures simulate loss, capacity, and logical ticks; no LAN is contacted.
@@ -37,7 +37,7 @@ These fixtures simulate loss, capacity, and logical ticks; no LAN is contacted.
 The checkout is based on CX-023; its UDP dependency is not present until PR#30
 merges. Normal relative path dependencies deliberately make standalone builds
 and the lift check fail there. Local evidence uses an outside exact Git-blob
-snapshot of this tree plus UDP core36c5adec, sharing one `rpp-link` crate identity.
+snapshot of this tree plus UDP core 36c5adec, sharing one `rpp-link` crate identity.
 No dependency source is copied into this product tree. After integration, run:
 
 ```text
