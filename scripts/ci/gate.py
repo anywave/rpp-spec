@@ -165,30 +165,51 @@ def novel_merge_records(commit):
     records = {}
     for header, path in zip(raw[::2], raw[1::2]):
         fields = header.split()
-        if len(fields) != 7 or not fields[0].startswith(b'::') or not path or path in records:
+        if not re.fullmatch(rb'::[0-7]{6} [0-7]{6} [0-7]{6}(?: [0-9a-f]{40}){3} [ADMT]{2}', header) or not path or path in records:
             raise ValueError('unsupported combined raw record')
         path.decode('utf-8')  # Never replace invalid bytes in a path identity.
         modes = [fields[0][2:], fields[1], fields[2]]
         records[path] = [0, 0, False, all(mode != modes[2] for mode in modes[:2])]
     current, active = None, False
-    patch = git_bytes('-c', 'core.quotePath=true', 'show', '--cc', '--format=', '--unified=0', '--no-ext-diff', '--no-textconv', '--no-color', '--no-renames', commit)
+    exclusive = [0, 0]
+    def finish_deletion_run():
+        # Pair private deletions only within one contiguous removed run.
+        if current is not None and all(exclusive):
+            current[1] += max(exclusive)
+        exclusive[:] = [0, 0]
+    patch = git_bytes('-c', 'diff.suppressBlankEmpty=false', '-c', 'core.quotePath=true', 'show', '--cc', '--format=', '--unified=1', '--no-ext-diff', '--no-textconv', '--no-color', '--no-renames', commit)
     for line in patch.split(b'\n'):
         if line.startswith(b'diff --cc '):
+            finish_deletion_run()
             value = line[len(b'diff --cc '):]
-            path = ast.literal_eval('b' + value.decode('ascii')) if value.startswith(b'"') else value
+            try:
+                path = ast.literal_eval('b' + value.decode('ascii')) if value.startswith(b'"') else value
+            except (ValueError, SyntaxError) as error:
+                raise ValueError('unsupported combined path quoting') from error
             if not isinstance(path, bytes) or path not in records:
                 raise ValueError('combined patch path differs from raw inventory')
             current, active = records[path], False
         elif line.startswith(b'@@@ '):
+            finish_deletion_run()
             if current is None or not re.fullmatch(rb'@@@ -\d+(?:,\d+)? -\d+(?:,\d+)? \+\d+(?:,\d+)? @@@(?: .*)?', line):
                 raise ValueError('unsupported combined hunk')
             active = True
         elif current is not None and not active and line.startswith(b'Binary files '):
             current[2] = True
         elif active and line.startswith(b'++'):
+            finish_deletion_run()
             current[0] += 1
         elif active and line.startswith(b'--'):
             current[1] += 1
+        elif active and line.startswith(b'- '):
+            exclusive[0] += 1
+        elif active and line.startswith(b' -'):
+            exclusive[1] += 1
+        elif active and line[:2] in {b'  ', b' +', b'+ '}:
+            finish_deletion_run()
+        elif active and line and not line.startswith(b'\\ No newline') and line[:2] not in {b'  ', b' +', b'+ '}:
+            raise ValueError('unsupported combined row')
+    finish_deletion_run()
     return [(('-' if binary else str(added)), ('-' if binary else str(deleted)), path.decode('utf-8'))
             for path, (added, deleted, binary, mode) in records.items() if added or deleted or binary or mode]
 
