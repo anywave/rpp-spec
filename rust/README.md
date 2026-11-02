@@ -7,6 +7,10 @@ workspace pins Rust **1.85.1** and commits its lockfile.
 CX-008 adds the unpublished `rpp-control` fixed-frame codec and `rpp-link`
 adapter interface crates to this workspace. [ESP32 adapter guidance](ESP32.md)
 describes their features, host simulation, provisional frame and board gaps.
+CX-020 adds `rpp-billboard`: borrowed heap-free decoding, checked encoding into
+caller buffers, and optional `alloc` conversion to existing core billboards.
+Its literal verifier fixtures implement no cryptography. The informative wire
+proposal remains [unapplied](../docs/design/BILLBOARD_WIRE_PROPOSAL.diff).
 The module and Python-parity details below describe `rpp-core`.
 
 CX-010 adds the unpublished `rpp-fleet` crate: explicit proposed address
@@ -16,7 +20,8 @@ policy. [Fleet guidance](FLEET.md) describes assignment and adapter boundaries.
 `rpp-link` simulation helpers require the explicit, non-default `sim` feature.
 Default features and `std` alone do not expose `rpp_link::simulated`, including
 `verified_fixture` and its assumed-verification fixture. Enable host simulation
-with `--features rpp-link/sim`; this also enables `std`. Actual downstream
+with `--features rpp-link/sim`; this also enables `std` and the optional
+`rpp-frag` dependency. Default and bare consumers do not activate `rpp-frag`. Actual downstream
 compile probes check that default and no-default-feature consumers cannot name
 the helper. The fixture is development support, not a production verifier.
 
@@ -137,10 +142,12 @@ Set `PYTHONPATH` to this checkout when invoking the address scaffold directly.
 The scaffold executes the unchanged Python address reference with explicit
 seeds 0 and 1. It is outside the Rust crate and is not shipped in its package.
 Rust final builds/tests consume committed data and require no Python. The
-CI checker regenerates all twelve committed oracle files into temporary scratch
+CI checker regenerates all seventeen committed oracle files into temporary scratch
 directories: the three address TSVs and address manifest, three overlay scenario
-artifacts, the control TSV and control manifest, and the fleet scenario TSV,
-Markdown and manifest. It compares every byte, including all three manifests, and never rewrites committed evidence. Exit 0 means
+artifacts, the control TSV and control manifest, the fleet scenario TSV,
+Markdown and manifest, the billboard TSV, field snapshot and manifest, and the
+fragment TSV and manifest. It compares every byte, including all five manifests,
+and never rewrites committed evidence. Exit 0 means
 fresh; exit 1 means stale/missing/different data; exit 2 means an incomplete
 check or incompatible reference engine. No metadata difference is ignored.
 CI also runs the freshness guard's regressions for changed rows/manifests,

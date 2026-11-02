@@ -1,4 +1,4 @@
-"""Execute seven bounded control-codec and adapter mutants in Rust copies.
+"""Execute sixteen bounded billboard/control-codec and adapter mutants in Rust copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -37,6 +37,7 @@ class Mutation:
     after: str
     positive: Test
     clean: Test
+    extra_patches: tuple[tuple[str, str, str], ...] = ()
 
 
 MUTATIONS = (
@@ -85,7 +86,79 @@ MUTATIONS = (
         '#[cfg(feature = "sim")]\npub mod simulated;', '#[cfg(feature = "std")]\npub mod simulated;',
         Test("feature_visibility", "production_consumers_cannot_import_simulation_fixture"),
         Test("adapter", "valid_data_dispatch_succeeds"),
+        # Only the disposable mutant enables frag under std. This keeps the
+        # cfg-leak counterfactual compilable without weakening production sim.
+        (("rpp-link/Cargo.toml",
+          'std = ["alloc", "rpp-core/std", "rpp-billboard/std"]',
+          'std = ["alloc", "rpp-core/std", "rpp-billboard/std", "dep:rpp-frag"]'),),
     ),
+    Mutation(
+        'billboard_trailing', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if input.len() > total {',
+        'if false && input.len() > total {',
+        Test("codec", 'trailing_byte_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_equal_interval', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if fields.since >= fields.until {',
+        'if fields.since > fields.until {',
+        Test("codec", 'empty_interval_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_escape_fact', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        'if false && !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        Test("codec", 'fact_escape_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_bidi_fact', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        'if false && !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        Test("codec", 'fact_bidi_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_fact_257', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'fields.fact.len() > 256',
+        'fields.fact.len() > 257',
+        Test("codec", 'fact_257_bytes_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_receipt_slash', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'b"-_.".contains(&byte)',
+        'b"-_./".contains(&byte)',
+        Test("codec", 'receipt_slash_is_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_unknown_kind', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'other => return Err(Error::UnknownKind(other)),',
+        'other => { let _ = other; Kind::Fact },',
+        Test("codec", 'kind_three_and_unknown_version_are_rejected'),
+        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+    ),
+    Mutation(
+        'billboard_verifier_bypass', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if !verifier.verify(issuer, signing, signature) {',
+        'if false && !verifier.verify(issuer, signing, signature) {',
+        Test("codec", 'verifier_refusal_is_required_and_encoding_is_atomic'),
+        Test("codec", 'fact_escape_is_rejected'),
+    ),
+    Mutation(
+        'billboard_issuer_unbound', "rpp-billboard", "rpp-billboard/src/lib.rs",
+        'if !verifier.verify(issuer, signing, signature) {',
+        'let mut issuerless = [0; MAX_FRAME_LEN];\n'
+        '    issuerless[..HEADER_LEN].copy_from_slice(&signing[..HEADER_LEN]);\n'
+        '    issuerless[HEADER_LEN..end - issuer_len].copy_from_slice(&signing[HEADER_LEN + issuer_len..]);\n'
+        '    if !verifier.verify(issuer, &issuerless[..end - issuer_len], signature) {',
+        Test("codec", 'issuer_is_bound_into_signing_bytes'),
+        Test("codec", 'fact_escape_is_rejected'),
+    ),
+
 )
 
 
@@ -190,8 +263,8 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
-    if len(MUTATIONS) != 7:
-        raise RuntimeError("four codec mutations and three adapter/feature mutations must be configured")
+    if len(MUTATIONS) != 16:
+        raise RuntimeError("sixteen control/adapter/billboard mutations must be configured")
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name
@@ -215,6 +288,17 @@ def main():
             raise RuntimeError(f"baseline test failed for {mutation.name}; inspect {case}")
         changed = original.replace(mutation.before, mutation.after, 1)
         path.write_text(changed, encoding="utf-8", newline="\n")
+        extra_evidence = []
+        for source, before, after in mutation.extra_patches:
+            extra_path = workspace / source
+            extra_original = extra_path.read_text(encoding="utf-8")
+            if extra_original.count(before) != 1:
+                raise RuntimeError(f"stale extra source anchor for {mutation.name}: {source}")
+            extra_changed = extra_original.replace(before, after, 1)
+            extra_path.write_text(extra_changed, encoding="utf-8", newline="\n")
+            extra_evidence.append({"source": source,
+                                   "original_sha256": sha256(extra_original.encode("utf-8")).hexdigest(),
+                                   "mutated_sha256": sha256(extra_changed.encode("utf-8")).hexdigest()})
         result = run_test(args, workspace, "mutant", mutation.package, mutation.positive, environment, case / "mutant-target")
         if not assertion_failure(result, mutation.positive):
             raise RuntimeError(f"{mutation.name} survived or failed without the required assertion; inspect {case}")
@@ -226,9 +310,12 @@ def main():
                          "mutated_sha256": sha256(changed.encode("utf-8")).hexdigest(),
                          "positive_test": mutation.positive.name, "clean_test": mutation.clean.name,
                          "positive_features": list(mutation.positive.features),
-                         "clean_features": list(mutation.clean.features),
+                         "clean_features": list(mutation.clean.features), "extra_patches": extra_evidence,
                          "baseline_passed": True, "assertion_failed": True, "clean_control_passed": True})
-        print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass")
+        print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass", flush=True)
+        # Drop only owned completed build products; retain source copies and logs.
+        for target_name in ("baseline-target", "mutant-target"):
+            shutil.rmtree(case / target_name)
     summary = {"toolchain": tools, "mutants": evidence, "killed": len(evidence), "survived": 0,
                "baseline_controls_passed": len(evidence), "clean_controls_passed": len(evidence),
                "controls_failed": 0, "nonassertion_classifier_controls_rejected": rejected}

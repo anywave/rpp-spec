@@ -41,7 +41,7 @@ fn board(since: i128, until: i128) -> Billboard {
 
 #[test]
 fn adapter_driven_scenarios_match_three_python_artifacts() {
-    // Mutation adapter-bypass/changed-reading: selection and delivery must preserve every Python scenario byte and deterministic reruns.
+    // Mutation adapter-bypass/changed-reading/scenario-BLE-bypass: selection and delivery must preserve every Python scenario byte and deterministic reruns.
     let actual = simulated::artifacts();
     assert_eq!(
         actual.csv,
@@ -61,6 +61,7 @@ fn adapter_driven_scenarios_match_three_python_artifacts() {
     assert_eq!(trace.run.rows.iter().map(|r| r.request).max(), Some(16));
     assert!(trace.audit.readings > 16);
     assert_eq!(trace.audit.control_hops, 2);
+    assert_eq!(trace.audit.control_fragments, 8);
     assert_eq!(trace.audit.attempts.len(), 8);
     assert_eq!(trace.audit.data_hops, 11);
 }
@@ -186,6 +187,7 @@ fn verified_control_still_needs_known_independent_tunnel_and_current_consent() {
         Status::Ok
     );
     assert!(matches!(bt[0].sent(), [SendRecord::Control { .. }]));
+    assert_eq!(bt[0].ble_fragment_count(), 8);
     assert_eq!(
         host.send_verified_control(0, &frame, &mut bt, &data)
             .unwrap()
@@ -216,6 +218,36 @@ fn accepted_future_billboard_uses_data_but_replay_and_expired_do_not_send() {
     );
     assert_eq!(adapters[0].sent().len(), 1);
     assert!(expired[0].sent().is_empty());
+}
+
+#[test]
+fn billboard_data_contains_real_verified_wire_fields() {
+    // Failing mutation opaque-billboard-placeholder: replace the encoded bytes with a dummy payload.
+    struct Exact<'a>(&'a [u8]);
+    impl rpp_billboard::Verifier for Exact<'_> {
+        fn verify(
+            &self,
+            issuer: &str,
+            signing: &[u8],
+            signature: &rpp_billboard::Signature,
+        ) -> bool {
+            issuer == "A" && signing == &self.0[..self.0.len() - 64] && signature == &[0x6b; 64]
+        }
+    }
+    let mut host = bridge();
+    let board = board(0, 2);
+    let mut adapters = [lan(0)];
+    assert_eq!(
+        host.send_billboard(0, &board, &mut adapters)
+            .unwrap()
+            .status,
+        Status::Delivered
+    );
+    let bytes = &adapters[0].data_payloads()[0];
+    assert!(bytes.starts_with(b"RPPB"));
+    let decoded = rpp_billboard::decode(bytes, &Exact(bytes));
+    assert!(decoded.is_ok());
+    assert_eq!(decoded.unwrap().to_core(), board);
 }
 #[test]
 fn unsupported_billboard_failure_fixture_fails_before_storage_or_dispatch() {
