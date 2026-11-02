@@ -84,7 +84,8 @@ fn offset_plus_length_beyond_total_is_rejected_before_any_copy() {
     let mut r = Reassembler::<1, 112>::new(10).unwrap();
     let v = verifier();
     let mut f = fragments(1)[0].clone();
-    f[4] = 111;
+    f[1] = 100;
+    f[4] = 95;
     assert_eq!(push(&mut r, &f, 0, &v), Err(Error::OutOfBounds));
     f[1] = 113;
     assert_eq!(push(&mut r, &f, 0, &v), Err(Error::TooLarge));
