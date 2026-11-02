@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "rpp-billboard"
+version = "0.1.0"
+dependencies = [
+ "rpp-core",
+]
+
+[[package]]
 name = "rpp-control"
 version = "0.1.0"
 
@@ -23,6 +30,7 @@ dependencies = [
 name = "rpp-link"
 version = "0.1.0"
 dependencies = [
+ "rpp-billboard",
  "rpp-control",
  "rpp-core",
 ]

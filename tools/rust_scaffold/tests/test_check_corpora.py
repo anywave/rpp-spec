@@ -23,7 +23,7 @@ class CorpusFreshnessTests(unittest.TestCase):
         shutil.copytree(REPO / "rpp", self.repo / "rpp", ignore=shutil.ignore_patterns("__pycache__"))
         for relative in ("tools/rust_scaffold", "tools/esp32_scaffold", "tools/overlay_sim", "tools/fleet_scaffold"):
             shutil.copytree(REPO / relative, self.repo / relative, ignore=shutil.ignore_patterns("__pycache__"))
-        for relative in ("rust/rpp-core/tests/data", "rust/rpp-control/tests/data", "rust/rpp-fleet/tests/data"):
+        for relative in ("rust/rpp-core/tests/data", "rust/rpp-control/tests/data", "rust/rpp-fleet/tests/data", "rust/rpp-billboard/tests/data"):
             shutil.copytree(REPO / relative, self.repo / relative)
         # Fleet boundary provenance hashes these two existing producer contracts.
         for relative in ("rust/rpp-fleet/src/endpoint.rs", "rust/rpp-fleet/src/resolver.rs"):
@@ -31,15 +31,16 @@ class CorpusFreshnessTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(REPO / relative, target)
 
-    def test_fresh_and_edited_oracle_rows_in_all_four_groups(self):
-        """Mutation witnesses: change one saved address/control/overlay/fleet row byte."""
+    def test_fresh_and_edited_oracle_rows_in_all_five_groups(self):
+        """Mutation witnesses: change one saved address/control/overlay/fleet/billboard row byte."""
         fresh = check_corpora.check(self.repo)
         self.assertTrue(fresh.fresh)
-        self.assertEqual(fresh.checked, 12)
+        self.assertEqual(fresh.checked, 15)
         for relative in ("rust/rpp-core/tests/data/address-construct.tsv",
                          "rust/rpp-core/tests/data/overlay-scenarios.csv",
                          "rust/rpp-control/tests/data/control-corpus.tsv",
-                         "rust/rpp-fleet/tests/data/fleet-scenarios.tsv"):
+                         "rust/rpp-fleet/tests/data/fleet-scenarios.tsv",
+                         "rust/rpp-billboard/tests/data/billboard-corpus.tsv"):
             path = self.repo / relative
             original = path.read_bytes()
             changed = bytearray(original)
