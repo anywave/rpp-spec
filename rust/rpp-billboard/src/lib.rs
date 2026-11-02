@@ -126,13 +126,23 @@ pub fn signing_bytes(fields: Fields<'_>, issuer: &str, output: &mut [u8]) -> Res
     write_fields(fields, issuer, output, None)
 }
 
-pub fn encode(
+/// Require the same caller verification as decode before emitting a frame.
+/// All errors leave the caller's output unchanged. This performs no signing.
+pub fn encode<V: Verifier + ?Sized>(
     fields: Fields<'_>,
     issuer: &str,
     signature: &Signature,
     output: &mut [u8],
+    verifier: &V,
 ) -> Result<usize, Error> {
-    write_fields(fields, issuer, output, Some(signature))
+    let mut frame = [0; MAX_FRAME_LEN];
+    let size = write_fields(fields, issuer, &mut frame, Some(signature))?;
+    if output.len() < size {
+        return Err(Error::BufferTooSmall);
+    }
+    decode(&frame[..size], verifier)?;
+    output[..size].copy_from_slice(&frame[..size]);
+    Ok(size)
 }
 
 pub trait Verifier {
