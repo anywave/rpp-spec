@@ -46,3 +46,16 @@ fn invalid_limits_and_short_buffer_do_not_advance_cursor() {
     assert_eq!(fragmenter.write_next(&mut output), Ok(Some(20)));
     assert_eq!(output[4], 0);
 }
+
+#[test]
+fn constructors_reject_empty_or_oversize_datagrams() {
+    // Mutation empty/oversize-accepted: rejected before any output buffer exists.
+    assert!(matches!(
+        Fragmenter::<112>::new(&[], 0, 20),
+        Err(Error::InvalidHeader)
+    ));
+    assert!(matches!(
+        Fragmenter::<112>::new(&[0; 113], 0, 20),
+        Err(Error::TooLarge)
+    ));
+}

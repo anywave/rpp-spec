@@ -143,3 +143,5 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
 
 // Cross-target budget gate; the report also records the exact riscv32 size.
 const _: () = assert!(core::mem::size_of::<Reassembler<4, 112>>() <= 1200);
+#[cfg(target_arch = "riscv32")]
+const _: () = assert!(core::mem::size_of::<Reassembler<4, 112>>() == 1080);

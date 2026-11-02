@@ -273,6 +273,9 @@ memory limits, and test actual failure domains and send outcomes. Firmware must
 also select its own runtime, linker/startup configuration and any required
 allocator. The codec receives complete frames: a transport whose MTU cannot
 carry 112 bytes at once needs bounded fragmentation/reassembly before decoding.
-No transport fragmentation format is implemented or selected here.
+The experimental `rpp-frag` crate now supplies bounded control-only local
+framing for default-MTU GATT notifications and LoRa; see
+[SMALL_MTU_FRAMING.md](../docs/design/SMALL_MTU_FRAMING.md). Underlays that
+already segment use their own facility. No board adapter is selected.
 These choices require integration evidence before any deployment or
 interoperability claim; this groundwork does not make them on RADIX's behalf.
