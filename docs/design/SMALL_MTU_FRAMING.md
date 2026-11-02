@@ -47,12 +47,21 @@ Fragments can arrive out of order. Preflight bounds and every conflicting byte
 before writing. Identical duplicate bytes change neither coverage, the remembered tick nor
 the original deadline. Completion requires all bytes, then decoding clears the slot
 on success or failure. No unchecked completed-byte API exists. Decoding does not
-provide replay protection; tag reuse and sequence policy remain host duties.
+provide host replay protection; tag reuse and sequence policy remain host duties.
+A verified completion retains its peer/tag until the original deadline in a
+FIFO cache of exactly two keys. A retained late key returns `RecentlyCompleted`
+without opening a slot or invoking the verifier; duplicates do not extend its
+lifetime or reorder FIFO. Failed verification never populates this cache. A third
+verified completion evicts the oldest key; this is bounded suppression only.
 
 Deadlines are half-open: `tick >= start + timeout` is expired. Checked deadline
 addition rejects overflow. A matching expired key is cleared and returns
-`Expired`; unrelated expired slots can be reclaimed for a new key. Rejected
-clock rollback changes nothing. Other rejected fragments do not change coverage.
+`Expired`. Empty slots take priority. Reclaiming an unrelated expired slot first
+returns `ExpiredKey { peer, tag }` naming the old key, without consuming incoming
+bytes. Handle that event, then retry the identical fragment locally once; the
+freed empty slot makes this bounded. No expiry queue can overflow or lose events.
+Rejected clock rollback changes nothing; malformed input cannot clear a slot or
+advance its clock. Other rejected fragments do not change coverage.
 No wall clock, allocation, thread, network, retry, acknowledgment or integrity
 algorithm is introduced. Authentication remains the complete envelope verifier.
 

@@ -357,3 +357,37 @@ fn core_valid_unencodable_billboards_are_refused() {
     assert!(board.valid());
     assert_eq!(Fields::from_core(&board), Err(Error::TimeOutOfRange));
 }
+
+/// Mutation: logical identifier/fact validation precedes a later field's invalid UTF-8.
+#[test]
+fn cross_field_first_errors_follow_utf8_phase_before_logical_bounds() {
+    let mut fact = raw(
+        Fields {
+            fact: "x",
+            ..fields()
+        },
+        "",
+    );
+    fact[30] = 0xff;
+    refusal(&fact, Error::InvalidFact);
+    let mut receipt = raw(
+        Fields {
+            fact: "\x1b",
+            receipt: "x",
+            ..fields()
+        },
+        "A",
+    );
+    receipt[32] = 0xff;
+    refusal(&receipt, Error::InvalidReceipt);
+    refusal(
+        &raw(
+            Fields {
+                fact: "\x1b",
+                ..fields()
+            },
+            "",
+        ),
+        Error::InvalidIdentifier,
+    );
+}

@@ -1,4 +1,4 @@
-"""Execute twelve bounded fragmentation counterfactuals in disposable Rust copies.
+"""Execute sixteen bounded fragmentation counterfactuals in disposable Rust copies.
 
 Only the named test's assertion panic counts; compilation and arbitrary panic
 failures are tool errors. Baseline and unaffected mutated controls must pass.
@@ -41,7 +41,7 @@ MUTATIONS = (
              "duplicates_do_not_count_twice_or_complete_without_last_fragment"),
     mutation("timeout_never_fires", "if tick >= self.slots[index].deadline {", "if false {",
              "timeout_is_half_open_and_duplicates_never_refresh_deadline"),
-    mutation("slots_full_evicts", ".ok_or(Error::SlotsFull)?", ".unwrap_or(0)",
+    mutation("slots_full_evicts", "return Err(Error::SlotsFull);", "0",
              "slots_full_refuses_new_tag_without_eviction"),
     mutation("peer_key_omitted", "s.active && s.peer == peer && s.tag == tag", "s.active && s.tag == tag",
              "two_peers_with_same_tag_never_merge_coverage"),
@@ -56,6 +56,15 @@ MUTATIONS = (
              "Err(Error::DataUnsupported)", "Ok(DataOutcome::Sent)",
              Test("ble", "data_over_simulated_ble_is_refused_without_fragments", ("sim",)),
              Test("ble", "simulated_ble_fragments_control_at_mtu20_and_decodes_again", ("sim",))),
+    mutation("recent_cache_omitted", "return Err(Error::RecentlyCompleted);", "",
+             "completed_duplicates_do_not_reopen_or_extend_original_deadline"),
+    mutation("failed_verify_cached", "if result.is_ok() {", "if true {",
+             "failed_verification_does_not_poison_completion_cache"),
+    mutation("expiry_silently_reclaimed", "return Err(Error::ExpiredKey { peer, tag });", "expired",
+             "expired_old_key_is_observable_and_one_identical_retry_accepts"),
+    mutation("fifo_old_key_lost", "self.completed[0] = self.completed[1];", "",
+             "completion_cache_is_fifo_two_keys_and_peer_scoped"),
+
 )
 
 
