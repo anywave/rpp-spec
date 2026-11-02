@@ -77,6 +77,29 @@ jobs:
       - name: Install pinned Rust and check components
         run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
+      - name: Fetch locked property-test dependencies (read only)
+        working-directory: .
+        env:
+          CARGO_NET_OFFLINE: "false"
+        run: cargo +1.85.1 fetch --manifest-path tools/fuzz_scaffold/Cargo.toml --locked
+
+      - name: Run bounded properties on every host profile
+        working-directory: .
+        run: |
+          cargo +1.85.1 test --manifest-path tools/fuzz_scaffold/Cargo.toml --offline --locked
+          cargo +1.85.1 fmt --manifest-path tools/fuzz_scaffold/Cargo.toml --all --check
+          cargo +1.85.1 clippy --manifest-path tools/fuzz_scaffold/Cargo.toml --all-targets --offline --locked -- -D warnings
+          python -m unittest tools.fuzz_scaffold.test_smoke tools.esp32_scaffold.test_billboard_errors
+
+      - name: Compile fuzz target interfaces without claiming coverage
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: cargo +1.85.1 check --manifest-path tools/fuzz_scaffold/Cargo.toml --features fuzzing --bins --offline --locked
+
+      - name: Optional preinstalled nightly fuzz smoke (60 seconds)
+        working-directory: .
+        run: python tools/fuzz_scaffold/smoke.py --output-dir "${{ runner.temp }}/rpp-fuzz-smoke"
+
       - name: Test billboard error precedence repairs
         working-directory: .
         run: python -m unittest tools.esp32_scaffold.test_billboard_errors -v
