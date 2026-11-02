@@ -172,3 +172,5 @@ This library does not promote the overall coherence/sector verdict, adopt an
 informative network proposal as deployed behavior, provision keys or grant
 consent. Existing specification, Python runtime, header, vectors and constants
 remain unchanged.
+
+The experimental std-only `rpp-link-udp` adapter performs real loopback/tailnet UDP I/O; see [its limits and live example](rpp-link-udp/README.md). The existing `rpp-link` crate still contains no network driver. Both riscv32 workspace builds exclude it with `--exclude rpp-link-udp`; it is not firmware.
