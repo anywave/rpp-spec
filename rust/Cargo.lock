@@ -26,3 +26,13 @@ dependencies = [
  "rpp-control",
  "rpp-core",
 ]
+
+[[package]]
+name = "rpp-link-udp"
+version = "0.1.0"
+dependencies = [
+ "rpp-control",
+ "rpp-core",
+ "rpp-fleet",
+ "rpp-link",
+]
