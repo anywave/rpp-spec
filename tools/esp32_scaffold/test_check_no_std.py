@@ -36,6 +36,7 @@ class NoStdCheckTests(unittest.TestCase):
         self.rust_version = "rustc 1.85.1 (fixture)\n"
         self.cargo_version = "cargo 1.85.1 (fixture)\n"
         self.build_error = None
+        self.probe_error = None
         self.probe_override = None
         self.work = self.root / "scratch"
 
@@ -55,8 +56,17 @@ class NoStdCheckTests(unittest.TestCase):
                 return self.probe_override
             target = command[command.index("--target") + 1]
             return str(self.root / "sysroot" / "lib/rustlib" / target / "lib") + "\n"
+        if command[0] == "rustc-fixture":
+            if self.probe_error:
+                raise guard.CheckError(self.probe_error)
+            return "compiled probe fixture\n"
         if self.build_error:
             raise guard.CheckError(self.build_error)
+        target = command[command.index("--target") + 1]
+        library = Path(env["CARGO_TARGET_DIR"]) / target / "debug"
+        library.mkdir(parents=True, exist_ok=True)
+        for package in PACKAGES:
+            (library / ("lib" + package.replace("-", "_") + ".rlib")).write_bytes(b"!<arch>\nfixture")
         return "compiled fixture\n"
 
     def check(self, **options):
@@ -259,16 +269,67 @@ class NoStdCheckTests(unittest.TestCase):
         self.assertEqual(self.builds(), [])
 
     def test_derived_cache_links_cannot_resolve_into_the_checkout(self):
-        """Kills validating only the cache root while target or Cargo home resolves inside source."""
+        """Kills accepting cache or probe output paths that resolve inside source."""
         self.install(RISCV)
         original = Path.resolve
-        for name in ("target", "cargo-home"):
+        for name in ("target", "cargo-home", "memory_probe.ll"):
             def redirected(path, *args, **kwargs):
                 return self.repo if path == self.work / name else original(path, *args, **kwargs)
             with self.subTest(cache=name), mock.patch.object(Path, "resolve", autospec=True, side_effect=redirected):
                 with self.assertRaises(guard.CheckError):
                     self.check()
         self.assertEqual(self.builds(), [])
+
+    def test_memory_probe_uses_built_rlibs_same_compiler_target_and_sysroot(self):
+        """Kills omitted/reordered probe execution, wrong tool/target/rlibs or lost sysroot arguments."""
+        self.install(RISCV)
+        sysroot = self.root / "sysroot with spaces"
+        sysroot.mkdir()
+        result = self.check(sysroot=sysroot)
+        probes = [call for call in self.calls if call[0][0] == "rustc-fixture" and "--version" not in call[0] and "--print" not in call[0]]
+        self.assertEqual(len(probes), 1)
+        command, env, _ = probes[0]
+        self.assertLess(self.calls.index(self.builds()[0]), self.calls.index(probes[0]))
+        self.assertEqual(result["probe_command"], command)
+        self.assertEqual(result["probe_output"], "compiled probe fixture\n")
+        for flag, expected in (("--target", RISCV), ("--sysroot", str(sysroot)), ("--edition", "2021"), ("--crate-type", "lib")):
+            self.assertEqual(command[command.index(flag) + 1], expected)
+        self.assertIn("--emit=llvm-ir", command)
+        self.assertIn(str(guard.PROBE), command)
+        self.assertEqual(command[command.index("-o") + 1], str(self.work / "memory_probe.ll"))
+        library = self.work / "target" / RISCV / "debug"
+        self.assertEqual(command[command.index("-L") + 1], "dependency=" + str(library / "deps"))
+        externs = [command[index + 1] for index, value in enumerate(command) if value == "--extern"]
+        expected = [package.replace("-", "_") + "=" + str(library / ("lib" + package.replace("-", "_") + ".rlib")) for package in PACKAGES]
+        self.assertEqual(externs, expected)
+        self.assertTrue(all(Path(value.split("=", 1)[1]).is_file() for value in externs))
+        self.assertEqual(env, self.builds()[0][1])
+
+    def test_memory_probe_failure_cannot_report_pass_or_skip(self):
+        """Kills swallowing a failed probe compilation after successful library compilation."""
+        self.install(RISCV)
+        self.probe_error = "deliberate probe failure"
+        with self.assertRaises(guard.CheckError):
+            self.check()
+        self.assertEqual(len(self.builds()), 1)
+
+    def test_missing_probe_is_an_input_failure_before_target_skip(self):
+        """Kills silently skipping when the required memory-probe source is absent."""
+        with mock.patch.object(guard, "PROBE", self.root / "missing_probe.rs"):
+            with self.assertRaises(guard.CheckError):
+                self.check()
+        self.assertEqual(self.calls, [])
+
+    def test_ci_runs_exact_unit_guard_before_embedded_checker(self):
+        """Kills omitted/late/disabled unit steps or wrong command, cwd and PYTHONPATH."""
+        workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/rust.yml").read_text()
+        command = "        run: python -m unittest discover -s tools/esp32_scaffold -p test_check_no_std.py -v"
+        steps = ["      - name: " + block for block in workflow.split("      - name: ")[1:] if command in block.splitlines()]
+        self.assertEqual(len(steps), 1)
+        fields = [line for line in steps[0].splitlines()[1:] if line.strip()]
+        self.assertEqual(sorted(fields), sorted(["        working-directory: .", "        env:", "          PYTHONPATH: .", command]))
+        checker = "        run: python tools/esp32_scaffold/check_no_std.py"
+        self.assertLess(workflow.index(steps[0]), workflow.index(checker))
 
     def test_build_is_exactly_three_bare_libraries_with_offline_clean_environment(self):
         """Kills omitted crates, default/std features, unlocked/network builds or ambient wrappers."""

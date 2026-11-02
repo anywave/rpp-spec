@@ -69,10 +69,13 @@ wrappers/flags are cleared; an explicit separate sysroot uses encoded arguments
 so paths with spaces survive. Each command has a deadline and bounded merged
 stdout/stderr. The checker never installs/downloads a tool or target.
 
-CI adds this compile-only check inside the existing Rust job **after its existing
-pinned provisioning**. The workflow's existing setup can use the network; the
-checker/build do not install or fetch. CI checks its actual checkout, not the
-outside snapshot. After dependencies land or a PR base changes, integrate forward
+CI runs the checker's stdlib unit tests before this compile-only check inside
+its existing Rust job **after existing pinned provisioning**. Successful checks
+also compile the sibling safe memory probe against the same three built rlibs,
+selected target/compiler/sysroot, before temporary output cleanup. This compiles
+current types; it does not assert historical table values or measure stack use.
+The workflow's existing setup can use the network; the checker/build do not
+install or fetch. CI checks its actual checkout, not the outside snapshot. After dependencies land or a PR base changes, integrate forward
 normally and rerun the checker; the local snapshot does not replace that check.
 
 For extracted local tools, supply `--cargo`, `--rustc`, `--sysroot` and an external

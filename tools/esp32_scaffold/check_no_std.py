@@ -15,6 +15,7 @@ PIN = '1.85.1'
 TARGETS = ('riscv32imc-unknown-none-elf', 'thumbv7em-none-eabihf')
 PACKAGES = ('rpp-billboard', 'rpp-frag', 'rpp-steer')
 OUTPUT_LIMIT = 1024 * 1024
+PROBE = Path(__file__).resolve().with_name('memory_probe.rs')
 
 
 class CheckError(RuntimeError):
@@ -145,13 +146,25 @@ def installed_target(rustc, sysroot, env):
     return None
 
 
+def compile_probe(rustc, target, sysroot, work, env):
+    library = work / 'target' / target / 'debug'
+    command = rustc + (['--sysroot', str(sysroot)] if sysroot else [])
+    command += ['--crate-name', 'rpp_readiness_layout', '--crate-type', 'lib',
+                '--edition', '2021', '--target', target, '--emit=llvm-ir', str(PROBE),
+                '-o', str(work / 'memory_probe.ll'), '-L', 'dependency=' + str(library / 'deps')]
+    for package in PACKAGES:
+        name = package.replace('-', '_')
+        command += ['--extern', name + '=' + str(library / ('lib' + name + '.rlib'))]
+    return command, execute(command, env)
+
+
 def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
     repo = Path(repo).resolve()
-    required = [repo / 'rust' / name for name in ('Cargo.toml', 'Cargo.lock')]
+    required = [PROBE] + [repo / 'rust' / name for name in ('Cargo.toml', 'Cargo.lock')]
     required += [repo / 'rust' / package / name for package in PACKAGES
                  for name in ('Cargo.toml', 'src/lib.rs')]
     if not all(path.is_file() for path in required):
-        raise CheckError('all three crate manifests/sources and the workspace lock are required')
+        raise CheckError('probe, all three crate manifests/sources and the workspace lock are required')
     if (cargo is None) != (rustc is None):
         raise CheckError('explicit cargo and rustc must be supplied together')
     env = environment()
@@ -182,7 +195,7 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
         if work == repo or repo in work.parents or work in repo.parents:
             raise CheckError('build/cache directory must be outside the checkout')
         work.mkdir(parents=True, exist_ok=True)
-        for directory in (work / 'cargo-home', work / 'target'):
+        for directory in (work / 'cargo-home', work / 'target', work / 'memory_probe.ll'):
             resolved = directory.resolve()
             if resolved == repo or repo in resolved.parents or resolved in repo.parents:
                 raise CheckError('derived cache path must be disjoint from the checkout')
@@ -194,8 +207,10 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
             command += ['-p', package]
         command += ['--no-default-features', '--target', target, '--offline', '--locked']
         output = execute(command, env, timeout=180)
-        return {'status': 'PASS', 'target': target, 'reason': 'three no-default library profiles compiled offline',
-                'command': command, 'build_output': output}
+        probe_command, probe_output = compile_probe(rustc, target, sysroot, work, env)
+        return {'status': 'PASS', 'target': target, 'reason': 'three no-default libraries and safe memory probe compiled offline',
+                'command': command, 'build_output': output,
+                'probe_command': probe_command, 'probe_output': probe_output}
     finally:
         if temporary:
             temporary.cleanup()
