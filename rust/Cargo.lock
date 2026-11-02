@@ -42,3 +42,10 @@ dependencies = [
  "rpp-core",
  "rpp-frag",
 ]
+
+[[package]]
+name = "rpp-steer"
+version = "0.1.0"
+dependencies = [
+ "rpp-link",
+]
