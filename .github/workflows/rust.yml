@@ -86,6 +86,51 @@ jobs:
       - name: Test standalone measured UDP steering bridge
         run: cargo +1.85.1 test --manifest-path rpp-steer-udp/Cargo.toml --locked
 
+      - name: Fetch locked property-test dependencies (read only)
+        working-directory: .
+        env:
+          CARGO_NET_OFFLINE: "false"
+        run: cargo +1.85.1 fetch --manifest-path tools/fuzz_scaffold/Cargo.toml --locked
+
+      - name: Run bounded properties on every host profile
+        working-directory: .
+        run: cargo +1.85.1 test --manifest-path tools/fuzz_scaffold/Cargo.toml --offline --locked
+
+      - name: Format fuzz scaffold
+        working-directory: .
+        run: cargo +1.85.1 fmt --manifest-path tools/fuzz_scaffold/Cargo.toml --all --check
+
+      - name: Lint fuzz scaffold offline
+        working-directory: .
+        run: cargo +1.85.1 clippy --manifest-path tools/fuzz_scaffold/Cargo.toml --all-targets --offline --locked -- -D warnings
+
+      - name: Test bounded optional smoke guard
+        working-directory: .
+        run: python -m unittest tools.fuzz_scaffold.test_smoke -v
+
+      - name: Compile fuzz target interfaces without claiming coverage
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: cargo +1.85.1 check --manifest-path tools/fuzz_scaffold/Cargo.toml --features fuzzing --bins --offline --locked
+
+      - name: Optional preinstalled nightly fuzz smoke (60 seconds)
+        working-directory: .
+        run: python tools/fuzz_scaffold/smoke.py --output-dir "${{ runner.temp }}/rpp-fuzz-smoke"
+
+      - name: Test billboard error precedence repairs
+        working-directory: .
+        run: python -m unittest tools.esp32_scaffold.test_billboard_errors -v
+
+      - name: Test offline embedded compile guard
+        working-directory: .
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tools/esp32_scaffold -p test_check_no_std.py -v
+
+      - name: Check installed embedded bare libraries offline
+        working-directory: .
+        run: python tools/esp32_scaffold/check_no_std.py
+
       - name: Tool versions
         run: |
           rustc +1.85.1 --version
@@ -132,8 +177,11 @@ jobs:
       - name: Host tests with alloc and no default features
         run: cargo +1.85.1 test --workspace --no-default-features --features alloc --locked
 
+      - name: Live loopback UDP failover example
+        run: cargo +1.85.1 run -p rpp-link-udp --example loopback_pair --locked
+
       - name: Cross-compile RPP core, control, link and fleet interfaces
-        run: cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --target riscv32imc-unknown-none-elf --locked
 
       - name: Cross-compile alloc-only policy models, adapters and fleet resolution
-        run: cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked

@@ -109,16 +109,16 @@ MUTATIONS = (
     Mutation(
         'billboard_escape_fact', "rpp-billboard", "rpp-billboard/src/lib.rs",
         'if !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
-        'if false && !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        'if !fields.fact.bytes().all(|byte| (0x20..=0x7e).contains(&byte) || byte == 0x1b)',
         Test("codec", 'fact_escape_is_rejected'),
-        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+        Test("codec", 'fact_bidi_is_rejected'),
     ),
     Mutation(
         'billboard_bidi_fact', "rpp-billboard", "rpp-billboard/src/lib.rs",
         'if !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
-        'if false && !fields\n        .fact\n        .bytes()\n        .all(|byte| (0x20..=0x7e).contains(&byte))',
+        "if !fields.fact.chars().all(|ch| (' '..='~').contains(&ch) || ch == '\\u{202e}')",
         Test("codec", 'fact_bidi_is_rejected'),
-        Test("codec", 'borrowed_roundtrip_preserves_fields_and_signing_bytes'),
+        Test("codec", 'fact_escape_is_rejected'),
     ),
     Mutation(
         'billboard_fact_257', "rpp-billboard", "rpp-billboard/src/lib.rs",
