@@ -9,7 +9,7 @@ description = "Heap-free link readings and typed adapter hooks with host-only ov
 
 [features]
 default = ["std"]
-sim = ["std"]
+sim = ["std", "dep:rpp-frag"]
 std = ["alloc", "rpp-core/std", "rpp-billboard/std"]
 alloc = ["dep:rpp-core", "rpp-core/alloc", "rpp-billboard/alloc"]
 
@@ -17,4 +17,4 @@ alloc = ["dep:rpp-core", "rpp-core/alloc", "rpp-billboard/alloc"]
 rpp-control = { path = "../rpp-control", version = "=0.1.0", default-features = false }
 rpp-core = { path = "../rpp-core", version = "=0.1.0", optional = true, default-features = false }
 rpp-billboard = { path = "../rpp-billboard", version = "=0.1.0", default-features = false }
-rpp-frag = { path = "../rpp-frag", version = "=0.1.0", default-features = false }
+rpp-frag = { path = "../rpp-frag", version = "=0.1.0", optional = true, default-features = false }

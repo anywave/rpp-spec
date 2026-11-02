@@ -37,6 +37,7 @@ class Mutation:
     after: str
     positive: Test
     clean: Test
+    extra_patches: tuple[tuple[str, str, str], ...] = ()
 
 
 MUTATIONS = (
@@ -85,6 +86,11 @@ MUTATIONS = (
         '#[cfg(feature = "sim")]\npub mod simulated;', '#[cfg(feature = "std")]\npub mod simulated;',
         Test("feature_visibility", "production_consumers_cannot_import_simulation_fixture"),
         Test("adapter", "valid_data_dispatch_succeeds"),
+        # Only the disposable mutant enables frag under std. This keeps the
+        # cfg-leak counterfactual compilable without weakening production sim.
+        (("rpp-link/Cargo.toml",
+          'std = ["alloc", "rpp-core/std", "rpp-billboard/std"]',
+          'std = ["alloc", "rpp-core/std", "rpp-billboard/std", "dep:rpp-frag"]'),),
     ),
     Mutation(
         'billboard_trailing', "rpp-billboard", "rpp-billboard/src/lib.rs",
@@ -282,6 +288,17 @@ def main():
             raise RuntimeError(f"baseline test failed for {mutation.name}; inspect {case}")
         changed = original.replace(mutation.before, mutation.after, 1)
         path.write_text(changed, encoding="utf-8", newline="\n")
+        extra_evidence = []
+        for source, before, after in mutation.extra_patches:
+            extra_path = workspace / source
+            extra_original = extra_path.read_text(encoding="utf-8")
+            if extra_original.count(before) != 1:
+                raise RuntimeError(f"stale extra source anchor for {mutation.name}: {source}")
+            extra_changed = extra_original.replace(before, after, 1)
+            extra_path.write_text(extra_changed, encoding="utf-8", newline="\n")
+            extra_evidence.append({"source": source,
+                                   "original_sha256": sha256(extra_original.encode("utf-8")).hexdigest(),
+                                   "mutated_sha256": sha256(extra_changed.encode("utf-8")).hexdigest()})
         result = run_test(args, workspace, "mutant", mutation.package, mutation.positive, environment, case / "mutant-target")
         if not assertion_failure(result, mutation.positive):
             raise RuntimeError(f"{mutation.name} survived or failed without the required assertion; inspect {case}")
@@ -293,7 +310,7 @@ def main():
                          "mutated_sha256": sha256(changed.encode("utf-8")).hexdigest(),
                          "positive_test": mutation.positive.name, "clean_test": mutation.clean.name,
                          "positive_features": list(mutation.positive.features),
-                         "clean_features": list(mutation.clean.features),
+                         "clean_features": list(mutation.clean.features), "extra_patches": extra_evidence,
                          "baseline_passed": True, "assertion_failed": True, "clean_control_passed": True})
         print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass", flush=True)
         # Drop only owned completed build products; retain source copies and logs.

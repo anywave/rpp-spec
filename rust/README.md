@@ -20,7 +20,8 @@ policy. [Fleet guidance](FLEET.md) describes assignment and adapter boundaries.
 `rpp-link` simulation helpers require the explicit, non-default `sim` feature.
 Default features and `std` alone do not expose `rpp_link::simulated`, including
 `verified_fixture` and its assumed-verification fixture. Enable host simulation
-with `--features rpp-link/sim`; this also enables `std`. Actual downstream
+with `--features rpp-link/sim`; this also enables `std` and the optional
+`rpp-frag` dependency. Default and bare consumers do not activate `rpp-frag`. Actual downstream
 compile probes check that default and no-default-feature consumers cannot name
 the helper. The fixture is development support, not a production verifier.
 
