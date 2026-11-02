@@ -53,6 +53,13 @@ There is no `Default` policy. This adds no Python migration API or wire field.
 Resolver discovery is input: the crate does not probe devices, authenticate
 identities, persist data or implement the legacy Python storage backends.
 
+## Experimental link steering
+
+[`rpp-steer`](rpp-steer/README.md) adds bounded no-heap ranking over caller-eligible
+readings with explicit measured throughput and per-class hysteresis. Its default
+std simulator produces Rust regression snapshots; bare builds retain the same
+core. It sends nothing and replaces no overlay permission or retry policy.
+
 ## Embedded feature profiles
 
 | Cargo selection | Library profile | Allocation and integration boundary |

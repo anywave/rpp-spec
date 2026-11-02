@@ -15,3 +15,6 @@ rust/rpp-billboard/tests/data/** -text
 
 # CX-021 local small-MTU vectors are exact-byte evidence.
 rust/rpp-frag/tests/data/** -text
+
+# CX-023 Rust-generated steering snapshots preserve exact LF bytes.
+rust/rpp-steer/tests/data/** -text
