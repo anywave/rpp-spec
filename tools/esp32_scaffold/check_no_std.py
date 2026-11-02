@@ -191,14 +191,15 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
         return {'status': 'SKIP', 'target': None, 'reason': 'neither embedded target is installed; no build ran'}
     temporary = tempfile.TemporaryDirectory(prefix='rpp-embedded-check-') if work_dir is None else None
     work = Path(temporary.name if temporary else work_dir).resolve()
+    protected = (repo, Path(__file__).resolve().parents[2], PROBE.resolve())
     try:
-        if work == repo or repo in work.parents or work in repo.parents:
-            raise CheckError('build/cache directory must be outside the checkout')
+        if any(work == source or source in work.parents or work in source.parents for source in protected):
+            raise CheckError('build/cache directory must be disjoint from checkout and probe sources')
         work.mkdir(parents=True, exist_ok=True)
         for directory in (work / 'cargo-home', work / 'target', work / 'memory_probe.ll'):
             resolved = directory.resolve()
-            if resolved == repo or repo in resolved.parents or resolved in repo.parents:
-                raise CheckError('derived cache path must be disjoint from the checkout')
+            if any(resolved == source or source in resolved.parents or resolved in source.parents for source in protected):
+                raise CheckError('derived output must be disjoint from checkout and probe sources')
         env.update(RUSTC=str(rustc[0]), CARGO_HOME=str(work / 'cargo-home'),
                    CARGO_TARGET_DIR=str(work / 'target'),
                    CARGO_ENCODED_RUSTFLAGS='\x1f'.join(['--sysroot', str(sysroot)]) if sysroot else '')

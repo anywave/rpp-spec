@@ -64,7 +64,8 @@ failures produce `FAIL` with a nonzero exit; they cannot trigger fallback.
 The fixed command builds `--lib -p rpp-billboard -p rpp-frag -p rpp-steer`
 with `--no-default-features --offline --locked`. It requires all three sources
 and the lockfile before allowing a skip. Build/cache paths stay outside and
-disjoint from the checkout, including resolved derived cache paths. Ambient
+disjoint from both the selected checkout and probe sources, including resolved
+derived cache and LLVM output paths. Ambient
 wrappers/flags are cleared; an explicit separate sysroot uses encoded arguments
 so paths with spaces survive. Each command has a deadline and bounded merged
 stdout/stderr. The checker never installs/downloads a tool or target.

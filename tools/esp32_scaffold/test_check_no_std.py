@@ -280,6 +280,25 @@ class NoStdCheckTests(unittest.TestCase):
                     self.check()
         self.assertEqual(self.builds(), [])
 
+    def test_external_probe_source_is_protected_from_output_aliases(self):
+        """Kills protecting only the selected repo while cache/output paths alias the probe source."""
+        self.install(RISCV)
+        probe = self.root / "external-tools/probe.rs"
+        probe.parent.mkdir()
+        probe.write_text("#![no_std]\n")
+        original = Path.resolve
+        def redirected(path, *args, **kwargs):
+            return probe if path == self.work / "memory_probe.ll" else original(path, *args, **kwargs)
+        with mock.patch.object(guard, "PROBE", probe):
+            with mock.patch.object(Path, "resolve", autospec=True, side_effect=redirected):
+                with self.assertRaises(guard.CheckError):
+                    self.check()
+            with mock.patch.object(guard, "execute", side_effect=self.tool):
+                with self.assertRaises(guard.CheckError):
+                    guard.check(self.repo, cargo=["cargo-fixture"], rustc=["rustc-fixture"], work_dir=probe.parent)
+        self.assertEqual(self.builds(), [])
+        self.assertEqual(probe.read_text(), "#![no_std]\n")
+
     def test_memory_probe_uses_built_rlibs_same_compiler_target_and_sysroot(self):
         """Kills omitted/reordered probe execution, wrong tool/target/rlibs or lost sysroot arguments."""
         self.install(RISCV)
