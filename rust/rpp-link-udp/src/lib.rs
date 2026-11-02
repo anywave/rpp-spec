@@ -2,6 +2,7 @@
 //! Range checks do not prove encryption, membership, consent or peer identity.
 #![forbid(unsafe_code)]
 mod config;
+pub mod framed;
 mod measure;
 mod socket;
 pub use config::{Config, Error};
