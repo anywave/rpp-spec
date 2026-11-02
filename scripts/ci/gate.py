@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import tempfile
 
 import yaml
 
@@ -158,7 +159,8 @@ def slice_counts(records, allow):
     return files, lines
 
 
-def novel_merge_records(commit):
+def novel_merge_records(commit, paid=None):
+    paid = {} if paid is None else paid
     raw = git_bytes('diff-tree', '--cc', '--raw', '-z', '--no-abbrev', '--no-commit-id', '-r', '--no-renames', commit).split(b'\0')
     if raw.pop() != b'' or len(raw) % 2:
         raise ValueError('malformed combined raw diff')
@@ -170,48 +172,269 @@ def novel_merge_records(commit):
         path.decode('utf-8')  # Never replace invalid bytes in a path identity.
         modes = [fields[0][2:], fields[1], fields[2]]
         records[path] = [0, 0, False, all(mode != modes[2] for mode in modes[:2])]
+        paid[path.decode('utf-8')] = {'added': set(), 'deleted': set(), 'binary': False, 'mode': records[path][3]}
     current, active = None, False
     exclusive = [0, 0]
+    pending = []
     def finish_deletion_run():
         # Pair private deletions only within one contiguous removed run.
         if current is not None and all(exclusive):
             current[1] += max(exclusive)
+            covered['deleted'].update(pending)
         exclusive[:] = [0, 0]
-    patch = git_bytes('-c', 'diff.suppressBlankEmpty=false', '-c', 'core.quotePath=true', 'show', '--cc', '--format=', '--unified=1', '--no-ext-diff', '--no-textconv', '--no-color', '--no-renames', commit)
+        pending.clear()
+    patch = git_bytes('-c', 'diff.suppressBlankEmpty=false', '-c', 'core.quotePath=true', 'show', '--cc', '--submodule=short', '--ignore-submodules=none', '--diff-algorithm=myers', '--no-indent-heuristic', '--inter-hunk-context=0', '--format=', '--unified=1', '--no-ext-diff', '--no-textconv', '--no-color', '--no-renames', commit)
     for line in patch.split(b'\n'):
         if line.startswith(b'diff --cc '):
             finish_deletion_run()
             value = line[len(b'diff --cc '):]
-            try:
-                path = ast.literal_eval('b' + value.decode('ascii')) if value.startswith(b'"') else value
-            except (ValueError, SyntaxError) as error:
-                raise ValueError('unsupported combined path quoting') from error
+            path = path_value(value)
             if not isinstance(path, bytes) or path not in records:
                 raise ValueError('combined patch path differs from raw inventory')
             current, active = records[path], False
+            covered = paid[path.decode('utf-8')]
         elif line.startswith(b'@@@ '):
             finish_deletion_run()
-            if current is None or not re.fullmatch(rb'@@@ -\d+(?:,\d+)? -\d+(?:,\d+)? \+\d+(?:,\d+)? @@@(?: .*)?', line):
-                raise ValueError('unsupported combined hunk')
+            if current is None:
+                raise ValueError('combined hunk lacks a path')
+            first, _, second, _, result, _ = ranges(line, 2)
             active = True
         elif current is not None and not active and line.startswith(b'Binary files '):
             current[2] = True
+            covered['binary'] = True
         elif active and line.startswith(b'++'):
             finish_deletion_run()
             current[0] += 1
+            covered['added'].add((result, line[2:]))
+            result += 1
         elif active and line.startswith(b'--'):
             current[1] += 1
+            covered['deleted'].add((second, line[2:]))
+            first += 1
+            second += 1
         elif active and line.startswith(b'- '):
             exclusive[0] += 1
+            first += 1
         elif active and line.startswith(b' -'):
             exclusive[1] += 1
+            pending.append((second, line[2:]))
+            second += 1
         elif active and line[:2] in {b'  ', b' +', b'+ '}:
             finish_deletion_run()
+            first += line[0] == 32
+            second += line[1] == 32
+            result += 1
         elif active and line and not line.startswith(b'\\ No newline') and line[:2] not in {b'  ', b' +', b'+ '}:
             raise ValueError('unsupported combined row')
     finish_deletion_run()
     return [(('-' if binary else str(added)), ('-' if binary else str(deleted)), path.decode('utf-8'))
             for path, (added, deleted, binary, mode) in records.items() if added or deleted or binary or mode]
+
+
+def path_value(value):
+    try:
+        result = ast.literal_eval('b' + value.decode('ascii')) if value.startswith(b'"') else value
+    except (ValueError, SyntaxError) as error:
+        raise ValueError('unsupported path quoting') from error
+    if not isinstance(result, bytes):
+        raise ValueError('unsupported path value')
+    return result
+
+
+def ranges(line, parents=1):
+    marker = b'@' * (parents + 1)
+    atom = rb'(\d+)(?:,(\d+))?'
+    pattern = marker + b' ' + b' '.join([b'-' + atom] * parents + [re.escape(b'+') + atom]) + b' ' + marker + rb'(?: .*)?'
+    match = re.fullmatch(pattern, line)
+    if match is None:
+        raise ValueError('unsupported diff hunk')
+    result = []
+    for start, count in zip(match.groups()[::2], match.groups()[1::2]):
+        count = int(count or b'1')
+        result += [int(start) - (count != 0), count]
+    return tuple(result)
+
+
+def changes(old, new):
+    options = ('--no-renames', '--no-ext-diff', '--no-textconv', '--no-color', '--submodule=short', '--ignore-submodules=none', '--diff-algorithm=myers', '--no-indent-heuristic', '--inter-hunk-context=0')
+    parts = git_bytes('diff', *options, '--raw', '--numstat', '--no-abbrev', '-z', old, new).split(b'\0')
+    if parts.pop() != b'':
+        raise ValueError('unterminated ordinary diff')
+    result = {}
+    index = 0
+    while index < len(parts):
+        value = parts[index]
+        if value.startswith(b':'):
+            if not re.fullmatch(rb':[0-7]{6} [0-7]{6}(?: [0-9a-f]{40}){2} [ADMT]', value) or index + 1 == len(parts):
+                raise ValueError('unsupported ordinary raw record')
+            fields, path = value.split(), parts[index + 1].decode('utf-8')
+            if not path or path in result:
+                raise ValueError('duplicate ordinary path')
+            result[path] = {'modes': (fields[0][1:], fields[1]), 'blobs': tuple(fields[2:4]),
+                            'hunks': [], 'deleted': set(), 'added': set()}
+            index += 2
+        else:
+            added, deleted, path = value.split(b'\t', 2)
+            entry = result[path.decode('utf-8')]
+            if 'binary' in entry or not (added == deleted == b'-' or added.isdigit() and deleted.isdigit()):
+                raise ValueError('unsupported ordinary numstat')
+            entry['binary'] = added == b'-'
+            index += 1
+    if any('binary' not in entry for entry in result.values()):
+        raise ValueError('missing ordinary numstat')
+    old_path = path = None
+    active = False
+    patch = git_bytes('-c', 'core.quotePath=true', '-c', 'diff.suppressBlankEmpty=false',
+                           'diff', *options, '--src-prefix=a/', '--dst-prefix=b/', '--unified=0', old, new)
+    for line in patch.split(b'\n'):
+        if line.startswith(b'diff --git '):
+            old_path = path = None
+            active = False
+        elif not active and line.startswith((b'--- ', b'+++ ')):
+            value = path_value(line[4:])
+            if value != b'/dev/null' and not value.startswith(b'a/' if line.startswith(b'--- ') else b'b/'):
+                raise ValueError('unexpected ordinary path prefix')
+            decoded = None if value == b'/dev/null' else value[2:].decode('utf-8')
+            if line.startswith(b'--- '):
+                old_path = decoded
+            else:
+                path = decoded or old_path
+                if path not in result or decoded and old_path and decoded != old_path:
+                    raise ValueError('ordinary path differs from raw inventory')
+        elif line.startswith(b'@@ '):
+            if path is None:
+                raise ValueError('hunk lacks an ordinary path')
+            old_row, old_count, new_row, new_count = ranges(line)
+            result[path]['hunks'].append((old_row, old_count, new_row, new_count))
+            active = True
+        elif active and line.startswith(b'-'):
+            result[path]['deleted'].add((old_row, line[1:]))
+            old_row += 1
+        elif active and line.startswith(b'+'):
+            result[path]['added'].add((new_row, line[1:]))
+            new_row += 1
+        elif active and line.startswith(b' '):
+            old_row += 1
+            new_row += 1
+        elif active and line and not line.startswith(b'\\ No newline'):
+            raise ValueError('unsupported ordinary row')
+    for entry in result.values():
+        if entry['blobs'][0] == entry['blobs'][1]:
+            entry.update(hunks=[], deleted=set(), added=set())
+    return result
+
+
+def origin(row, hunks):
+    shift = 0
+    for old_start, old_count, new_start, new_count in hunks:
+        if row < new_start:
+            break
+        if row < new_start + new_count:
+            return None
+        shift += old_count - new_count
+    return row + shift
+
+
+def overlaps(left, right):
+    return left[0] <= right[0] + right[1] and right[0] <= left[0] + left[1]
+
+
+def moved_regions(entry):
+    common = {text for _, text in entry.get('added', set())} & {text for _, text in entry.get('deleted', set())}
+    bounds = {}
+    for row, text in entry.get('deleted', set()):
+        if text in common:
+            low, high = bounds.get(text, (row, row + 1))
+            bounds[text] = min(low, row), max(high, row + 1)
+    for row, text in entry.get('added', set()):
+        if text in common:
+            hunk = next((h for h in entry['hunks'] if h[2] <= row < h[2] + h[3]), None)
+            if hunk is None:
+                raise ValueError('added row has no source hunk')
+            low, high = bounds[text]
+            bounds[text] = min(low, hunk[0]), max(high, hunk[0] + hunk[1])
+    return [(low, high - low, 0, 0) for low, high in bounds.values()]
+
+
+def automatic_text_carry(entry, prior, baseline):
+    ancestral = prior or baseline or entry
+    common = ancestral['modes'][0], ancestral['blobs'][0]
+    branch = (prior['modes'][1], prior['blobs'][1]) if prior else common
+    endpoints = [common, branch, (entry['modes'][0], entry['blobs'][0]), (entry['modes'][1], entry['blobs'][1])]
+    if any(mode not in {b'100644', b'100755'} for mode, _ in endpoints):
+        return False
+    contents = [git_bytes('cat-file', 'blob', digest.decode()) for _, digest in endpoints]
+    if any(b'\0' in value for value in contents):
+        return False
+    with tempfile.TemporaryDirectory(prefix='gate-text-carry-') as temporary:
+        root = Path(temporary)
+        for name, content in zip(('common', 'branch', 'base'), contents):
+            (root / name).write_bytes(content)
+        with (root / 'output').open('w+b') as output:
+            command = ['git', 'merge-file', '--stdout', '--diff-algorithm=myers', '--marker-size=1', '-L', 'branch', '-L', 'common', '-L', 'base', str(root / 'branch'), str(root / 'common'), str(root / 'base')]
+            try:
+                status = subprocess.run(command, stdout=output, stderr=subprocess.DEVNULL, timeout=30).returncode
+            except (OSError, subprocess.TimeoutExpired) as error:
+                raise ValueError('automatic text carry check unavailable') from error
+            if status not in range(128):
+                raise ValueError('automatic text carry command failed')
+            if status:
+                return False
+            output.seek(0)
+            value = output.read(8 * 1024 * 1024 + 1)
+            if len(value) > 8 * 1024 * 1024:
+                raise ValueError('automatic text carry output exceeds 8 MiB')
+            return value == contents[3]
+
+
+def residual_rows(base_parent, branch_parent, head):
+    common = merge_base(branch_parent, base_parent)
+    branch = changes(common, branch_parent)
+    baseline = changes(common, base_parent)
+    result = changes(branch_parent, head)
+    delta = changes(base_parent, head)
+    residual = {}
+    for path, entry in delta.items():
+        prior = branch.get(path, {})
+        base_hunks = baseline.get(path, {}).get('hunks', [])
+        corridors = [region for region in moved_regions(prior) if any(overlaps(region, other) for other in base_hunks)]
+        safe = [hunk for hunk in prior.get('hunks', []) if not any(overlaps(hunk, other) for other in base_hunks + corridors)]
+        value = {'added': set(), 'deleted': set(), 'binary': False, 'mode': False}
+        value['mode'] = entry['modes'][0] != entry['modes'][1] and entry['modes'] != prior.get('modes')
+        if entry['blobs'][0] != entry['blobs'][1]:
+            if entry['binary']:
+                value['binary'] = entry['blobs'] != prior.get('blobs')
+            elif not automatic_text_carry(entry, prior, baseline.get(path, {})):
+                for polarity, provenance in [('deleted', baseline), ('added', result)]:
+                    axis = 0 if polarity == 'deleted' else 2
+                    history = provenance.get(path, {})
+                    corridors = moved_regions(history)
+                    for row, text in entry[polarity]:
+                        source_row = origin(row, history.get('hunks', []))
+                        if source_row is not None and any(region[0] <= source_row < region[0] + region[1] for region in corridors):
+                            source_row = None
+                        independent = source_row is not None and any(hunk[axis] <= source_row < hunk[axis] + hunk[axis + 1] for hunk in safe)
+                        if not independent or (source_row, text) not in prior.get(polarity, set()):
+                            value[polarity].add((row, text))
+        if any(value.values()):
+            residual[path] = value
+    return residual
+
+
+def augmented_merge_records(base_parent, branch_parent, head):
+    paid = {}
+    records = {path: [added, deleted] for added, deleted, path in novel_merge_records(head, paid)}
+    for path, entry in residual_rows(base_parent, branch_parent, head).items():
+        before = paid.get(path, {})
+        current = records.setdefault(path, ['0', '0'])
+        if current[0] == '-':
+            continue
+        if entry['binary']:
+            current[:] = ['-', '-']
+        else:
+            for index, polarity in enumerate(('added', 'deleted')):
+                current[index] = str(int(current[index]) + len(entry[polarity] - before.get(polarity, set())))
+    return [(added, deleted, path) for path, (added, deleted) in records.items()]
 
 
 def commit_diff(base, commit, *options):
@@ -224,7 +447,9 @@ def commit_diff(base, commit, *options):
         candidates = [parent for parent in parents if ancestor_of(parent, base)]
         if len(candidates) != 1:
             raise ValueError(f'{commit}: merge requires one BASE-side parent')
-        records = novel_merge_records(commit)
+        if ancestor_of(candidates[0], parents[0]):
+            raise ValueError(f'{commit}: redundant BASE-side parent refused')
+        records = augmented_merge_records(candidates[0], parents[0], commit)
         if options == ('--numstat', '-z'):
             return ''.join('\t'.join(record) + '\0' for record in records)
         if options == ('--name-only', '-z'):
