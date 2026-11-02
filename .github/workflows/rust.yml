@@ -112,6 +112,16 @@ jobs:
         working-directory: .
         run: python -m unittest tools.esp32_scaffold.test_billboard_errors -v
 
+      - name: Test offline embedded compile guard
+        working-directory: .
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tools/esp32_scaffold -p test_check_no_std.py -v
+
+      - name: Check installed embedded bare libraries offline
+        working-directory: .
+        run: python tools/esp32_scaffold/check_no_std.py
+
       - name: Tool versions
         run: |
           rustc +1.85.1 --version
