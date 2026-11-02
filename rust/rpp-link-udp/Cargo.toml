@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish = false
-description = "Synchronous loopback/tailnet UDP adapter with measured round-trip readings"
+description = "Synchronous UDP and loopback TCP fallback with measured round-trip readings"
 
 [features]
 default = ["fleet-demo"]
