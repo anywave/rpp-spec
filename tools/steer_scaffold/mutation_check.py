@@ -78,7 +78,16 @@ MUTATIONS = (
     mutation("margin_inclusive", "selector", "else if improvement < margin {",
              "else if improvement <= margin {",
              Test("hysteresis", "zero_and_maximum_margins_use_subtraction_without_overflow")),
+    mutation("stateless_validation_skipped", "ranking", "validate(tick, wire_bytes, links)?;",
+             "let _ = tick;", Test("rules", "invalid_banks_are_refused_before_partial_selection")),
 )
+EXTRA_ASSERTIONS = {
+    "mtu_ignored": (MTU_CLEAN,),
+    "hold_omitted": (
+        Test("traces", "golden_decisions_replay_identically_through_bare_or_std_core"),
+        Test("traces", "scripted_std_simulator_repeats_exact_snapshot_bytes"),
+    ),
+}
 MARKER = "CX-023 disposable steering mutation workspace\n"
 
 
@@ -141,18 +150,25 @@ def main():
         original = source_text(path)
         if original.count(mutation.before) != 1:
             raise RuntimeError(f"stale or ambiguous source anchor for {mutation.name}")
-        baseline = run_test(args, workspace, "baseline", mutation.package, mutation.positive,
-                            environment, case / "baseline-target")
-        if not passed_test(baseline, mutation.positive):
-            raise RuntimeError(f"baseline failed for {mutation.name}; inspect {case}")
+        positives = (mutation.positive, *EXTRA_ASSERTIONS.get(mutation.name, ()))
+        for index, test in enumerate(positives):
+            baseline = run_test(args, workspace, f"baseline-extra-{index}", mutation.package,
+                                test, environment, case / "baseline-target")
+            if not passed_test(baseline, test):
+                raise RuntimeError(f"baseline {test.name} failed for {mutation.name}; inspect {case}")
         changed = original.replace(mutation.before, mutation.after, 1)
         if changed == original:
             raise RuntimeError(f"mutation {mutation.name} did not change its source")
         path.write_text(changed, encoding="utf-8", newline="\n")
-        result = run_test(args, workspace, "mutant", mutation.package, mutation.positive,
-                          environment, case / "mutant-target")
-        if not assertion_failure(result, mutation.positive):
-            raise RuntimeError(f"{mutation.name} survived or failed without its named assertion; inspect {case}")
+        assertions = []
+        for index, test in enumerate(positives):
+            result = run_test(args, workspace, f"mutant-extra-{index}", mutation.package,
+                              test, environment, case / "mutant-target")
+            if not assertion_failure(result, test):
+                raise RuntimeError(f"{mutation.name}/{test.name} lacked its named assertion; inspect {case}")
+            assertions.append({"name": test.name, "target": test.target, "features": list(test.features),
+                               "test_sha256": test_hash(workspace, test),
+                               "baseline_passed": True, "assertion_failed": True})
         control = run_test(args, workspace, "control", mutation.package, mutation.clean,
                            environment, case / "mutant-target")
         if not passed_test(control, mutation.clean):
@@ -164,15 +180,18 @@ def main():
                          "clean_test_sha256": test_hash(workspace, mutation.clean),
                          "positive_features": list(mutation.positive.features),
                          "clean_features": list(mutation.clean.features),
+                         "selected_assertions": assertions,
                          "baseline_passed": True, "assertion_failed": True, "clean_control_passed": True})
         print(f"killed {mutation.name}; baseline=pass assertion=fail clean_control=pass", flush=True)
         for target_name in ("baseline-target", "mutant-target"):
             shutil.rmtree(case / target_name)
+    selected_count = sum(len(item["selected_assertions"]) for item in evidence)
     summary = {"schema_version": 1, "toolchain": tools, "hash_scope": "UTF-8 after CRLF-to-LF only",
                "runner_sha256": digest(source_text(Path(__file__))),
                "classifier_sha256": digest(source_text(Path(run_test.__code__.co_filename))),
                "mutants": evidence, "killed": len(evidence), "survived": 0,
                "baseline_controls_passed": len(evidence), "clean_controls_passed": len(evidence),
+               "selected_baselines_passed": selected_count, "selected_assertion_failures": selected_count,
                "controls_failed": 0, "nonassertion_classifier_controls_rejected": rejected}
     encoded = (json.dumps(summary, sort_keys=True, indent=2) + "\n").encode("utf-8")
     summary_path.write_bytes(encoded)
