@@ -120,16 +120,24 @@ fn invalid_banks_are_refused_before_partial_selection() {
 }
 #[test]
 fn full_width_metrics_compare_without_sum_or_negation_overflow() {
-    // Mutation signed-throughput or summed-cost overflows at the valid u64 endpoints.
+    // Mutation reversed/signed-throughput chooses the slow link at full u64 endpoints.
     let mut high = link(1, 0, u64::MAX);
     high.reading.latency_ms = u64::MAX;
     high.reading.jitter_ms = u64::MAX;
     assert_eq!(
-        best_link(0, MessageClass::Bulk, 1, &[high, link(2, 0, 0)]),
+        best_link(0, MessageClass::Bulk, 1, &[high, link(2, 0, 1)]),
         Ok(Some(1))
     );
     assert_eq!(
-        best_link(0, MessageClass::Control, 1, &[high, link(2, 0, 0)]),
+        best_link(0, MessageClass::Control, 1, &[high, link(2, 0, 1)]),
         Ok(Some(2))
     );
+}
+
+#[test]
+fn zero_throughput_is_bulk_ineligible_but_control_can_still_use_it() {
+    // Mutation zero-speed-bulk admits an unknown/unusable measured throughput.
+    let links = [link(1, 0, 0)];
+    assert_eq!(best_link(0, MessageClass::Bulk, 1, &links), Ok(None));
+    assert_eq!(best_link(0, MessageClass::Control, 1, &links), Ok(Some(1)));
 }

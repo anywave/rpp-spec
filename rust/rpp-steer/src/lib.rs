@@ -8,7 +8,9 @@ extern crate std;
 
 use rpp_link::{LinkKind, LinkReading};
 mod ranking;
+mod selector;
 pub use ranking::best_link;
+pub use selector::{Decision, Hysteresis, Reason, Selector};
 
 /// Local work bound, not a published protocol constant.
 pub const MAX_LINKS: usize = 16;

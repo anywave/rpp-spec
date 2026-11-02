@@ -23,6 +23,9 @@ pub(crate) fn validate(tick: u64, wire_bytes: usize, links: &[Candidate]) -> Res
     Ok(())
 }
 pub(crate) fn eligible(link: &Candidate, class: MessageClass, wire_bytes: usize) -> bool {
+    if class == MessageClass::Bulk && link.throughput_kbps == 0 {
+        return false;
+    }
     if class != MessageClass::Control
         && (link.kind == LinkKind::Ble || link.cost == CostClass::ControlOnly)
     {
