@@ -51,11 +51,14 @@ def verdict(data, signing, signature, mode):
         fields.append(data[offset:offset + length])
         offset += length
     issuer, machine, fact, receipt = fields
-    try:
-        identifiers_valid = all(1 <= len(value.decode("utf-8")) <= 64 for value in (issuer, machine))
-    except UnicodeDecodeError:
-        identifiers_valid = False
-    if not identifiers_valid:
+    # Shared decoder precedence: parse every UTF-8 field before logical bounds.
+    text = []
+    for value, error in zip(fields, ("InvalidIdentifier", "InvalidIdentifier", "InvalidFact", "InvalidReceipt")):
+        try:
+            text.append(value.decode("utf-8"))
+        except UnicodeDecodeError:
+            return error, 0
+    if not all(1 <= len(value) <= 64 for value in text[:2]):
         return "InvalidIdentifier", 0
     if not 1 <= fact_len <= 256 or any(not 0x20 <= value <= 0x7e for value in fact):
         return "InvalidFact", 0
