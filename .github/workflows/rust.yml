@@ -77,11 +77,14 @@ jobs:
       - name: Install pinned Rust and check components
         run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
-      - name: Standalone measured UDP steering bridge
-        run: |
-          cargo +1.85.1 fmt --manifest-path rpp-steer-udp/Cargo.toml -- --check
-          cargo +1.85.1 clippy --manifest-path rpp-steer-udp/Cargo.toml --all-targets --locked -- -D warnings
-          cargo +1.85.1 test --manifest-path rpp-steer-udp/Cargo.toml --locked
+      - name: Format standalone measured UDP steering bridge
+        run: cargo +1.85.1 fmt --manifest-path rpp-steer-udp/Cargo.toml -- --check
+
+      - name: Lint standalone measured UDP steering bridge
+        run: cargo +1.85.1 clippy --manifest-path rpp-steer-udp/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Test standalone measured UDP steering bridge
+        run: cargo +1.85.1 test --manifest-path rpp-steer-udp/Cargo.toml --locked
 
       - name: Tool versions
         run: |

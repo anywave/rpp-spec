@@ -25,6 +25,10 @@ once using each final reading. Invalid policies, endpoints, counts, empty payloa
 and clock rollback fail before probe I/O. Accepted batches commit wrapper state;
 a later I/O failure can leave physical UDP history changed, without committing
 wrapper selection/gate/clock state. Callers control batch frequency and duration.
+`Bridge::probe_counts()` exposes saturating per-endpoint read attempts, completed
+reads, latest matching replies (`available`), losses, and errors. These are adapter
+outcomes, not kernel-confirmed send counters. Diagnostics retain physical I/O
+activity even when a batch aborts; rejected preflight calls perform no reads.
 
 The test fixture uses two real IPv4 loopback peers. A drops probes 3, 6, 7 and echoes
 others; B echoes. At A counts 2, 4, 8, 10, 31, 32 the measured loss is respectively
@@ -33,6 +37,11 @@ capacities 1000/800, hold 3, margin 100, and bands 100000/300000 produce
 A Initial, A Best, B Ineligible, B Best, B Hold, A Improved. Both final readings
 remain available. RTT/jitter vary and are excluded from deterministic assertions.
 These fixtures simulate loss, capacity, and logical ticks; no LAN is contacted.
+The responder blocks with a long timeout configured once. Shutdown uses an exact
+stop datagram from a retained, prebound loopback waker after close is requested;
+queued probes are processed before stop, and each worker is joined once. Worker
+counts and errors are retained. The timeout is a backstop, not a hard global
+shutdown deadline. Native Windows repeats remain a separate validation step.
 
 The checkout is based on CX-023; its UDP dependency is not present until PR#30
 merges. Normal relative path dependencies deliberately make standalone builds

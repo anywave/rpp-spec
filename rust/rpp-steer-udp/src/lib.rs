@@ -57,12 +57,28 @@ pub struct Batch {
     pub observations: Vec<Observation>,
     pub decision: Decision,
 }
+/// Saturating read-attempt/outcome telemetry, not kernel-confirmed send counts.
+/// Matching replies are successful reads whose latest raw reading is available.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct ProbeCounts {
+    pub read_attempts: u64,
+    pub completed: u64,
+    pub matching_reply: u64,
+    pub loss: u64,
+    pub errors: u64,
+}
 struct Endpoint {
     adapter: UdpAdapter,
     id: u32,
     throughput_kbps: u64,
     cost: CostClass,
     bulk_open: bool,
+    counts: ProbeCounts,
+}
+impl Endpoint {
+    fn read(&mut self, tick: u64) -> Result<LinkReading, Error> {
+        read_counted(&mut self.counts, || self.adapter.read(tick))
+    }
 }
 pub struct Bridge {
     endpoints: Vec<Endpoint>,
@@ -99,6 +115,7 @@ impl Bridge {
                 throughput_kbps: config.throughput_kbps,
                 cost: config.cost,
                 bulk_open: false,
+                counts: ProbeCounts::default(),
             });
         }
         Ok(Self {
@@ -107,6 +124,11 @@ impl Bridge {
             selector,
             clock: None,
         })
+    }
+    /// Endpoint order is stable. Physical I/O diagnostics survive aborted batches;
+    /// selector, loss-gate and accepted-clock commits still require a full batch.
+    pub fn probe_counts(&self) -> Vec<(u32, ProbeCounts)> {
+        self.endpoints.iter().map(|e| (e.id, e.counts)).collect()
     }
     /// One decision batch:1..32 probes/link, at most64 total. Only final readings
     /// update loss gates. Actual I/O history cannot be rolled back after I/O errors.
@@ -126,9 +148,9 @@ impl Bridge {
         validate_batch(self.endpoints.len(), probes)?;
         let mut observations = Vec::new();
         for (endpoint, count) in self.endpoints.iter_mut().zip(probes) {
-            let mut reading = endpoint.adapter.read(tick).map_err(Error::Udp)?;
+            let mut reading = endpoint.read(tick)?;
             for _ in 1..*count {
-                reading = endpoint.adapter.read(tick).map_err(Error::Udp)?;
+                reading = endpoint.read(tick)?;
             }
             let bulk_gate = loss_gate(endpoint.bulk_open, reading.loss_ppm, self.bands);
             observations.push(Observation {
@@ -162,6 +184,27 @@ impl Bridge {
     }
 }
 
+fn read_counted(
+    counts: &mut ProbeCounts,
+    read: impl FnOnce() -> Result<LinkReading, rpp_link_udp::Error>,
+) -> Result<LinkReading, Error> {
+    counts.read_attempts = counts.read_attempts.saturating_add(1);
+    match read() {
+        Ok(reading) => {
+            counts.completed = counts.completed.saturating_add(1);
+            if reading.available {
+                counts.matching_reply = counts.matching_reply.saturating_add(1);
+            } else {
+                counts.loss = counts.loss.saturating_add(1);
+            }
+            Ok(reading)
+        }
+        Err(error) => {
+            counts.errors = counts.errors.saturating_add(1);
+            Err(Error::Udp(error))
+        }
+    }
+}
 fn validate_batch(endpoint_count: usize, probes: &[u8]) -> Result<(), Error> {
     if probes.len() != endpoint_count
         || probes.iter().any(|count| !(1..=32).contains(count))
@@ -220,6 +263,41 @@ mod tests {
             bulk_margin_kbps: 100,
             billboard_margin_ppm: 0,
         }
+    }
+    /// Kills attempted_read_omitted, loss_counted_as_reply, and error_telemetry_erased without I/O.
+    #[test]
+    fn read_diagnostics_preserve_success_loss_and_error_attempts() {
+        let mut counts = ProbeCounts::default();
+        let reading = LinkReading {
+            latency_ms: 7,
+            jitter_ms: 2,
+            loss_ppm: 0,
+            available: true,
+            observed: 5,
+        };
+        assert_eq!(read_counted(&mut counts, || Ok(reading)).unwrap(), reading);
+        let loss = LinkReading {
+            available: false,
+            ..reading
+        };
+        assert_eq!(read_counted(&mut counts, || Ok(loss)).unwrap(), loss);
+        assert!(matches!(
+            read_counted(&mut counts, || Err(std::io::Error::from(
+                std::io::ErrorKind::PermissionDenied
+            )
+            .into())),
+            Err(Error::Udp(_))
+        ));
+        assert_eq!(
+            counts,
+            ProbeCounts {
+                read_attempts: 3,
+                completed: 2,
+                matching_reply: 1,
+                loss: 1,
+                errors: 1,
+            }
+        );
     }
     /// Kills nonloopback_guard_removed without binding or sending any socket.
     #[test]
