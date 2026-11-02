@@ -31,7 +31,7 @@ integration. This is a library cross-compile check, not a board run or a firmwar
 image. No board, radio, transport, linker script, HAL, flashing or boot behavior
 is implemented or validated here. Xtensa targets are outside this CI check.
 
-The library operates entirely on caller-provided values. It performs no I/O,
+The `rpp-core` library operates entirely on caller-provided values. It performs no I/O,
 networking, discovery probes, threading, randomness, inference or cryptography.
 `#![forbid(unsafe_code)]` applies to every module. Collections use deterministic
 ordering. Hosts supply transport outcomes, current membership/consent, measured
@@ -116,8 +116,8 @@ cargo +1.85.1 test --workspace --offline --locked
 cargo +1.85.1 test --workspace --features rpp-link/sim --offline --locked
 cargo +1.85.1 test --workspace --no-default-features --offline --locked
 cargo +1.85.1 test --workspace --no-default-features --features alloc --offline --locked
-cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --offline --locked
-cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --offline --locked
+cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --target riscv32imc-unknown-none-elf --offline --locked
+cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --features alloc --target riscv32imc-unknown-none-elf --offline --locked
 ```
 
 The Ubuntu/Windows workflow runs formatting, Clippy with default and all features,
@@ -179,3 +179,5 @@ This library does not promote the overall coherence/sector verdict, adopt an
 informative network proposal as deployed behavior, provision keys or grant
 consent. Existing specification, Python runtime, header, vectors and constants
 remain unchanged.
+
+The experimental std-only `rpp-link-udp` adapter performs real loopback/tailnet UDP I/O; see [its limits and live example](rpp-link-udp/README.md). The existing `rpp-link` crate still contains no network driver. Both riscv32 workspace builds exclude it with `--exclude rpp-link-udp`; it is not firmware.

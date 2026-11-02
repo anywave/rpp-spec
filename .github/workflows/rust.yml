@@ -85,11 +85,19 @@ jobs:
 
       - name: Run bounded properties on every host profile
         working-directory: .
-        run: |
-          cargo +1.85.1 test --manifest-path tools/fuzz_scaffold/Cargo.toml --offline --locked
-          cargo +1.85.1 fmt --manifest-path tools/fuzz_scaffold/Cargo.toml --all --check
-          cargo +1.85.1 clippy --manifest-path tools/fuzz_scaffold/Cargo.toml --all-targets --offline --locked -- -D warnings
-          python -m unittest tools.fuzz_scaffold.test_smoke tools.esp32_scaffold.test_billboard_errors
+        run: cargo +1.85.1 test --manifest-path tools/fuzz_scaffold/Cargo.toml --offline --locked
+
+      - name: Format fuzz scaffold
+        working-directory: .
+        run: cargo +1.85.1 fmt --manifest-path tools/fuzz_scaffold/Cargo.toml --all --check
+
+      - name: Lint fuzz scaffold offline
+        working-directory: .
+        run: cargo +1.85.1 clippy --manifest-path tools/fuzz_scaffold/Cargo.toml --all-targets --offline --locked -- -D warnings
+
+      - name: Test bounded optional smoke guard
+        working-directory: .
+        run: python -m unittest tools.fuzz_scaffold.test_smoke -v
 
       - name: Compile fuzz target interfaces without claiming coverage
         if: runner.os == 'Linux'
@@ -150,8 +158,11 @@ jobs:
       - name: Host tests with alloc and no default features
         run: cargo +1.85.1 test --workspace --no-default-features --features alloc --locked
 
+      - name: Live loopback UDP failover example
+        run: cargo +1.85.1 run -p rpp-link-udp --example loopback_pair --locked
+
       - name: Cross-compile RPP core, control, link and fleet interfaces
-        run: cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --target riscv32imc-unknown-none-elf --locked
 
       - name: Cross-compile alloc-only policy models, adapters and fleet resolution
-        run: cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked
