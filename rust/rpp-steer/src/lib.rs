@@ -9,7 +9,7 @@ extern crate std;
 use rpp_link::{LinkKind, LinkReading};
 mod ranking;
 mod selector;
-pub use ranking::best_link;
+pub use ranking::{best_link, best_link_with_ceiling};
 pub use selector::{Decision, Hysteresis, Reason, Selector};
 
 /// Local work bound, not a published protocol constant.
@@ -46,6 +46,7 @@ pub enum Error {
     InvalidMtu,
     EmptyPayload,
     InvalidMargin,
+    InvalidLossCeiling,
     ClockRollback,
 }
 

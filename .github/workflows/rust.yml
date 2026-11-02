@@ -77,6 +77,10 @@ jobs:
       - name: Install pinned Rust and check components
         run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
+      - name: Test billboard error precedence repairs
+        working-directory: .
+        run: python -m unittest tools.esp32_scaffold.test_billboard_errors -v
+
       - name: Test offline embedded compile guard
         working-directory: .
         env:
@@ -133,8 +137,11 @@ jobs:
       - name: Host tests with alloc and no default features
         run: cargo +1.85.1 test --workspace --no-default-features --features alloc --locked
 
+      - name: Live loopback UDP failover example
+        run: cargo +1.85.1 run -p rpp-link-udp --example loopback_pair --locked
+
       - name: Cross-compile RPP core, control, link and fleet interfaces
-        run: cargo +1.85.1 build --workspace --no-default-features --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --target riscv32imc-unknown-none-elf --locked
 
       - name: Cross-compile alloc-only policy models, adapters and fleet resolution
-        run: cargo +1.85.1 build --workspace --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked
+        run: cargo +1.85.1 build --workspace --exclude rpp-link-udp --no-default-features --features alloc --target riscv32imc-unknown-none-elf --locked

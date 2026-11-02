@@ -86,3 +86,43 @@ impl<V: Verifier> LinkAdapter for Ble<V> {
         Err(Error::DataUnsupported)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rpp_control::{decode, ControlFrame, ControlKind, Signature, HEADER_LEN};
+    struct Check;
+    impl Verifier for Check {
+        fn verify(&self, _: &NodeId, _: &[u8; HEADER_LEN], signature: &Signature) -> bool {
+            *signature == [3; 64]
+        }
+    }
+    /// Mutation: hide ExpiredKey, consume the new fragment, or claim delivery on expiry.
+    #[test]
+    fn expired_old_peer_key_propagates_without_delivering_new_control() {
+        let peer = [1; 16];
+        let target = [2; 16];
+        let bytes = ControlFrame::new(ControlKind::Pause, 8, peer, target, [3; 64]).encode();
+        let verified = decode(&bytes, &target, &Check).unwrap();
+        let mut ble = Ble::new(peer, target, Check);
+        let mut writer = Fragmenter::<112>::new(&bytes, 7, MTU).unwrap();
+        let mut first = [0; MTU];
+        let n = writer.write_next(&mut first).unwrap().unwrap();
+        assert!(ble
+            .receiver
+            .push(peer, &first[..n], 0, &target, &Check)
+            .unwrap()
+            .is_none());
+        ble.tag = Some(8);
+        ble.read(10).unwrap();
+        assert_eq!(
+            ble.send_verified_control_frame(&verified),
+            Err(Error::Fragment(rpp_frag::Error::ExpiredKey {
+                peer,
+                tag: 7
+            }))
+        );
+        assert_eq!(ble.receiver.retained_slots(), 0);
+        assert_eq!(ble.received(), None);
+    }
+}

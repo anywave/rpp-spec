@@ -39,6 +39,9 @@ or forbidden for the class. `best_link` provides the same stateless ordering.
   the caller enforces freshness before admission. Error paths change no state.
 - BLE is control-only even if mislabeled Unmetered. Every ControlOnly link is
   also excluded from bulk and billboards. Zero throughput is bulk-ineligible;
+  bulk loss above the default 200000 ppm ceiling is excluded too. Configure it
+  with `best_link_with_ceiling` or `Selector::with_loss_ceiling` (0..1000000 ppm);
+  total loss always excludes bulk. This is local policy, not a wire constant.
   control/billboard ranking does not require a throughput estimate.
 - Cost breaks remaining ties in this order: Unmetered, Metered, ControlOnly.
   Equal scores choose the smaller ID independently of input order.
