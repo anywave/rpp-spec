@@ -1,14 +1,27 @@
 {
-  "bytes": {
-    "fleet-scenarios.md": 994,
-    "fleet-scenarios.tsv": 580
+  "boundary_core_status": {
+    "clock-rollback": "INVALID_INPUT"
   },
-  "evidence": "actual merged Python overlay policy applied to fixed fleet endpoint scenarios",
+  "bytes": {
+    "fleet-scenarios.md": 1655,
+    "fleet-scenarios.tsv": 1016
+  },
+  "evidence": "14 actual Python core-derived rows; 3 explicitly labeled fleet-boundary contract fixtures",
+  "fixture_source_sha256_lf": "85c8b8daedf67967db959045c172704f57ff6f69bc88de6372beca1b74a4dba9",
+  "fleet_boundary_rows": [
+    "invalid-latency-u64max-update",
+    "invalid-loss-ppm-update",
+    "clock-rollback"
+  ],
+  "fleet_contract_source_sha256_lf": {
+    "rust/rpp-fleet/src/endpoint.rs": "21e0d5dac767289a5881da016c1ce5e0ad81fc109d2ea603e5033931cbce11c6",
+    "rust/rpp-fleet/src/resolver.rs": "51b5667d4e44ba7d6b4b3786c41834e162d8bb154fda0903aca861e5dc894b7e"
+  },
   "identity_scope": "explicit fixture assignments; not an identity derivation oracle",
   "policy_source_sha256_lf": "e387e8063fd3ffe1ca91d9ab059adb6f9fa37c9ab31dda7ea443275d220fefb2",
-  "rows": 9,
+  "rows": 17,
   "sha256": {
-    "fleet-scenarios.md": "d90b47956a263ddf18a50899bd5b041e3d19fe033eb0549c8b353b9c3f63426e",
-    "fleet-scenarios.tsv": "2d2775776c6abea3edf3d7bfd7621ce372703131e304494a07ab36639a715def"
+    "fleet-scenarios.md": "ae52a403ff82574e48c67ca6e9d0151d37dc27983082bb0c615bde2b475842d2",
+    "fleet-scenarios.tsv": "0fb321d05bbeaff8773e2bc76d2ffd41388480ec0531f541b3ae1927093aec21"
   }
 }
