@@ -252,6 +252,17 @@ mod tests {
         assert_eq!(loss_gate(true, 300_000, bands), BulkGate::Eligible);
         assert_eq!(loss_gate(true, 300_001, bands), BulkGate::AboveUpper);
         assert_eq!(loss_gate(false, 300_000, bands), BulkGate::AwaitingLower);
+        let config = EndpointConfig {
+            id: 1,
+            local: "127.0.0.1:0".parse().unwrap(),
+            peer: "127.0.0.1:9000".parse().unwrap(),
+            kind: LinkKind::Lan,
+            timeout: Duration::from_millis(10),
+            throughput_kbps: 1,
+            cost: CostClass::Unmetered,
+        };
+        let bridge = Bridge::bind(&[config], bands, policy()).unwrap();
+        assert!(!bridge.endpoints[0].bulk_open);
     }
     /// Kills reading_fields_rewritten, mtu_includes_header, and throughput_estimated.
     #[test]
@@ -296,7 +307,7 @@ mod tests {
         }
         assert!(validate_batch(2, &[32, 32]).is_ok());
     }
-    /// Kills invalid_future_advances_clock and rollback_guard_removed.
+    /// Kills invalid_future_advances_clock and rollback_accepted_at_selector_boundary.
     #[test]
     fn invalid_future_batches_do_not_advance_the_accepted_clock() {
         let bands = LossBands {
@@ -321,7 +332,7 @@ mod tests {
         ));
         assert_eq!(bridge.clock, Some(6));
     }
-    /// Kills invalid_bands_accepted and invalid_margin_accepted before socket I/O.
+    /// Kills invalid_bands_accepted, duplicate_id_accepted, oversized_bank_accepted, and invalid_margin_accepted before I/O.
     #[test]
     fn invalid_policy_is_rejected_before_socket_construction() {
         let bands = LossBands {
@@ -339,6 +350,27 @@ mod tests {
         assert!(matches!(
             Bridge::bind(&[], bands, policy()),
             Err(Error::InvalidBands)
+        ));
+        let config = EndpointConfig {
+            id: 1,
+            local: "127.0.0.1:0".parse().unwrap(),
+            peer: "127.0.0.1:9000".parse().unwrap(),
+            kind: LinkKind::Lan,
+            timeout: Duration::from_millis(10),
+            throughput_kbps: 1,
+            cost: CostClass::Unmetered,
+        };
+        let valid_bands = LossBands {
+            lower_ppm: 0,
+            upper_ppm: 0,
+        };
+        assert!(matches!(
+            Bridge::bind(&[config, config], valid_bands, policy()),
+            Err(Error::DuplicateId)
+        ));
+        assert!(matches!(
+            Bridge::bind(&[config; MAX_LINKS + 1], valid_bands, policy()),
+            Err(Error::TooManyLinks)
         ));
         let mut bad_policy = policy();
         bad_policy.control_margin_ppm = 1_000_001;
