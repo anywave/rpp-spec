@@ -272,7 +272,12 @@ def test_incomplete_review_is_error(repo, case):
         target.write_bytes(b"\0binary")
     elif case == "symlink":
         target.unlink()
-        target.symlink_to("/etc/passwd")
+        try:
+            target.symlink_to("/etc/passwd")
+        except OSError as exc:
+            if os.name == "nt":
+                pytest.skip(f"Windows symlink creation is unavailable: {exc}")
+            raise
     else:
         target.write_text("#" * (checker.MAX_BLOB + 1), encoding="utf-8", newline="\n")
     with pytest.raises(checker.ToolError):
