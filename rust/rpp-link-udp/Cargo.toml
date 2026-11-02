@@ -17,3 +17,6 @@ rpp-control = { path = "../rpp-control", version = "=0.1.0", default-features = 
 rpp-core = { path = "../rpp-core", version = "=0.1.0", default-features = false, features = ["alloc"], optional = true }
 rpp-fleet = { path = "../rpp-fleet", version = "=0.1.0", default-features = false, features = ["alloc"], optional = true }
 
+[[example]]
+name = "loopback_pair"
+required-features = ["fleet-demo"]
