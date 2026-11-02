@@ -120,9 +120,9 @@ def discover(env):
 def installed_target(rustc, sysroot, env):
     for target in TARGETS:
         command = rustc + (['--sysroot', str(sysroot)] if sysroot else [])
-        value = execute(command + ['--print', 'target-libdir', '--target', target], env).rstrip('\r\n')
+        value = execute(command + ['--print', 'target-libdir', '--target', target], env).removesuffix('\n').removesuffix('\r')
         directory = Path(value)
-        if not directory.is_absolute() or any(char in value for char in '\r\n\0'):
+        if not directory.is_absolute() or not value.isprintable():
             raise CheckError('malformed target library path')
         if not directory.exists():
             if directory.is_symlink() or directory.parent.exists() or directory.parent.is_symlink():
@@ -163,7 +163,10 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
     if not cargo or not rustc:
         raise CheckError('empty compiler or Cargo command')
     for name, command in (('cargo', cargo), ('rustc', rustc)):
-        version = execute(command + ['--version'], env).split()
+        raw_version = execute(command + ['--version'], env).removesuffix('\n').removesuffix('\r')
+        if not raw_version.isprintable():
+            raise CheckError('malformed tool version output')
+        version = raw_version.split()
         if len(version) < 2 or version[:2] != [name, PIN]:
             raise CheckError(f'{name} must be exactly {PIN}')
     if sysroot is not None:

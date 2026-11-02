@@ -174,8 +174,11 @@ class NoStdCheckTests(unittest.TestCase):
         self.assertEqual(self.builds(), [])
 
     def test_malformed_target_probe_is_failure_not_skip(self):
-        """Kills accepting relative, empty or multiline target-library probe output."""
-        for value in ("relative/lib\n", "", "/first\n/second\n"):
+        """Kills accepting relative, empty, multiline or control-containing library paths."""
+        probes = ("relative/lib\n", "", "/first\n/second\n",
+                  str(self.root / "absent\x1bparent" / RISCV / "lib") + "\n",
+                  str(self.root / "absent\x85parent" / RISCV / "lib") + "\n")
+        for value in probes:
             self.probe_override = value
             with self.subTest(probe=value), self.assertRaises(guard.CheckError):
                 self.check()
@@ -199,6 +202,19 @@ class NoStdCheckTests(unittest.TestCase):
             setattr(self, field, value)
             with self.subTest(tool=field), self.assertRaises(guard.CheckError):
                 self.check()
+            setattr(self, field, original)
+        self.assertEqual(self.builds(), [])
+
+    def test_malformed_version_output_fails_before_target_skip(self):
+        """Kills accepting valid version prefixes followed by extra lines or control bytes."""
+        for field, tool in (("rust_version", "rustc"), ("cargo_version", "cargo")):
+            original = getattr(self, field)
+            for suffix in ("\n\x00corrupt\n", "\nextra metadata\n", "\tmetadata\n"):
+                setattr(self, field, f"{tool} 1.85.1 (fixture)" + suffix)
+                with self.subTest(tool=tool, suffix=suffix), self.assertRaises(guard.CheckError):
+                    self.check()
+            setattr(self, field, f"{tool} 1.85.1 (fixture)\r\n")
+            self.assertEqual(self.check()["status"], "SKIP")
             setattr(self, field, original)
         self.assertEqual(self.builds(), [])
 
