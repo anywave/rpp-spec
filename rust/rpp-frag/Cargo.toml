@@ -1,0 +1,10 @@
+[package]
+name = "rpp-frag"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+rpp-control = { path = "../rpp-control", version = "=0.1.0", default-features = false }

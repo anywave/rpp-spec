@@ -31,6 +31,10 @@ class CorpusGroup:
 
 
 GROUPS = (
+    CorpusGroup("frag", "tools.esp32_scaffold.frag_corpus", "rust/rpp-frag/tests/data", (
+        ("frag-corpus.tsv", "frag-corpus.tsv"),
+        ("frag-manifest.json", "frag-manifest.json"),
+    )),
     CorpusGroup("address", "tools.rust_scaffold.address_corpus", "rust/rpp-core/tests/data", (
         ("address-construct.tsv", "address-construct.tsv"),
         ("address-raw.tsv", "address-raw.tsv"),

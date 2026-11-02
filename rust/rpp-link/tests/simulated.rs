@@ -41,7 +41,7 @@ fn board(since: i128, until: i128) -> Billboard {
 
 #[test]
 fn adapter_driven_scenarios_match_three_python_artifacts() {
-    // Mutation adapter-bypass/changed-reading: selection and delivery must preserve every Python scenario byte and deterministic reruns.
+    // Mutation adapter-bypass/changed-reading/scenario-BLE-bypass: selection and delivery must preserve every Python scenario byte and deterministic reruns.
     let actual = simulated::artifacts();
     assert_eq!(
         actual.csv,
@@ -61,6 +61,7 @@ fn adapter_driven_scenarios_match_three_python_artifacts() {
     assert_eq!(trace.run.rows.iter().map(|r| r.request).max(), Some(16));
     assert!(trace.audit.readings > 16);
     assert_eq!(trace.audit.control_hops, 2);
+    assert_eq!(trace.audit.control_fragments, 8);
     assert_eq!(trace.audit.attempts.len(), 8);
     assert_eq!(trace.audit.data_hops, 11);
 }
@@ -186,6 +187,7 @@ fn verified_control_still_needs_known_independent_tunnel_and_current_consent() {
         Status::Ok
     );
     assert!(matches!(bt[0].sent(), [SendRecord::Control { .. }]));
+    assert_eq!(bt[0].ble_fragment_count(), 8);
     assert_eq!(
         host.send_verified_control(0, &frame, &mut bt, &data)
             .unwrap()

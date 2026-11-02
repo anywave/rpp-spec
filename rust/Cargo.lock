@@ -27,10 +27,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rpp-frag"
+version = "0.1.0"
+dependencies = [
+ "rpp-control",
+]
+
+[[package]]
 name = "rpp-link"
 version = "0.1.0"
 dependencies = [
  "rpp-billboard",
  "rpp-control",
  "rpp-core",
+ "rpp-frag",
 ]

@@ -12,3 +12,6 @@ rust/rpp-control/tests/data/** -text
 # CX-010 fleet scenario evidence is compared as exact bytes.
 rust/rpp-fleet/tests/data/** -text
 rust/rpp-billboard/tests/data/** -text
+
+# CX-021 local small-MTU vectors are exact-byte evidence.
+rust/rpp-frag/tests/data/** -text

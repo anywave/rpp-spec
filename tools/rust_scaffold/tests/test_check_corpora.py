@@ -23,7 +23,7 @@ class CorpusFreshnessTests(unittest.TestCase):
         shutil.copytree(REPO / "rpp", self.repo / "rpp", ignore=shutil.ignore_patterns("__pycache__"))
         for relative in ("tools/rust_scaffold", "tools/esp32_scaffold", "tools/overlay_sim", "tools/fleet_scaffold"):
             shutil.copytree(REPO / relative, self.repo / relative, ignore=shutil.ignore_patterns("__pycache__"))
-        for relative in ("rust/rpp-core/tests/data", "rust/rpp-control/tests/data", "rust/rpp-fleet/tests/data", "rust/rpp-billboard/tests/data"):
+        for relative in ("rust/rpp-core/tests/data", "rust/rpp-control/tests/data", "rust/rpp-fleet/tests/data", "rust/rpp-frag/tests/data", "rust/rpp-billboard/tests/data"):
             shutil.copytree(REPO / relative, self.repo / relative)
         # Fleet boundary provenance hashes these two existing producer contracts.
         for relative in ("rust/rpp-fleet/src/endpoint.rs", "rust/rpp-fleet/src/resolver.rs"):
@@ -31,15 +31,16 @@ class CorpusFreshnessTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(REPO / relative, target)
 
-    def test_fresh_and_edited_oracle_rows_in_all_five_groups(self):
-        """Mutation witnesses: change one saved address/control/overlay/fleet/billboard row byte."""
+    def test_fresh_and_edited_oracle_rows_in_all_six_groups(self):
+        """Mutation witnesses: change one saved address/control/overlay/fleet/frag/billboard row byte."""
         fresh = check_corpora.check(self.repo)
         self.assertTrue(fresh.fresh)
-        self.assertEqual(fresh.checked, 15)
+        self.assertEqual(fresh.checked, 17)
         for relative in ("rust/rpp-core/tests/data/address-construct.tsv",
                          "rust/rpp-core/tests/data/overlay-scenarios.csv",
                          "rust/rpp-control/tests/data/control-corpus.tsv",
                          "rust/rpp-fleet/tests/data/fleet-scenarios.tsv",
+                         "rust/rpp-frag/tests/data/frag-corpus.tsv",
                          "rust/rpp-billboard/tests/data/billboard-corpus.tsv"):
             path = self.repo / relative
             original = path.read_bytes()
@@ -60,9 +61,11 @@ class CorpusFreshnessTests(unittest.TestCase):
                 path.write_bytes(original)
 
     def test_manifest_edits_are_not_ignored_as_environment_metadata(self):
-        """Mutation witnesses: alter provenance Unicode version or control row count."""
+        """Mutation witnesses: alter provenance Unicode version or control/frag/billboard counts."""
         cases = (("rust/rpp-core/tests/data/address-manifest.json", b'"15.0.0"', b'"15.1.0"'),
-                 ("rust/rpp-control/tests/data/control-manifest.json", b'"rows": 1373', b'"rows": 1374'))
+                 ("rust/rpp-control/tests/data/control-manifest.json", b'"rows": 1373', b'"rows": 1374'),
+                 ("rust/rpp-frag/tests/data/frag-manifest.json", b'"fragments": 66', b'"fragments": 67'),
+                 ("rust/rpp-billboard/tests/data/billboard-manifest.json", b'"rows": 50', b'"rows": 51'))
         for relative, before, after in cases:
             path = self.repo / relative
             original = path.read_bytes()
