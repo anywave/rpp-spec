@@ -2,8 +2,8 @@
 +++ b/spec/RESOLVER.md
 @@ -793,6 +793,35 @@
  address formats, Shell TTLs, published constants or existing trust decisions.
- 
- 
+
+
 +**Informative, unadopted billboard wire proposal (CX-020):** This provisional
 +profile preserves the six semantic fields; issuer and signature are envelope
 +metadata. It changes no existing core policy or protocol requirement.
@@ -28,8 +28,8 @@
 +  text and times above u64::MAX are explicitly unencodable, never rewritten.
 +  Receipt/replay/scope, interval application and conflict decisions remain in
 +  the existing overlay policy. A verified frame alone grants no authority.
-+- The heap-free crate has no default heap requirement; `alloc` adds owned core
-+  conversion. Host simulation requires opt-in `rpp-link/sim`; its normal
++- Decoding allocates nothing; `--no-default-features` removes std/alloc
++  requirements. The `alloc` feature adds owned core conversion. Host simulation requires opt-in `rpp-link/sim`; its normal
 +  default-features=false codec dependency preserves heap-free builds and makes
 +  the simulation-feature visibility counterfactual a meaningful assertion test.
 +

@@ -144,8 +144,11 @@ MUTATIONS = (
     ),
     Mutation(
         'billboard_issuer_unbound', "rpp-billboard", "rpp-billboard/src/lib.rs",
-        'let signing = &input[..end];',
-        'let signing = &input[HEADER_LEN + issuer_len..end];',
+        'if !verifier.verify(issuer, signing, signature) {',
+        'let mut issuerless = [0; MAX_FRAME_LEN];\n'
+        '    issuerless[..HEADER_LEN].copy_from_slice(&signing[..HEADER_LEN]);\n'
+        '    issuerless[HEADER_LEN..end - issuer_len].copy_from_slice(&signing[HEADER_LEN + issuer_len..]);\n'
+        '    if !verifier.verify(issuer, &issuerless[..end - issuer_len], signature) {',
         Test("codec", 'issuer_is_bound_into_signing_bytes'),
         Test("codec", 'fact_escape_is_rejected'),
     ),
