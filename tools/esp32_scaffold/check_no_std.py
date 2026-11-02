@@ -2,29 +2,86 @@
 import argparse
 import json
 import os
+import re
+import signal
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 
 PIN = '1.85.1'
 TARGETS = ('riscv32imc-unknown-none-elf', 'thumbv7em-none-eabihf')
 PACKAGES = ('rpp-billboard', 'rpp-frag', 'rpp-steer')
+OUTPUT_LIMIT = 1024 * 1024
 
 
 class CheckError(RuntimeError):
     """A present tool, installation or build failed; never a skip."""
 
 
-def execute(command, env, timeout=30):
+def stop(process):
     try:
-        result = subprocess.run(command, env=env, capture_output=True, text=True,
-                                encoding='utf-8', timeout=timeout)
+        if os.name == 'nt':
+            try:
+                subprocess.run(['taskkill', '/F', '/T', '/PID', str(process.pid)],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=10)
+
+
+def execute(command, env, timeout=30):
+    output = bytearray()
+    done = threading.Event()
+    failures = []
+    options = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == 'nt' else {'start_new_session': True}
+    try:
+        with subprocess.Popen(command, env=env, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, bufsize=0, **options) as process:
+            def drain():
+                try:
+                    while True:
+                        block = process.stdout.read(min(65536, OUTPUT_LIMIT + 1 - len(output)))
+                        if not block:
+                            break
+                        output.extend(block)
+                        if len(output) > OUTPUT_LIMIT:
+                            failures.append('tool output limit exceeded')
+                            break
+                except (OSError, ValueError):
+                    failures.append('tool output read failed')
+                finally:
+                    done.set()
+            reader = threading.Thread(target=drain, daemon=True)
+            reader.start()
+            deadline = time.monotonic() + timeout
+            try:
+                if not done.wait(timeout):
+                    raise subprocess.TimeoutExpired(command, timeout)
+                if failures:
+                    raise CheckError(failures[0])
+                process.wait(timeout=max(0, deadline - time.monotonic()))
+                if process.returncode:
+                    raise CheckError(f'tool exited {process.returncode}: {output.decode("utf-8", errors="replace")}')
+                return output.decode('utf-8')
+            except (CheckError, OSError, UnicodeError, subprocess.TimeoutExpired):
+                stop(process)
+                raise
+            finally:
+                process.stdout.close()
+                reader.join(timeout=1)
     except (OSError, UnicodeError, subprocess.TimeoutExpired) as error:
         raise CheckError(f'tool invocation failed: {error}') from error
-    if result.returncode:
-        raise CheckError(f'tool exited {result.returncode}: {result.stdout}{result.stderr}')
-    return result.stdout + result.stderr
 
 
 def environment():
@@ -39,8 +96,15 @@ def environment():
 def discover(env):
     rustup = shutil.which('rustup')
     if rustup:
-        installed = execute([rustup, 'toolchain', 'list'], env).splitlines()
-        if not any(line.split() and (line.split()[0] == PIN or line.split()[0].startswith(PIN + '-')) for line in installed):
+        listing = execute([rustup, 'toolchain', 'list'], env)
+        if any(not char.isprintable() and char not in '\r\n' for char in listing):
+            raise CheckError('malformed installed toolchain list')
+        if listing.strip() == 'no installed toolchains':
+            return None
+        installed = [re.fullmatch(r'(\S+)(?: \([^()\r\n]+\))?', line) for line in listing.strip().splitlines()]
+        if not installed or not all(installed):
+            raise CheckError('malformed installed toolchain list')
+        if not any(item[1] == PIN or item[1].startswith(PIN + '-') for item in installed):
             return None
         paths = [execute([rustup, 'which', '--toolchain', PIN, name], env).strip()
                  for name in ('cargo', 'rustc')]
@@ -115,6 +179,10 @@ def check(repo, cargo=None, rustc=None, sysroot=None, work_dir=None):
         if work == repo or repo in work.parents or work in repo.parents:
             raise CheckError('build/cache directory must be outside the checkout')
         work.mkdir(parents=True, exist_ok=True)
+        for directory in (work / 'cargo-home', work / 'target'):
+            resolved = directory.resolve()
+            if resolved == repo or repo in resolved.parents or resolved in repo.parents:
+                raise CheckError('derived cache path must be disjoint from the checkout')
         env.update(RUSTC=str(rustc[0]), CARGO_HOME=str(work / 'cargo-home'),
                    CARGO_TARGET_DIR=str(work / 'target'),
                    CARGO_ENCODED_RUSTFLAGS='\x1f'.join(['--sysroot', str(sysroot)]) if sysroot else '')

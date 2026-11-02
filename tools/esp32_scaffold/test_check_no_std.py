@@ -68,15 +68,43 @@ class NoStdCheckTests(unittest.TestCase):
 
     def test_execute_rejects_nonzero_missing_tool_and_timeout(self):
         """Kills nonzero-to-success and missing/timeout tool errors converted into a skip."""
-        failed = guard.subprocess.CompletedProcess(["fixture"], 1, stdout="failed", stderr="")
-        with mock.patch.object(guard.subprocess, "run", return_value=failed):
-            with self.assertRaises(guard.CheckError):
-                guard.execute(["fixture"], {})
-        errors = (FileNotFoundError("missing fixture"), guard.subprocess.TimeoutExpired("fixture", 30))
-        for error in errors:
-            with self.subTest(error=type(error).__name__), mock.patch.object(guard.subprocess, "run", side_effect=error):
+        commands = (([sys.executable, "-I", "-c", "raise SystemExit(7)"], 30),
+                    ([str(self.root / "missing-executable")], 30),
+                    ([sys.executable, "-I", "-c", "import time; time.sleep(5)"], 0.1))
+        for command, timeout in commands:
+            with self.subTest(command=command), self.assertRaises(guard.CheckError):
+                guard.execute(command, guard.environment(), timeout=timeout)
+
+    def test_windows_stop_falls_back_when_tree_kill_helper_is_unavailable(self):
+        """Kills skipping parent kill/wait when taskkill is missing or times out."""
+        errors = (FileNotFoundError("taskkill absent"), guard.subprocess.TimeoutExpired("taskkill", 10))
+        for failure in errors:
+            process = mock.Mock(pid=123)
+            process.poll.return_value = None
+            error = None
+            with self.subTest(error=type(failure).__name__), mock.patch.object(guard.os, "name", "nt"):
+                with mock.patch.object(guard.subprocess, "run", side_effect=failure):
+                    try:
+                        guard.stop(process)
+                    except (OSError, guard.subprocess.TimeoutExpired) as raised:
+                        error = raised
+            self.assertIsNone(error)
+            process.kill.assert_called_once_with()
+            process.wait.assert_called_once_with(timeout=10)
+
+    def test_execute_rejects_output_overflow_instead_of_capturing_it_unbounded(self):
+        """Kills an ignored output limit while a controlled child writes beyond that limit."""
+        for stream in ("stdout", "stderr"):
+            command = [sys.executable, "-I", "-c", f"import sys; sys.{stream}.buffer.write(b'x' * 4096)"]
+            with self.subTest(stream=stream), mock.patch.object(guard, "OUTPUT_LIMIT", 1024):
                 with self.assertRaises(guard.CheckError):
-                    guard.execute(["fixture"], {})
+                    guard.execute(command, guard.environment())
+
+    def test_execute_rejects_invalid_utf8_instead_of_replacement_decoding(self):
+        """Kills accepting malformed tool output after replacing undecodable bytes."""
+        command = [sys.executable, "-I", "-c", "import sys; sys.stdout.buffer.write(bytes([255]))"]
+        with self.assertRaises(guard.CheckError):
+            guard.execute(command, guard.environment())
 
     def test_cli_fails_on_check_error_and_preserves_explicit_skip_exit(self):
         """Kills a zero exit after a build error or a missing-target SKIP changed to FAIL."""
@@ -188,6 +216,17 @@ class NoStdCheckTests(unittest.TestCase):
                 guard.check(self.repo, work_dir=self.work)
         self.assertEqual(self.builds(), [])
 
+    def test_present_rustup_malformed_inventory_fails_instead_of_claiming_absence(self):
+        """Kills treating empty, control-containing or malformed rustup metadata as missing tools."""
+        with mock.patch.object(guard.shutil, "which", return_value="rustup-fixture"):
+            for listing in ("", "broken\x00metadata\n", "broken metadata\n"):
+                with self.subTest(listing=listing), mock.patch.object(guard, "execute", return_value=listing):
+                    with self.assertRaises(guard.CheckError):
+                        guard.discover(guard.environment())
+            for listing in ("custom-toolchain\n", "custom-toolchain (active, default)\n", "no installed toolchains\n"):
+                with self.subTest(control=listing), mock.patch.object(guard, "execute", return_value=listing):
+                    self.assertIsNone(guard.discover(guard.environment()))
+
     def test_missing_steer_is_an_input_failure_even_when_targets_are_absent(self):
         """Kills a green target-missing skip that silently omits the required steer crate."""
         (self.repo / "rust/rpp-steer/src/lib.rs").unlink()
@@ -201,6 +240,18 @@ class NoStdCheckTests(unittest.TestCase):
         with mock.patch.object(guard, "execute", side_effect=self.tool):
             with self.assertRaises(guard.CheckError):
                 guard.check(self.repo, cargo=["cargo-fixture"], rustc=["rustc-fixture"], work_dir=self.root)
+        self.assertEqual(self.builds(), [])
+
+    def test_derived_cache_links_cannot_resolve_into_the_checkout(self):
+        """Kills validating only the cache root while target or Cargo home resolves inside source."""
+        self.install(RISCV)
+        original = Path.resolve
+        for name in ("target", "cargo-home"):
+            def redirected(path, *args, **kwargs):
+                return self.repo if path == self.work / name else original(path, *args, **kwargs)
+            with self.subTest(cache=name), mock.patch.object(Path, "resolve", autospec=True, side_effect=redirected):
+                with self.assertRaises(guard.CheckError):
+                    self.check()
         self.assertEqual(self.builds(), [])
 
     def test_build_is_exactly_three_bare_libraries_with_offline_clean_environment(self):
