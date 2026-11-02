@@ -20,7 +20,7 @@ References below are to the base tree, before the proposed addition:
 
 | Source | Existing contract | Consequence for this library |
 |---|---|---|
-| `spec/SPEC.md:32–41` | Semantic-layer addresses are temporal routing states; resolve at point of access | A configured fleet binding is not permanent object identity or a promise of future validity |
+| `spec/SPEC.md:32–42` | Semantic-layer addresses are temporal routing states; resolve at point of access | A configured fleet binding is not permanent object identity or a promise of future validity |
 | `spec/RPP-CANONICAL-v2.md:35` and `:219–244` | Canonical fields, constructor checks and their 32-bit encoding | Reuse `rpp-core`; do not allocate new identity bits or invent a compact-address hash |
 | `spec/RPP-CANONICAL-v2.md:165–185` | Normalized radius and encoded-byte mapping | Preserve the existing quantizer and address bytes |
 | `spec/RESOLVER.md:82–88`, `:97`, `:156` | Modality choice/discovery input, authentication delegated to identity layer, attempted modalities | Endpoint records are inputs; resolution is not enrollment or authentication |
@@ -202,8 +202,10 @@ eligibility checks; stored data history does not exempt those checks.
 An empty, forged, wrong-target or superseded reference returns the explicit
 `InvalidDataReference` error rather than being silently replaced with an empty
 path. A historically old but still latest primary is not superseded merely by
-elapsed time. Only actual clock rollback maps to `ClockRollback`; other invalid
-core inputs map to `InvalidInput`.
+elapsed time. Both resolver entry points check `tick < policy.clock()` first,
+before input validation, meter retention or any core call. Rollback returns
+`ClockRollback` without changing state, including when another input is invalid.
+After that check, core invalid input always maps to `InvalidInput`.
 
 The library chooses a route; real adapters remain responsible for sends,
 outcomes and boundary errors. Reuse the existing first-token retry boundary and

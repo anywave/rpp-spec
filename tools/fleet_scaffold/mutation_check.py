@@ -1,4 +1,4 @@
-"""Execute eleven bounded fleet path-policy and boundary mutants in Rust copies.
+"""Execute nineteen bounded fleet path-policy and boundary mutants in Rust copies.
 
 This stdlib Python scaffold is outside the Rust crate and is never shipped by it.
 Only a bounded, selected Rust test's assertion panic kills a mutant. Compiler
@@ -108,16 +108,70 @@ MUTATIONS = (
     ),
     Mutation(
         "non_clock_invalid_input_mislabeled", "rpp-fleet", "rpp-fleet/src/resolver.rs",
-        "} else {\n            FleetResolveError::InvalidInput\n        }",
-        "} else {\n            FleetResolveError::ClockRollback\n        }",
-        Test("lib", "resolver::tests::malformed_core_input_at_current_clock_is_not_clock_rollback"),
+        "Status::InvalidInput => return Err(FleetResolveError::InvalidInput),\n            Status::NoChannel => {",
+        "Status::InvalidInput => return Err(FleetResolveError::ClockRollback),\n            Status::NoChannel => {",
+        Test("lib", "resolver::tests::current_tick_with_malformed_core_input_remains_invalid_input"),
         Test("lib", "identity::tests::explicit_binding_preserves_core_encoding_and_checks_full_identity"),
+    ),
+    Mutation(
+        "data_rollback_guard_bypassed", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        ") -> Result<DataResolution, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if tick < self.policy.clock() {",
+        ") -> Result<DataResolution, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if false && tick < self.policy.clock() {",
+        Test("clock", "rollback_tick_with_valid_input_is_rejected_without_spending_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "control_rollback_after_path_validation", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        ") -> Result<ControlResolution<'frame>, FleetResolveError> {\n        // Rollback is checked first, before validation or core state changes.\n        if tick < self.policy.clock() {",
+        ") -> Result<ControlResolution<'frame>, FleetResolveError> {\n        // Mutant: inspect the path before checking rollback.\n        if path == TrafficPath::Data {\n            return Err(FleetResolveError::ControlOnDataPath);\n        }\n        if tick < self.policy.clock() {",
+        Test("clock", "rollback_tick_with_invalid_input_is_checked_first_and_preserves_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
     ),
     Mutation(
         "sentinel_reading_bypass", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
         "if !reading.valid() || reading.latency_ms == u64::MAX || reading.jitter_ms == u64::MAX {",
         "if !reading.valid() {",
         Test("negative", "rejected_reading_updates_preserve_good_data_control_and_registry_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "tie_names_reversed", "rpp-fleet", "rpp-core/src/overlay.rs",
+        "scored.sort_by(|a, b| a.0.cmp(&b.0));",
+        "scored.sort_by(|a, b| a.0.0.cmp(&b.0.0).then(a.0.1.cmp(&b.0.1)).then(b.0.2.cmp(&a.0.2)));",
+        Test("negative", "exact_cost_tie_selects_smaller_endpoint_id_through_core_ranking"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "loss_ppm_validation_bypassed", "rpp-fleet", "rpp-fleet/src/endpoint.rs",
+        "if !reading.valid() || reading.latency_ms == u64::MAX || reading.jitter_ms == u64::MAX {",
+        "if reading.latency_ms == u64::MAX || reading.jitter_ms == u64::MAX {",
+        Test("scenarios", "boundary_rejection_rows_preserve_valid_reading_and_state"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "equal_control_sequence_replayed", "rpp-fleet", "rpp-core/src/overlay.rs",
+        ".is_none_or(|old| sequence > old);", ".is_none_or(|old| sequence >= old);",
+        Test("scenarios", "replay_row_is_denied_and_next_sequence_succeeds"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "unavailable_channel_selected", "rpp-fleet", "rpp-core/src/overlay.rs",
+        "&& link.available", "&& true",
+        Test("scenarios", "websocket_outage_rows_choose_only_live_fallback_or_no_channel"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "empty_channels_report_ready", "rpp-fleet", "rpp-fleet/src/resolver.rs",
+        "Status::NoChannel => {\n                return Ok(DataResolution {\n                    status: ResolutionStatus::NoChannel,\n                    routes: Vec::new(),\n                })\n            }",
+        "Status::NoChannel => {\n                return Ok(DataResolution {\n                    status: ResolutionStatus::Ready,\n                    routes: Vec::new(),\n                })\n            }",
+        Test("negative", "empty_endpoint_list_returns_explicit_no_channel"),
+        Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
+    ),
+    Mutation(
+        "invalid_update_written_before_validation", "rpp-fleet", "rpp-fleet/src/registry.rs",
+        "if validate_reading(reading).is_err() {",
+        "endpoint.last_reading = reading;\n        if validate_reading(reading).is_err() {",
+        Test("scenarios", "boundary_rejection_rows_preserve_valid_reading_and_state"),
         Test("scenarios", "xiaozhi_websocket_gateway_uses_lan_policy"),
     ),
 )
@@ -230,8 +284,8 @@ def main():
         environment["LD_LIBRARY_PATH"] = str(args.library_dir) + (os.pathsep + previous if previous else "")
     tools = {"cargo": version(args.cargo, "cargo", environment), "rustc": version(args.rustc, "rustc", environment)}
     rejected = classifier_controls()
-    if len(MUTATIONS) != 11:
-        raise RuntimeError("eleven fleet policy and boundary mutations must be configured")
+    if len(MUTATIONS) != 19:
+        raise RuntimeError("nineteen fleet policy and boundary mutations must be configured")
     evidence = []
     for mutation in MUTATIONS:
         case = args.work_dir / mutation.name

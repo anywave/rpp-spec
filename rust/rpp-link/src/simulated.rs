@@ -11,6 +11,8 @@
 //! CX007 meter paths use that separator; rejection precedes every read/policy/send
 //! callback. This narrows the host adapter domain without changing core names.
 
+pub mod ble;
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     string::{String, ToString},
@@ -18,6 +20,7 @@ use std::{
     vec::Vec,
 };
 
+use rpp_billboard::{self as billboard_wire, Fields, Signature as BillboardSignature};
 use rpp_control::{
     decode, ControlFrame as WireControlFrame, ControlKind as WireControlKind, NodeId, Signature,
     VerifiedControlFrame, Verifier, HEADER_LEN,
@@ -42,6 +45,7 @@ pub const R_ID: NodeId = [b'R'; 16];
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AdapterError {
     InvalidReading,
+    Ble(ble::Error),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -63,6 +67,8 @@ pub struct SimulatedAdapter {
     data_outcome: DataOutcome,
     reads: u64,
     sent: Vec<SendRecord>,
+    ble_fragments: usize,
+    data_payloads: Vec<Vec<u8>>,
 }
 
 impl SimulatedAdapter {
@@ -80,6 +86,8 @@ impl SimulatedAdapter {
             data_outcome: DataOutcome::Sent,
             reads: 0,
             sent: Vec::new(),
+            ble_fragments: 0,
+            data_payloads: Vec::new(),
         }
     }
     pub fn with_reading(mut self, reading: LinkReading) -> Self {
@@ -93,11 +101,17 @@ impl SimulatedAdapter {
     pub fn reads(&self) -> u64 {
         self.reads
     }
+    pub fn ble_fragment_count(&self) -> usize {
+        self.ble_fragments
+    }
     pub fn sent(&self) -> &[SendRecord] {
         &self.sent
     }
     pub fn name(&self) -> &str {
         &self.metadata.name
+    }
+    pub fn data_payloads(&self) -> &[Vec<u8>] {
+        &self.data_payloads
     }
 }
 
@@ -123,6 +137,21 @@ impl LinkAdapter for SimulatedAdapter {
         &mut self,
         frame: &VerifiedControlFrame,
     ) -> Result<(), Self::Error> {
+        if self.metadata.underlay == Underlay::Bluetooth {
+            let encoded = frame.encode();
+            let verifier = ExactFixtureVerifier {
+                sender: *frame.sender(),
+                header: encoded[..HEADER_LEN]
+                    .try_into()
+                    .expect("fixed control header"),
+                signature: *frame.signature(),
+            };
+            let mut radio = ble::Ble::new(*frame.sender(), *frame.recipient(), verifier);
+            radio
+                .send_verified_control_frame(frame)
+                .map_err(AdapterError::Ble)?;
+            self.ble_fragments += radio.fragments().len();
+        }
         self.sent.push(SendRecord::Control {
             kind: frame.kind(),
             sequence: frame.sequence(),
@@ -130,6 +159,10 @@ impl LinkAdapter for SimulatedAdapter {
         Ok(())
     }
     fn send_data(&mut self, payload: &[u8]) -> Result<DataOutcome, Self::Error> {
+        if self.kind() == LinkKind::Ble {
+            return Err(AdapterError::Ble(ble::Error::DataUnsupported));
+        }
+        self.data_payloads.push(payload.to_vec());
         self.sent.push(SendRecord::Data {
             bytes: payload.len(),
             outcome: self.data_outcome,
@@ -148,6 +181,7 @@ pub enum HostError {
     OutcomeMismatch,
     UnsupportedBillboardFailure,
     UnsupportedLinkName,
+    BillboardCodec(billboard_wire::Error),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -161,6 +195,7 @@ pub struct AdapterAudit {
     pub readings: u64,
     pub data_hops: u64,
     pub control_hops: u64,
+    pub control_fragments: usize,
     pub attempts: Vec<Attempt>,
 }
 
@@ -358,8 +393,10 @@ impl HostBridge {
                     .iter_mut()
                     .find(|x| x.name() == name)
                     .ok_or(HostError::MissingAdapter)?;
+                let before = adapter.ble_fragment_count();
                 dispatch(adapter, TrafficPath::Control, Outbound::Control(frame))
                     .map_err(|_| HostError::Dispatch)?;
+                self.audit.control_fragments += adapter.ble_fragment_count() - before;
                 self.audit.control_hops += 1;
             }
         }
@@ -381,10 +418,24 @@ impl HostBridge {
         {
             return Err(HostError::UnsupportedBillboardFailure);
         }
+        let fields = Fields::from_core(board).map_err(HostError::BillboardCodec)?;
+        let mut signing = [0; billboard_wire::MAX_FRAME_LEN];
+        let size = billboard_wire::signing_bytes(fields, "A", &mut signing)
+            .map_err(HostError::BillboardCodec)?;
+        let verifier = BillboardFixtureVerifier {
+            signing: &signing[..size],
+            signature: [0x6b; 64],
+        };
+        let mut wire = [0; billboard_wire::MAX_FRAME_LEN];
+        let size = billboard_wire::encode(fields, "A", &verifier.signature, &mut wire, &verifier)
+            .map_err(HostError::BillboardCodec)?;
+        let decoded =
+            billboard_wire::decode(&wire[..size], &verifier).map_err(HostError::BillboardCodec)?;
+        let board = decoded.to_core();
         let row = self.policy.deliver_billboard(
             i128::from(tick),
-            Some(board),
-            Some(&Auth::fixture("A", true)),
+            Some(&board),
+            Some(&Auth::fixture(decoded.issuer(), true)),
             "A",
             "B",
             &links,
@@ -395,12 +446,8 @@ impl HostBridge {
                     .iter_mut()
                     .find(|x| x.name() == name)
                     .ok_or(HostError::MissingAdapter)?;
-                dispatch(
-                    adapter,
-                    TrafficPath::Data,
-                    Outbound::Data(b"opaque-billboard-fixture"),
-                )
-                .map_err(|_| HostError::Dispatch)?;
+                dispatch(adapter, TrafficPath::Data, Outbound::Data(&wire[..size]))
+                    .map_err(|_| HostError::Dispatch)?;
                 self.audit.data_hops += 1;
             }
         }
@@ -424,6 +471,16 @@ impl HostBridge {
             &[],
         );
         Ok(())
+    }
+}
+
+struct BillboardFixtureVerifier<'a> {
+    signing: &'a [u8],
+    signature: BillboardSignature,
+}
+impl billboard_wire::Verifier for BillboardFixtureVerifier<'_> {
+    fn verify(&self, _: &str, bytes: &[u8], signature: &BillboardSignature) -> bool {
+        bytes == self.signing && signature == &self.signature
     }
 }
 

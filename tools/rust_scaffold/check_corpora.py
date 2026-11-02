@@ -31,6 +31,10 @@ class CorpusGroup:
 
 
 GROUPS = (
+    CorpusGroup("frag", "tools.esp32_scaffold.frag_corpus", "rust/rpp-frag/tests/data", (
+        ("frag-corpus.tsv", "frag-corpus.tsv"),
+        ("frag-manifest.json", "frag-manifest.json"),
+    )),
     CorpusGroup("address", "tools.rust_scaffold.address_corpus", "rust/rpp-core/tests/data", (
         ("address-construct.tsv", "address-construct.tsv"),
         ("address-raw.tsv", "address-raw.tsv"),
@@ -45,6 +49,11 @@ GROUPS = (
     CorpusGroup("control", "tools.esp32_scaffold.control_corpus", "rust/rpp-control/tests/data", (
         ("control-corpus.tsv", "control-corpus.tsv"),
         ("control-manifest.json", "control-manifest.json"),
+    )),
+    CorpusGroup("billboard", "tools.esp32_scaffold.billboard_corpus", "rust/rpp-billboard/tests/data", (
+        ("billboard-corpus.tsv", "billboard-corpus.tsv"),
+        ("billboard-manifest.json", "billboard-manifest.json"),
+        ("billboard-fields.tsv", "billboard-fields.tsv"),
     )),
     CorpusGroup("fleet", "tools.fleet_scaffold.scenarios", "rust/rpp-fleet/tests/data", (
         ("fleet-scenarios.tsv", "fleet-scenarios.tsv"),

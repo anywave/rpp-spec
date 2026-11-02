@@ -1,0 +1,38 @@
+--- a/spec/RESOLVER.md
++++ b/spec/RESOLVER.md
+@@ -793,6 +793,35 @@
+ address formats, Shell TTLs, published constants or existing trust decisions.
+
+
++**Informative, unadopted billboard wire proposal (CX-020):** This provisional
++profile preserves the six semantic fields; issuer and signature are envelope
++metadata. It changes no existing core policy or protocol requirement.
++
++- `RPPB` magic, version byte 1, kind byte 1 (Fact) or 2 (Rule).
++- Three big-endian u16 BYTE lengths: issuer, machine, fact; one u8 receipt
++  length; then big-endian u64 since and until. This fixed header is 29 bytes.
++- Payload order: issuer UTF-8, machine UTF-8, fact ASCII, receipt ASCII,
++  opaque 64-byte signature. No padding or trailing bytes; maximum 925 bytes.
++- Issuer/machine retain the core domain: 1..64 Unicode scalar values (at most
++  256 UTF-8 bytes each). They are opaque identifiers, not trusted instructions.
++  Fact is 1..256 bytes, each 0x20..0x7E; receipt is 1..64 ASCII alphanumeric
++  bytes or `-_.`; since < until. Wire u64 times are a narrower core i128 subset.
++- The signing prefix is the entire header and payload BEFORE the signature,
++  including issuer, every length and all six fields. Existing caller-supplied
++  verification accepts or refuses; this profile defines no signing algorithm.
++  Decode returns a borrowed verified view only after structural validation and
++  caller acceptance. Checked encoding also requires acceptance and leaves the
++  caller buffer unchanged on error; an unsigned prefix builder emits no frame.
++- These format, byte-order, time-width and strict-encoder choices are IMPOSED
++  experiment defaults, not adopted constants. Core-valid non-ASCII/control fact
++  text and times above u64::MAX are explicitly unencodable, never rewritten.
++  Receipt/replay/scope, interval application and conflict decisions remain in
++  the existing overlay policy. A verified frame alone grants no authority.
++- Decoding allocates nothing; `--no-default-features` removes std/alloc
++  requirements. The `alloc` feature adds owned core conversion. Host simulation requires opt-in `rpp-link/sim`; its normal
++  default-features=false codec dependency preserves heap-free builds and makes
++  the simulation-feature visibility counterfactual a meaningful assertion test.
++
+ **Informative reuse direction:** use existing Tailscale clients with
+ self-hosted Headscale and an authorized DERP relay for IP underlays
+ (LAN, Wi-Fi and internet). Use an existing platform GATT API only for

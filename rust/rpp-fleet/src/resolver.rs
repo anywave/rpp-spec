@@ -197,14 +197,6 @@ impl<'registry> FleetResolver<'registry> {
         }
     }
 
-    fn invalid_input_error(&self, tick: u64) -> FleetResolveError {
-        if tick < self.policy.clock() {
-            FleetResolveError::ClockRollback
-        } else {
-            FleetResolveError::InvalidInput
-        }
-    }
-
     /// Structural registry bindings stay borrowed for this policy lifetime.
     pub fn registry(&self) -> &Registry {
         self.registry
@@ -279,6 +271,10 @@ impl<'registry> FleetResolver<'registry> {
         target: NodeIdentity,
         tick: u64,
     ) -> Result<DataResolution, FleetResolveError> {
+        // Rollback is checked first, before validation or core state changes.
+        if tick < self.policy.clock() {
+            return Err(FleetResolveError::ClockRollback);
+        }
         let entries = self.endpoint_links(target)?;
         if !self.auth.signature_verified || self.auth.issuer != self.source_label {
             return Ok(DataResolution {
@@ -300,7 +296,7 @@ impl<'registry> FleetResolver<'registry> {
                     routes: Vec::new(),
                 })
             }
-            Status::InvalidInput => return Err(self.invalid_input_error(tick)),
+            Status::InvalidInput => return Err(FleetResolveError::InvalidInput),
             Status::NoChannel => {
                 return Ok(DataResolution {
                     status: ResolutionStatus::NoChannel,
@@ -313,7 +309,7 @@ impl<'registry> FleetResolver<'registry> {
         let first = self
             .policy
             .choose_latest(&self.source_label, &target_label, i128::from(tick), &links)
-            .map_err(|_| self.invalid_input_error(tick))?;
+            .map_err(|_| FleetResolveError::InvalidInput)?;
         if first.is_empty() {
             return Err(FleetResolveError::CorePolicy);
         }
@@ -340,7 +336,7 @@ impl<'registry> FleetResolver<'registry> {
             chosen = match alternative.status {
                 Status::Ok => alternative.path,
                 Status::NoChannel => Vec::new(),
-                Status::InvalidInput => return Err(self.invalid_input_error(tick)),
+                Status::InvalidInput => return Err(FleetResolveError::InvalidInput),
                 _ => return Err(FleetResolveError::CorePolicy),
             };
             if chosen.is_empty() {
@@ -361,6 +357,10 @@ impl<'registry> FleetResolver<'registry> {
         known_data: &[Link],
         path: TrafficPath,
     ) -> Result<ControlResolution<'frame>, FleetResolveError> {
+        // Rollback is checked first, before validation or core state changes.
+        if tick < self.policy.clock() {
+            return Err(FleetResolveError::ClockRollback);
+        }
         self.policy.retain_meter_rows(MAX_RETAINED_METER_ROWS);
         // Preserve this guard before any accepted sequence/state transition.
         if path == TrafficPath::Data {
@@ -453,7 +453,7 @@ impl<'registry> FleetResolver<'registry> {
             }
             Status::Denied | Status::DeniedSelfTarget => (ResolutionStatus::Denied, None),
             Status::NoIndependentChannel | Status::NoChannel => (ResolutionStatus::NoChannel, None),
-            Status::InvalidInput => return Err(self.invalid_input_error(tick)),
+            Status::InvalidInput => return Err(FleetResolveError::InvalidInput),
             _ => return Err(FleetResolveError::CorePolicy),
         };
         Ok(ControlResolution {
@@ -468,22 +468,79 @@ impl<'registry> FleetResolver<'registry> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::endpoint::EndpointCapabilities;
+    use crate::identity::{AddressBinding, AssignmentPolicy};
+    use rpp_core::canonical::CanonicalAddress;
 
     #[test]
-    fn malformed_core_input_at_current_clock_is_not_clock_rollback() {
-        // Mutation invalid-input-as-rollback: a non-past CoreInvalidInput must
-        // remain generic InvalidInput; integration tests cover actual rollback.
-        let mut registry = Registry::new();
+    fn current_tick_with_malformed_core_input_remains_invalid_input() {
+        // Mutation non-clock-invalid-input-mislabeled: map a current Core
+        // InvalidInput to ClockRollback instead of returning its actual cause.
         let source = NodeIdentity::new([1; 16], [2; 16]);
-        let auth = Auth::fixture(&source.label(), true);
-        let resolver = FleetResolver::new(&mut registry, source, auth, &[], &[]);
-        assert_eq!(
-            resolver.invalid_input_error(0),
-            FleetResolveError::InvalidInput
+        let target = NodeIdentity::new([3; 16], [4; 16]);
+        let mut registry = Registry::new();
+        for (identity, theta) in [(source, 1), (target, 2)] {
+            registry
+                .register(
+                    AddressBinding::new(
+                        identity,
+                        CanonicalAddress::new(theta, 1, 0, 0.0, 0).unwrap(),
+                        AssignmentPolicy::ExplicitCallerAssignmentV1,
+                    ),
+                    if identity == target {
+                        alloc::vec![Endpoint::new(
+                            1,
+                            EndpointKind::Lan,
+                            "ipv4://192.0.2.1:9000/rpp",
+                            LinkReading {
+                                latency_ms: 10,
+                                loss_ppm: 0,
+                                jitter_ms: 0,
+                                available: true,
+                                observed: 0,
+                            },
+                            EndpointCapabilities::default(),
+                        )
+                        .unwrap()]
+                    } else {
+                        Vec::new()
+                    },
+                )
+                .unwrap();
+        }
+        let mut resolver = FleetResolver::new(
+            &mut registry,
+            source,
+            Auth::fixture(&source.label(), true),
+            &[source, target],
+            &[(source, target)],
         );
+        // Fault-inject an invalid internal link label so the real core preview
+        // returns InvalidInput. Public registry construction prevents this state.
+        resolver.source_label.clear();
+        resolver.auth.issuer.clear();
+        let links: Vec<_> = resolver
+            .endpoint_links(target)
+            .unwrap()
+            .into_iter()
+            .map(|(_, link)| link)
+            .collect();
         assert_eq!(
-            resolver.invalid_input_error(1),
-            FleetResolveError::InvalidInput
+            resolver
+                .policy
+                .preview_data(0, "", &target.label(), &links)
+                .status,
+            Status::InvalidInput
         );
+        for tick in [0, 1] {
+            assert_eq!(
+                resolver.resolve_data(target, tick),
+                Err(FleetResolveError::InvalidInput)
+            );
+        }
+        assert_eq!(resolver.policy.clock(), 0);
+        assert!(resolver.policy_rows().is_empty());
+        assert_eq!(resolver.stats().known_data_references, 0);
+        assert_eq!(resolver.stats().current_data_references, 0);
     }
 }

@@ -1,0 +1,50 @@
+{
+  "bytes": 47107,
+  "choices": [
+    "RPPB version1; Fact1/Rule2; big-endian lengths and u64 times are IMPOSED",
+    "issuer/machine UTF-8: 1..64 Unicode scalars, at most256 bytes each",
+    "fact printable ASCII1..256 bytes; receipt ASCIIalnum/-_.1..64; since<until",
+    "malformed structural rows bind to their own raw bytes; binding rows retain a valid reference",
+    "canonical_hex is a separate valid field reference, not the structural-row verifier fixture"
+  ],
+  "evidence": "stdlib layout oracle and exact literal-prefix/signature fixtures; no signing or cryptography",
+  "family_counts": {
+    "fact": 9,
+    "identifier": 8,
+    "interval": 2,
+    "kind": 2,
+    "length": 2,
+    "magic": 1,
+    "receipt": 4,
+    "truncation": 3,
+    "valid": 13,
+    "verification": 4,
+    "version": 2
+  },
+  "fields_snapshot": {
+    "bytes": 5287,
+    "evidence": "independently parsed semantic fields for identical default/std and bare decode comparisons",
+    "file": "billboard-fields.tsv",
+    "rows": 13,
+    "sha256": "5caa8c3eaf831852da5e252211ef70ec564f62ea464832547119dde482d4d575"
+  },
+  "header_bytes": 29,
+  "max_frame_bytes": 925,
+  "rows": 50,
+  "sha256": "8a382d84e6c8b869d7230bedd1a0510166a16e0b5fbb3eae44a9cde978b0f5e9",
+  "signature_bytes": 64,
+  "verdict_counts": {
+    "BadMagic": 1,
+    "InvalidFact": 9,
+    "InvalidIdentifier": 8,
+    "InvalidInterval": 2,
+    "InvalidReceipt": 4,
+    "InvalidSignature": 4,
+    "OK": 13,
+    "Oversize": 1,
+    "TrailingBytes": 1,
+    "Truncated": 3,
+    "UnknownKind": 2,
+    "UnsupportedVersion": 2
+  }
+}

@@ -46,6 +46,9 @@ fn cargo(project: &Path, command: &str, locked: bool) -> Output {
     if locked {
         child.arg("--locked");
     }
+    if command == "tree" {
+        child.args(["--edges", "normal", "--prefix", "none"]);
+    }
     if command == "check" {
         child.arg("--target-dir").arg(project.join("target"));
     }
@@ -93,5 +96,45 @@ fn production_consumers_cannot_import_simulation_fixture() {
             diagnostics.contains("E0432") && diagnostics.contains("rpp_link::simulated"),
             "{name} probe must fail on the hidden API, not an unrelated tool error: {diagnostics}"
         );
+    }
+}
+
+#[test]
+fn fragment_dependency_is_absent_from_production_and_enabled_by_sim() {
+    // Mutations mandatory-frag and missing-sim-frag: inspect resolved normal
+    // dependencies of real isolated consumers, avoiding workspace unification.
+    let temp = TempWorkspace::new();
+    let dependency = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .to_string_lossy()
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"");
+    for (name, defaults, features, expected_frag) in [
+        ("default", true, "[]", false),
+        ("bare", false, "[]", false),
+        ("sim", false, "[\"sim\"]", true),
+    ] {
+        let project = temp.0.join(name);
+        fs::create_dir_all(project.join("src")).unwrap();
+        fs::write(project.join("Cargo.toml"), format!(
+            "[package]\nname = \"rpp-link-{name}-dependency-probe\"\nversion = \"0.0.0\"\nedition = \"2021\"\n\n[dependencies]\nrpp-link = {{ path = \"{dependency}\", version = \"=0.1.0\", default-features = {defaults}, features = {features} }}\n\n[workspace]\n"
+        )).unwrap();
+        let source = if expected_frag {
+            include_str!("fixtures/production_simulation_import.rs")
+        } else {
+            "pub use rpp_link::LinkKind;\n"
+        };
+        fs::write(project.join("src/lib.rs"), source).unwrap();
+        let lock = cargo(&project, "generate-lockfile", false);
+        assert!(lock.status.success(), "{name} lock: {:?}", lock);
+        let tree = cargo(&project, "tree", true);
+        assert!(tree.status.success(), "{name} tree: {:?}", tree);
+        let output = String::from_utf8(tree.stdout).unwrap();
+        assert_eq!(
+            output.lines().any(|line| line.starts_with("rpp-frag v")),
+            expected_frag,
+            "{name} fragment dependency activation: {output}"
+        );
+        let check = cargo(&project, "check", true);
+        assert!(check.status.success(), "{name} check: {:?}", check);
     }
 }
