@@ -51,12 +51,12 @@ This is RTT variation, not an RTP one-way jitter measurement. u128 arithmetic
 preserves fractional state and avoids unsigned delta overflow.
 
 Timeout, ConnectionReset/Refused/Aborted and HostUnreachable/NetworkUnreachable/
-NetworkDown resolve an outstanding probe as loss; idle receive drops them without
-inventing a probe (ConnectionReset alone increments its named counter). Other I/O
-errors propagate. Each read continues after stale loss notices until the absolute deadline, including
-foreign/malformed packets (nonzero, at most 250 ms), then restores its timeout. Scheduling can
-extend wall time. Four opaque application packets can wait for `receive`; queue
-overflow is counted. A probe never becomes application/control content.
+NetworkDown are loss notices, not completion of a pending probe. Idle receive
+ignores them; ConnectionReset increments its named counter. Other errors propagate.
+Pending reads continue across notices and foreign/malformed packets until a reply
+or absolute deadline (nonzero, at most 250 ms); only an unanswered probe is lost.
+The configured timeout is restored. Scheduling can extend wall time. Four opaque
+application packets can wait for `receive`; overflow is counted. Probes stay internal.
 
 Echo is inspired by BFD echo [RFC 5880](https://www.rfc-editor.org/rfc/rfc5880)
 and [RFC 5881](https://www.rfc-editor.org/rfc/rfc5881), not BFD wire compatibility.
