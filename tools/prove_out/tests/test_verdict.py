@@ -1,11 +1,11 @@
 """Bounded contract/parser witnesses; native evidence is produced separately."""
-import os
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from tools.prove_out import verdict
+from tools.prove_out.verdict_mutations import selected_mutation
 
 KEY = (13, 5, 4, 255)
 TERMINAL = "AFF,13,5,4,255,0,0,1,0,0,0,1,0\n"
@@ -13,7 +13,7 @@ TERMINAL = "AFF,13,5,4,255,0,0,1,0,0,0,1,0\n"
 
 @pytest.fixture(autouse=True)
 def selected_python_mutation(monkeypatch):
-    mutation = os.environ.get("CX017_MUTATION")
+    mutation = selected_mutation()
     if mutation == "python-score-zero":
         monkeypatch.setattr(verdict, "compute_coherence_score", lambda *_: 0)
     elif mutation == "reserved-influence":
