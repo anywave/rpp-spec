@@ -1,0 +1,11 @@
+case,driver,input_class,engagement,completion,score_api,score,binding_coefficient,stage,state,binding_valid,completion_flag,engagement_weight,completion_weight
+engagement-negative,engagement,negative,-0.25,0.0,0,0,0.0,0,FRAGMENTED,False,False,0,0
+engagement-above-one,engagement,above-one,1.25,0.0,165,165,0.24480712166172106,1,EMERGING,True,False,165,0
+engagement-nan,engagement,nan,NaN,0.0,165,165,0.24480712166172106,1,EMERGING,True,False,165,0
+engagement-positive-infinity,engagement,positive-infinity,+Infinity,0.0,165,165,0.24480712166172106,1,EMERGING,True,False,165,0
+engagement-negative-infinity,engagement,negative-infinity,-Infinity,0.0,0,0,0.0,0,FRAGMENTED,False,False,0,0
+completion-negative,completion,negative,0.0,-0.25,0,0,0.0,0,FRAGMENTED,False,False,0,0
+completion-above-one,completion,above-one,0.0,1.25,509,509,0.755192878338279,5,MATURING,True,False,0,509
+completion-nan,completion,nan,0.0,NaN,509,509,0.755192878338279,5,MATURING,True,False,0,509
+completion-positive-infinity,completion,positive-infinity,0.0,+Infinity,509,509,0.755192878338279,5,MATURING,True,False,0,509
+completion-negative-infinity,completion,negative-infinity,0.0,-Infinity,0,0,0.0,0,FRAGMENTED,False,False,0,0
