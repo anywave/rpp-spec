@@ -77,6 +77,10 @@ jobs:
       - name: Install pinned Rust and check components
         run: rustup toolchain install 1.85.1 --profile minimal --component rustfmt --component clippy --target riscv32imc-unknown-none-elf
 
+      - name: Test billboard error precedence repairs
+        working-directory: .
+        run: python -m unittest tools.esp32_scaffold.test_billboard_errors -v
+
       - name: Tool versions
         run: |
           rustc +1.85.1 --version
