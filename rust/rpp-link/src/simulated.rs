@@ -11,6 +11,8 @@
 //! CX007 meter paths use that separator; rejection precedes every read/policy/send
 //! callback. This narrows the host adapter domain without changing core names.
 
+pub mod ble;
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     string::{String, ToString},
