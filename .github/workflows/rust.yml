@@ -82,6 +82,24 @@ jobs:
           rustc +1.85.1 --version
           cargo +1.85.1 --version
 
+      - name: Fetch locked TCP property-test dependencies
+        working-directory: .
+        env:
+          CARGO_NET_OFFLINE: "false"
+        run: cargo +1.85.1 fetch --manifest-path tools/tcp_scaffold/Cargo.toml --locked
+
+      - name: Test deterministic TCP framing properties offline
+        working-directory: .
+        run: cargo +1.85.1 test --manifest-path tools/tcp_scaffold/Cargo.toml --offline --locked
+
+      - name: Format TCP property tests
+        working-directory: .
+        run: cargo +1.85.1 fmt --manifest-path tools/tcp_scaffold/Cargo.toml --all --check
+
+      - name: Lint TCP property tests offline
+        working-directory: .
+        run: cargo +1.85.1 clippy --manifest-path tools/tcp_scaffold/Cargo.toml --all-targets --offline --locked -- -D warnings
+
       - name: Prove copied Rust workspace
         working-directory: .
         shell: python

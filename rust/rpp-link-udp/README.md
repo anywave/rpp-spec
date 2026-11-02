@@ -83,3 +83,46 @@ adapter is not empty no_std code and is not ESP32 firmware.
 Receive is currently adapter-local. A shared borrowed-buffer receive trait,
 closed inbound enum, error/buffer ownership and verifier placement are a proposal
 for TR/PL to decide, not a change to the existing public adapter traits.
+
+## Loopback TCP fallback (CX-027)
+
+`FallbackConfig::new(udp_config, tcp_peer)` validates every numeric address as
+loopback before opening sockets. `FallbackAdapter::connect(config, tick)` probes
+UDP once, then connects and probes TCP only if UDP is unavailable. Each timeout
+is nonzero and at most 250 ms. Selection precedes all application/control sends;
+the selected transport is permanent. No failed or ambiguous application write
+is replayed, and no connection is automatically reopened. A successful write
+means the local kernel accepted bytes, not that the peer delivered the frame.
+
+`TcpAdapter::connect` validates before connect. `from_stream` checks both actual
+endpoints of a caller-accepted stream before frame I/O. Lan/Wifi/Internet labels
+remain metadata. There is no TLS, QUIC, encryption, peer authentication, tunnel,
+key exchange, consent or admission. TCP is currently refused even on tailnet.
+
+The two-byte big-endian length excludes itself and includes the unchanged UDP
+version/class envelope (2..=1200 bytes); data remains at most 1198 bytes. Probe
+and reply envelopes remain exactly ten bytes, with checked increasing u64
+nonces and exact-current reply matching. Echo quiet reset, 32-reply/second cap,
+four pending application frames and the existing 32-attempt measurement model
+are retained. Control passes the same caller recipient/verifier codec; replay
+policy remains outside the adapter. `framed` also provides pure encode/decode.
+
+One absolute monotonic deadline covers all prefix/body chunks of each frame,
+including Interrupted calls and final completion. Every frame I/O failure closes
+the stream, including idle timeout and clean EOF; malformed lengths/envelopes
+close it too. There is no resynchronization. TCP kernel retransmission and head
+of line blocking hide packet losses: readings describe application probe RTT
+and success, not raw IP loss. Unlike UDP's unavailable reading after probe
+loss, TCP frame failures propagate an error and leave the session closed.
+
+Tests use only prebound loopback peers, including an open-but-silent UDP socket
+and a ready TCP listener; fallback must complete within two seconds. Blocking
+workers receive explicit wake connections and are joined. These are host tests,
+not firewall, internet, radio, Windows or board measurements.
+
+Literal proptest 1.6.0 lives only in detached `tools/tcp_scaffold`, with fixed
+ChaCha seed, 256 cases, bounded shrinking and no persistence. Production Cargo
+metadata/lock remain registry-free. CI fetches its locked test graph once and
+runs properties offline; the checker/test runner never installs dependencies.
+Run `cargo +1.85.1 test --manifest-path tools/tcp_scaffold/Cargo.toml --offline --locked`
+from the repository root after the locked dependencies are cached.
