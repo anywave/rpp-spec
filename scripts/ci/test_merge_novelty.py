@@ -74,3 +74,35 @@ class MergeNoveltyTests(unittest.TestCase):
         head = self.node('right merge', side, left)
         with self.assertRaisesRegex(ValueError, 'exactly one merge base'):
             gate.slices(Path('.'), self.base, head, set())
+
+    def test_update_cannot_revert_401_base_rows_by_keeping_the_branch_tree(self):
+        """Kills combined-only charging and accepting a clean but nonmatching text certificate."""
+        self.write('source.py', ''.join(f'# original {i}\n' for i in range(201)))
+        common = self.commit('reviewed source')
+        gate.git('checkout', '-qb', 'feature')
+        self.write('branch.txt', 'branch\n')
+        feature = self.commit('branch')
+        gate.git('checkout', '-q', 'master')
+        for start in (0, 100, 200):
+            lines = Path('source.py').read_text().splitlines(True)
+            for index in range(start, min(start + 100, 201)):
+                lines[index] = f'# reviewed {index}\n'
+            self.write('source.py', ''.join(lines))
+            self.base = self.commit('bounded reviewed BASE slice')
+        tree = gate.git('rev-parse', feature + '^{tree}').strip()
+        head = gate.git('-c', 'commit.gpgsign=false', 'commit-tree', tree, '-p', feature, '-p', self.base, '-m', 'keep branch').strip()
+        self.assertEqual(gate.merge_base(feature, self.base), common)
+        self.assertEqual(gate.novel_merge_records(head), [])
+        self.assertEqual(gate.slice_counts(gate.commit_diff(self.base, head, '--numstat', '-z'), set()), (1, 402))
+        self.assertTrue(gate.slices(Path('.'), self.base, head, set()))
+        self.assertTrue(gate.travel(Path('.'), self.base, head, set()))
+
+    def test_redundant_current_or_historical_base_parent_is_refused(self):
+        """Kills accepting a redundant merge that restores the older BASE tree."""
+        common = self.base
+        self.write('README.md', 'branch\n')
+        feature = self.commit('branch')
+        head = self.node('restore old BASE', feature, common)
+        for base in (common, self.node('advanced BASE', common)):
+            with self.assertRaisesRegex(ValueError, 'redundant BASE-side parent'):
+                gate.commit_diff(base, head, '--numstat', '-z')
