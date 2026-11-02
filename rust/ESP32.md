@@ -1,6 +1,6 @@
 # ESP32 adapter groundwork — CX-008
 
-This adds provisional `rpp-control` and `rpp-link` libraries to the Rust workspace,
+CX-008 added the provisional `rpp-control` and `rpp-link` libraries, originally
 stacked on `codex/rust-rpp-crate`. Their names may change when PL/FP lifts the
 workspace into its separate repository. Publishing remains disabled.
 
@@ -172,8 +172,10 @@ bank also rejects any adapter name containing `/` with
 send. This is an **IMPOSED host-fixture domain restriction**: existing core meter
 paths use `/` as a separator, so a name such as `a/b` could alias two hops `a` and
 `b`. Core link names and protocol formats are unchanged. The caller must also
-meter this rejection. Clock rollback reaches the existing policy, retains its
-`INVALID_INPUT` row and produces no adapter send.
+meter this rejection. For sampled data, control and billboard send requests,
+clock rollback retains the existing policy's `INVALID_INPUT` row and produces
+no adapter send. `choose_data_reference` is an unmetered selection query and
+does not enforce the operation clock.
 
 Billboard transport in this host module uses the literal opaque data placeholder
 `opaque-billboard-fixture` and a previously verified `Auth::fixture` assumption.
@@ -242,12 +244,13 @@ cargo +1.85.1 build --workspace --no-default-features --features alloc --target 
 The workspace CI covers all member crates on Ubuntu and Windows, including the
 alloc-only host profile and explicit simulation profile. It uses pinned Rust,
 SHA-pinned read-only checkout/setup actions and ordinary failing checks. A
-stdlib-only Python check regenerates all nine address/control/overlay oracle
+stdlib-only Python check regenerates all twelve address/control/overlay/fleet oracle
 files in scratch and fails on any byte difference, including manifests; see
-[the workspace reproduction guide](README.md). No gate is advisory. Exact
-executed counts and follow-up evidence belong to
-[the CX-009 report](../docs/codex/OUTBOX/CX-009-001.md); the earlier implementation
-evidence is retained in [the CX-008 report](../docs/codex/OUTBOX/CX-008-001.md).
+[the workspace reproduction guide](README.md). No gate is advisory. Historical
+implementation and follow-up evidence remain in
+[the CX-008 report](../docs/codex/OUTBOX/CX-008-001.md) and
+[the CX-009 report](../docs/codex/OUTBOX/CX-009-001.md). Later workspace and fleet
+checks are recorded in [the CX-012 report](../docs/codex/OUTBOX/CX-012-001.md).
 The commands here are reproduction instructions, not an additional claim that
 hardware or hosted CI ran.
 

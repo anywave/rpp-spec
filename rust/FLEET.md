@@ -20,7 +20,7 @@ References below are to the base tree, before the proposed addition:
 
 | Source | Existing contract | Consequence for this library |
 |---|---|---|
-| `spec/SPEC.md:32–41` | Semantic-layer addresses are temporal routing states; resolve at point of access | A configured fleet binding is not permanent object identity or a promise of future validity |
+| `spec/SPEC.md:32–42` | Semantic-layer addresses are temporal routing states; resolve at point of access | A configured fleet binding is not permanent object identity or a promise of future validity |
 | `spec/RPP-CANONICAL-v2.md:35` and `:219–244` | Canonical fields, constructor checks and their 32-bit encoding | Reuse `rpp-core`; do not allocate new identity bits or invent a compact-address hash |
 | `spec/RPP-CANONICAL-v2.md:165–185` | Normalized radius and encoded-byte mapping | Preserve the existing quantizer and address bytes |
 | `spec/RESOLVER.md:82–88`, `:97`, `:156` | Modality choice/discovery input, authentication delegated to identity layer, attempted modalities | Endpoint records are inputs; resolution is not enrollment or authentication |
