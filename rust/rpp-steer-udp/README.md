@@ -19,6 +19,9 @@ above the upper threshold. Closed gates stay closed within the band. Control
 and billboard candidates bypass this bulk gate; their existing selector rules
 still apply. Withheld candidates retain their raw availability in observations.
 Loss bands do not alter the core ranking or its hold/margin rules.
+The selector uses `Selector::with_loss_ceiling(hysteresis, bands.upper_ppm)`:
+the caller's upper band replaces the core's default 20% bulk ceiling. Core policy
+still excludes total loss even when the configured upper band is 100%.
 
 A decision batch contains 1..32 probes per endpoint and at most 64 total, evaluated
 once using each final reading. Invalid policies, endpoints, counts, empty payloads,
@@ -29,6 +32,7 @@ wrapper selection/gate/clock state. Callers control batch frequency and duration
 reads, latest matching replies (`available`), losses, and errors. These are adapter
 outcomes, not kernel-confirmed send counters. Diagnostics retain physical I/O
 activity even when a batch aborts; rejected preflight calls perform no reads.
+The pinned UDP adapter exposes no probe-transmission counter.
 
 The test fixture uses two real IPv4 loopback peers. A drops probes 3, 6, 7 and echoes
 others; B echoes. At A counts 2, 4, 8, 10, 31, 32 the measured loss is respectively
@@ -37,17 +41,21 @@ capacities 1000/800, hold 3, margin 100, and bands 100000/300000 produce
 A Initial, A Best, B Ineligible, B Best, B Hold, A Improved. Both final readings
 remain available. RTT/jitter vary and are excluded from deterministic assertions.
 These fixtures simulate loss, capacity, and logical ticks; no LAN is contacted.
+Each adapter probe has the maximum allowed 250 ms reply budget; this remains a
+host timeout, not a latency or cross-platform determinism guarantee.
 The responder blocks with a long timeout configured once. Shutdown uses an exact
 stop datagram from a retained, prebound loopback waker after close is requested;
 the worker processes probes until it receives the authorized stop, and each
 worker is joined once. Counts and errors are retained. The timeout is a backstop, not a hard global
 shutdown deadline. Native Windows repeats remain a separate validation step.
 
-The checkout is based on CX-023; its UDP dependency is not present until PR#30
-merges. Normal relative path dependencies deliberately make standalone builds
-and the lift check fail there. Local evidence uses an outside exact Git-blob
-snapshot of this tree plus UDP core 36c5adec, sharing one `rpp-link` crate identity.
-No dependency source is copied into this product tree. After integration, run:
+The checkout retains the earlier CX-023 ancestry. Actual HEAD lacks UDP PR#30
+and the newer selector constructor from PR#31. TR owns their later integration;
+this follow-up performs no merge, rebase, or dependency copy. Normal relative path
+dependencies keep the actual-checkout build and lift finding visible. Local
+evidence uses an outside exact Git-blob snapshot plus UDP core 36c5adec and the
+six changed Rust paths from reviewed #31 head 562c333, sharing one `rpp-link`
+identity. That proves the composition, not an integrated HEAD. After integration:
 
 ```text
 cargo +1.85.1 fmt --manifest-path rust/rpp-steer-udp/Cargo.toml -- --check

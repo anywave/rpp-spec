@@ -18,6 +18,23 @@ fn fixture_peer_allowed(peer: SocketAddr) -> bool {
 const STOP: &[u8] = b"CX026-fixture-stop";
 const STOP_BUFFER_BYTES: usize = STOP.len() + 1;
 const SOCKET_BUDGET: Duration = Duration::from_secs(4);
+const PROBE_REPLY_BUDGET: Duration = Duration::from_millis(250);
+/// Failing mutation: shortened_probe_reply_budget no longer reaches the adapter's allowed maximum.
+#[test]
+fn fixture_probe_budget_reaches_the_adapter_maximum_without_network_io() {
+    let local = "127.0.0.1:0".parse().unwrap();
+    let peer = "127.0.0.1:9000".parse().unwrap();
+    assert!(rpp_link_udp::Config::new(local, peer, LinkKind::Lan, PROBE_REPLY_BUDGET).is_ok());
+    assert!(matches!(
+        rpp_link_udp::Config::new(
+            local,
+            peer,
+            LinkKind::Lan,
+            PROBE_REPLY_BUDGET + Duration::from_millis(1)
+        ),
+        Err(rpp_link_udp::Error::InvalidConfig)
+    ));
+}
 fn fixture_stop(peer: SocketAddr, bytes: &[u8], waker: SocketAddr, requested: bool) -> bool {
     requested && fixture_peer_allowed(peer) && peer == waker && bytes == STOP
 }
@@ -253,7 +270,7 @@ impl Fixture {
                 peer,
                 local: "127.0.0.1:0".parse().unwrap(),
                 kind: LinkKind::Lan,
-                timeout: Duration::from_millis(100),
+                timeout: PROBE_REPLY_BUDGET,
                 throughput_kbps: rate,
                 cost: CostClass::Unmetered,
             });
@@ -351,6 +368,7 @@ fn trace(margin: u64) -> Vec<Batch> {
     results.into_iter().map(checked).collect()
 }
 /// Failing mutations: erase raw readings, invert loss bands, bypass hold, or replace measured selection.
+/// selector_default_ceiling_replaces_explicit_band rejects the 250000 ppm incumbent too early.
 #[test]
 fn measured_loss_bands_and_selector_hold_preserve_the_six_phase_trace() {
     let batches = trace(100);

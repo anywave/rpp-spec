@@ -96,7 +96,8 @@ impl Bridge {
         if bands.lower_ppm > bands.upper_ppm || bands.upper_ppm > 1_000_000 {
             return Err(Error::InvalidBands);
         }
-        let selector = Selector::new(hysteresis).map_err(Error::Steer)?;
+        let selector =
+            Selector::with_loss_ceiling(hysteresis, bands.upper_ppm).map_err(Error::Steer)?;
         if configs.len() > MAX_LINKS {
             return Err(Error::TooManyLinks);
         }
@@ -262,6 +263,43 @@ mod tests {
             control_margin_ppm: 0,
             bulk_margin_kbps: 100,
             billboard_margin_ppm: 0,
+        }
+    }
+    /// Kills selector_default_ceiling_replaces_explicit_band and fixed_ceiling_ignores_caller_upper without I/O.
+    #[test]
+    fn selector_ceiling_uses_the_explicit_upper_band_without_network_io() {
+        for (upper_ppm, loss_ppm, expected) in [
+            (200_000, 250_000, None),
+            (300_000, 250_000, Some(1)),
+            (300_000, 300_000, Some(1)),
+            (300_000, 300_001, None),
+            (1_000_000, 1_000_000, None),
+        ] {
+            let mut bridge = Bridge::bind(
+                &[],
+                LossBands {
+                    lower_ppm: 0,
+                    upper_ppm,
+                },
+                policy(),
+            )
+            .unwrap();
+            let reading = LinkReading {
+                latency_ms: 0,
+                jitter_ms: 0,
+                loss_ppm,
+                available: true,
+                observed: 0,
+            };
+            let candidate = measured_candidate(1, LinkKind::Lan, reading, 1, CostClass::Unmetered);
+            assert_eq!(
+                bridge
+                    .selector
+                    .choose(0, MessageClass::Bulk, 1, &[candidate])
+                    .unwrap()
+                    .link_id,
+                expected
+            );
         }
     }
     /// Kills attempted_read_omitted, loss_counted_as_reply, and error_telemetry_erased without I/O.
