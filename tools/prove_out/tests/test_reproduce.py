@@ -8,9 +8,14 @@ import pytest
 from tools.prove_out import reproduce
 
 def build():
+    group = {"cases": [{"name": "synthetic-fixture", "classification": "killed"}], "variants": 1,
+             "killed": 1, "equivalent_exclusions": 0, "fail_closed_non_assertion_exclusions": 0,
+             "eligible_non_equivalent_survivors": 0}
+    receipts = {"schema_version": 2, "source_sha256": {"fixture.py": "a" * 64}}
+    receipts.update({name: deepcopy(group) for name in reproduce.MUTATION_GROUPS})
     return {"payload": {"ra": {"points": 3072}, "readouts": {"sector": "PROVED"}},
             "artifacts": {"native.csv": b"input,score\n0,0\n"},
-            "receipts": {"schema_version": 2, "guard_mutations": {"killed": 1, "survived": 0}}}
+            "receipts": receipts}
 
 def test_equal_complete_inputs_produce_exact_bytes_and_derived_verification():
     """Failing mutation: invent verification hashes, omit receipts, or hash the final summary into itself."""
@@ -27,7 +32,9 @@ def test_equal_complete_inputs_produce_exact_bytes_and_derived_verification():
     verification = summary["verification"]
     assert verification["schema_version"] == 2 and verification["native_complete_runs"] == 2
     assert verification["whole_summary_byte_identical"] is True
-    assert verification["guard_mutations"] == first["receipts"]["guard_mutations"]
+    assert verification["unit_guard_mutations"] == first["receipts"]["unit_guard_mutations"]
+    assert all(verification[group] == first["receipts"][group] for group in reproduce.MUTATION_GROUPS)
+    assert verification["source_sha256"] == first["receipts"]["source_sha256"]
     for field, name in (("primary_payload_sha256", "primary-payload.json"), ("mutation_receipts_sha256", "mutation-receipts.json"), ("determinism_receipt_sha256", "determinism.json")):
         assert verification[field] == sha256(outputs[name]).hexdigest()
     assert verification["byte_identical_files"] == ["mutation-receipts.json", "native.csv", "primary-payload.json"]
@@ -42,7 +49,7 @@ def test_second_run_metric_or_receipt_only_change_is_rejected(component):
     if component == "payload":
         second["payload"]["ra"]["points"] += 1
     else:
-        second["receipts"]["guard_mutations"]["killed"] += 1
+        second["receipts"]["unit_guard_mutations"]["cases"][0]["name"] = "second-valid-fixture"
     with pytest.raises(AssertionError):
         reproduce.assemble(first, second)
 
@@ -61,9 +68,9 @@ def test_second_run_artifact_inventory_or_byte_change_is_rejected(mutation):
         reproduce.assemble(first, second)
 
 
-@pytest.mark.parametrize("name", ("summary.json", "primary-payload.json", "mutation-receipts.json", "determinism.json", "SUMMARY.JSON", "../escape.csv", "/absolute.csv", "a\\b.csv", "a:b.csv", "", ".", ".."))
+@pytest.mark.parametrize("name", ("summary.json", "primary-payload.json", "mutation-receipts.json", "determinism.json", "SUMMARY.JSON", "../escape.csv", "/absolute.csv", "a\\b.csv", "a:b.csv", "", ".", "..", "summary.json.", "summary.json ", "data.csv.", "data.csv ", "CON.csv", "nul.csv", "LPT1.csv", "com9.csv", "bad\x00.csv", "bad\x1f.csv", "name .csv", "café.csv"))
 def test_reserved_or_unsafe_primary_artifact_names_are_rejected(name):
-    """Failing mutation: allow a primary artifact to overwrite generated output or escape a flat directory."""
+    """Failing mutation: allow output overwrites, directory escapes, Windows aliases or nonportable names."""
     first = build()
     first["artifacts"] = {name: b"inert\n"}
     with pytest.raises(ValueError):
@@ -80,12 +87,52 @@ def test_casefold_artifact_collisions_and_nonbyte_content_are_rejected():
 
 def test_receipts_cannot_replace_derived_verification_or_its_schema():
     """Failing mutation: accept an old schema, receipt-authored run count, or preexisting payload verification."""
-    for bad in ({"schema_version": 1}, {"schema_version": 2, "native_complete_runs": 999}):
-        first = dict(build(), receipts=bad)
+    for mutation in ("old-schema", "reserved-count"):
+        first = build()
+        first["receipts"]["schema_version" if mutation == "old-schema" else "native_complete_runs"] = 1 if mutation == "old-schema" else 999
         with pytest.raises(ValueError):
             reproduce.assemble(first, deepcopy(first))
     first = build()
     first["payload"]["verification"] = {"whole_summary_byte_identical": True}
+    with pytest.raises(ValueError):
+        reproduce.assemble(first, deepcopy(first))
+
+
+@pytest.mark.parametrize("mutation", ("missing", "empty", "empty-cases", "missing-field"))
+def test_every_receipt_group_requires_observed_cases_and_all_count_fields(mutation):
+    """Failing mutation: skip a required group, accept empty observations or invent a missing count."""
+    for name in reproduce.MUTATION_GROUPS:
+        first = build()
+        if mutation == "missing":
+            first["receipts"].pop(name)
+        elif mutation == "empty":
+            first["receipts"][name] = {}
+        elif mutation == "empty-cases":
+            first["receipts"][name]["cases"] = []
+        else:
+            first["receipts"][name].pop("killed")
+        with pytest.raises(ValueError):
+            reproduce.assemble(first, deepcopy(first))
+
+
+@pytest.mark.parametrize("mutation", ("empty-receipts", "missing-sources", "empty-sources", "variants-bool", "variants-count", "negative-count", "classification-count", "unknown-classification"))
+def test_receipt_sources_and_classification_counts_must_match_actual_case_inventory(mutation):
+    """Failing mutation: accept absent fingerprints, bool/negative counts or incoherent case classifications."""
+    first = build()
+    receipt = first["receipts"]
+    group = receipt["unit_guard_mutations"]
+    if mutation == "empty-receipts":
+        receipt.clear()
+    elif mutation == "missing-sources":
+        receipt.pop("source_sha256")
+    elif mutation == "empty-sources":
+        receipt["source_sha256"] = {}
+    elif mutation == "unknown-classification":
+        group["cases"][0]["classification"] = "unknown"
+    else:
+        field, value = {"variants-bool": ("variants", True), "variants-count": ("variants", 2),
+                        "negative-count": ("killed", -1), "classification-count": ("equivalent_exclusions", 1)}[mutation]
+        group[field] = value
     with pytest.raises(ValueError):
         reproduce.assemble(first, deepcopy(first))
 

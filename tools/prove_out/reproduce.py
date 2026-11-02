@@ -8,6 +8,7 @@ import argparse
 from hashlib import sha256
 import json
 from pathlib import Path
+import re
 import sys
 from types import SimpleNamespace
 
@@ -16,6 +17,8 @@ from tools.prove_out.evidence import evidence_bytes
 
 ROOT = Path(__file__).resolve().parents[2]
 RESERVED = {"summary.json", "primary-payload.json", "mutation-receipts.json", "determinism.json"}
+MUTATION_GROUPS = ("python_mutations", "utf8_mutation", "unit_guard_mutations", "reproduction_guards")
+DOS_NAMES = {"con", "prn", "aux", "nul"} | {prefix + str(i) for prefix in ("com", "lpt") for i in range(1, 10)}
 COMMITTED = ("summary.json", "mutation-receipts.json", "determinism.json", "counterexamples.csv",
              "fractional-input-counterexamples.csv")
 
@@ -39,11 +42,36 @@ def artifact_map(artifacts):
     for name, data in artifacts.items():
         if (not isinstance(name, str) or not name or name.casefold() in reserved or name.casefold() in seen
                 or "/" in name or "\\" in name
-                or ":" in name or name in {".", ".."} or not isinstance(data, bytes)):
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*\.csv", name)
+                or name.split(".")[0].casefold() in DOS_NAMES or not isinstance(data, bytes)):
             raise ValueError("unsafe, reserved or non-byte primary artifact")
         seen.add(name.casefold())
         result[name] = data
     return result
+
+
+
+def validate_receipts(receipts):
+    """Require each schema-v2 group and coherent observed classification counts."""
+    if not isinstance(receipts, dict) or type(receipts.get("schema_version")) is not int or receipts["schema_version"] != 2:
+        raise ValueError("mutation receipt schema must be version 2")
+    if not isinstance(receipts.get("source_sha256"), dict) or not receipts["source_sha256"]:
+        raise ValueError("mutation receipts require source fingerprints")
+    counts = {"killed": "killed", "equivalent_exclusions": "equivalent_excluded",
+              "fail_closed_non_assertion_exclusions": "non_assertion_excluded",
+              "eligible_non_equivalent_survivors": "survived"}
+    for name in MUTATION_GROUPS:
+        group = receipts.get(name)
+        if not isinstance(group, dict) or not isinstance(group.get("cases"), list) or not group["cases"]:
+            raise ValueError("missing or empty mutation receipt group: " + name)
+        cases = group["cases"]
+        if type(group.get("variants")) is not int or group["variants"] != len(cases):
+            raise ValueError("mutation variant count differs from observed cases")
+        if any(not isinstance(case, dict) or case.get("classification") not in counts.values() for case in cases):
+            raise ValueError("unknown mutation classification")
+        for field, status in counts.items():
+            if type(group.get(field)) is not int or group[field] != sum(case["classification"] == status for case in cases):
+                raise ValueError("mutation classification count differs from observations")
 
 
 def collect(args, index):
@@ -80,6 +108,8 @@ def primary_files(build):
 
 def assemble(first, second):
     """Reject any changed metric, receipt or primary byte before finalizing."""
+    validate_receipts(first["receipts"])
+    validate_receipts(second["receipts"])
     files = primary_files(first)
     repeated = primary_files(second)
     if files != repeated:
@@ -121,6 +151,8 @@ def run(args):
         path.mkdir(parents=True, exist_ok=False)
         setattr(args, field, path)
     outputs = assemble(collect(args, 1), collect(args, 2))
+    if not set(COMMITTED) <= set(outputs):
+        raise ValueError("incomplete committed artifact inventory")
     for name, data in outputs.items():
         (args.output_dir / name).write_bytes(data)
     if args.check_committed:
