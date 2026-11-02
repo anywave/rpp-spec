@@ -48,3 +48,6 @@ pub enum Error {
     InvalidMargin,
     ClockRollback,
 }
+
+#[cfg(feature = "std")]
+pub mod sim;
