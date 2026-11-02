@@ -30,6 +30,7 @@ dependencies = [
 name = "rpp-link"
 version = "0.1.0"
 dependencies = [
+ "rpp-billboard",
  "rpp-control",
  "rpp-core",
 ]

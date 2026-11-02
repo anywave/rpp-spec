@@ -18,6 +18,7 @@ use std::{
     vec::Vec,
 };
 
+use rpp_billboard::{self as billboard_wire, Fields, Signature as BillboardSignature};
 use rpp_control::{
     decode, ControlFrame as WireControlFrame, ControlKind as WireControlKind, NodeId, Signature,
     VerifiedControlFrame, Verifier, HEADER_LEN,
@@ -63,6 +64,7 @@ pub struct SimulatedAdapter {
     data_outcome: DataOutcome,
     reads: u64,
     sent: Vec<SendRecord>,
+    data_payloads: Vec<Vec<u8>>,
 }
 
 impl SimulatedAdapter {
@@ -80,6 +82,7 @@ impl SimulatedAdapter {
             data_outcome: DataOutcome::Sent,
             reads: 0,
             sent: Vec::new(),
+            data_payloads: Vec::new(),
         }
     }
     pub fn with_reading(mut self, reading: LinkReading) -> Self {
@@ -98,6 +101,9 @@ impl SimulatedAdapter {
     }
     pub fn name(&self) -> &str {
         &self.metadata.name
+    }
+    pub fn data_payloads(&self) -> &[Vec<u8>] {
+        &self.data_payloads
     }
 }
 
@@ -130,6 +136,7 @@ impl LinkAdapter for SimulatedAdapter {
         Ok(())
     }
     fn send_data(&mut self, payload: &[u8]) -> Result<DataOutcome, Self::Error> {
+        self.data_payloads.push(payload.to_vec());
         self.sent.push(SendRecord::Data {
             bytes: payload.len(),
             outcome: self.data_outcome,
@@ -148,6 +155,7 @@ pub enum HostError {
     OutcomeMismatch,
     UnsupportedBillboardFailure,
     UnsupportedLinkName,
+    BillboardCodec(billboard_wire::Error),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -381,10 +389,24 @@ impl HostBridge {
         {
             return Err(HostError::UnsupportedBillboardFailure);
         }
+        let fields = Fields::from_core(board).map_err(HostError::BillboardCodec)?;
+        let mut signing = [0; billboard_wire::MAX_FRAME_LEN];
+        let size = billboard_wire::signing_bytes(fields, "A", &mut signing)
+            .map_err(HostError::BillboardCodec)?;
+        let verifier = BillboardFixtureVerifier {
+            signing: &signing[..size],
+            signature: [0x6b; 64],
+        };
+        let mut wire = [0; billboard_wire::MAX_FRAME_LEN];
+        let size = billboard_wire::encode(fields, "A", &verifier.signature, &mut wire, &verifier)
+            .map_err(HostError::BillboardCodec)?;
+        let decoded =
+            billboard_wire::decode(&wire[..size], &verifier).map_err(HostError::BillboardCodec)?;
+        let board = decoded.to_core();
         let row = self.policy.deliver_billboard(
             i128::from(tick),
-            Some(board),
-            Some(&Auth::fixture("A", true)),
+            Some(&board),
+            Some(&Auth::fixture(decoded.issuer(), true)),
             "A",
             "B",
             &links,
@@ -395,12 +417,8 @@ impl HostBridge {
                     .iter_mut()
                     .find(|x| x.name() == name)
                     .ok_or(HostError::MissingAdapter)?;
-                dispatch(
-                    adapter,
-                    TrafficPath::Data,
-                    Outbound::Data(b"opaque-billboard-fixture"),
-                )
-                .map_err(|_| HostError::Dispatch)?;
+                dispatch(adapter, TrafficPath::Data, Outbound::Data(&wire[..size]))
+                    .map_err(|_| HostError::Dispatch)?;
                 self.audit.data_hops += 1;
             }
         }
@@ -424,6 +442,16 @@ impl HostBridge {
             &[],
         );
         Ok(())
+    }
+}
+
+struct BillboardFixtureVerifier<'a> {
+    signing: &'a [u8],
+    signature: BillboardSignature,
+}
+impl billboard_wire::Verifier for BillboardFixtureVerifier<'_> {
+    fn verify(&self, _: &str, bytes: &[u8], signature: &BillboardSignature) -> bool {
+        bytes == self.signing && signature == &self.signature
     }
 }
 
