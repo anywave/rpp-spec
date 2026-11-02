@@ -39,8 +39,8 @@ remain available. RTT/jitter vary and are excluded from deterministic assertions
 These fixtures simulate loss, capacity, and logical ticks; no LAN is contacted.
 The responder blocks with a long timeout configured once. Shutdown uses an exact
 stop datagram from a retained, prebound loopback waker after close is requested;
-queued probes are processed before stop, and each worker is joined once. Worker
-counts and errors are retained. The timeout is a backstop, not a hard global
+the worker processes probes until it receives the authorized stop, and each
+worker is joined once. Counts and errors are retained. The timeout is a backstop, not a hard global
 shutdown deadline. Native Windows repeats remain a separate validation step.
 
 The checkout is based on CX-023; its UDP dependency is not present until PR#30
