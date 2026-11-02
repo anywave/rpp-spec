@@ -106,9 +106,23 @@ def verify_owner(commit, signers, revocations):
         return False
 
 
+def ancestor_of(ancestor, descendant):
+    try:
+        git_bytes('merge-base', '--is-ancestor', ancestor, descendant)
+    except subprocess.CalledProcessError as error:
+        if error.returncode == 1:
+            return False
+        raise
+    return True
+
+
 def owner_findings(base, head):
-    ancestor = git_bytes('merge-base', base, head).decode().strip()
-    commits = git_bytes('rev-list', '--reverse', '--max-count=129', f'{ancestor}..{head}').decode().splitlines()
+    ancestors = git_bytes('merge-base', '--all', base, head).decode().splitlines()
+    if len(ancestors) != 1:
+        raise ValueError('exactly one merge base required; criss-cross history refused')
+    net = {path.decode('utf-8') for path in git_bytes('diff', '--no-renames', '--name-only', '-z', ancestors[0], head).split(b'\0') if path}
+    protected_net = {path for path in net if gate_path(path)}
+    commits = git_bytes('rev-list', '--reverse', '--max-count=129', f'{base}..{head}').decode().splitlines()
     if len(commits) > 128:
         raise ValueError('PR history exceeds 128 commits')
     owners = base_lines(base, OWNERS)
@@ -121,9 +135,19 @@ def owner_findings(base, head):
         revocations.write_bytes(b'')
         for commit in commits:
             parents = git_bytes('show', '-s', '--format=%P', commit).decode().split()
-            args = ('diff', parents[0], commit) if parents else ('diff-tree', '--root', '--no-commit-id', '-r', commit)
-            paths = [path.decode('utf-8') for path in git_bytes(*args, '--no-renames', '--name-only', '-z').split(b'\0') if path]
-            protected = [path for path in paths if gate_path(path)]
+            if len(parents) > 2:
+                errors.append(f'{commit}: octopus merge refused')
+                continue
+            if len(parents) == 2:
+                if ancestor_of(parents[0], base):
+                    errors.append(f'{commit}: merge first parent is reachable from BASE')
+                elif sum(ancestor_of(parent, base) for parent in parents) != 1:
+                    errors.append(f'{commit}: merge requires one BASE-side parent')
+            paths = set()
+            for parent in parents or [None]:
+                args = ('diff', parent, commit) if parent else ('diff-tree', '--root', '--no-commit-id', '-r', commit)
+                paths.update(path.decode('utf-8') for path in git_bytes(*args, '--no-renames', '--name-only', '-z').split(b'\0') if path)
+            protected = sorted(protected_net & paths)
             if protected and (not owners or not verify_owner(commit, signers, revocations)):
                 errors += [f'{commit}:{ascii(path)}: gate change: needs TR review (listed owner SSH signature required)' for path in protected]
     return errors

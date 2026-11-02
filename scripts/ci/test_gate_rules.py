@@ -43,7 +43,7 @@ class RuleTests(unittest.TestCase):
         self.write('large', 'x\n' * 1501)
         self.assertTrue(self.check('total', self.commit('large PR delta')))
 
-    def test_merge_master_first_parent_and_pr_total_exclude_base_only_changes(self):
+    def test_merge_master_base_side_parent_and_pr_total_exclude_base_only_changes(self):
         """Kills both-parent merge counting and counting integration changes as PR additions."""
         gate.git('checkout', '-qb', 'feature', self.base)
         self.write('feature.py', '# PR change\n')
@@ -54,7 +54,7 @@ class RuleTests(unittest.TestCase):
         gate.git('checkout', '-q', 'feature')
         gate.git('-c', 'commit.gpgsign=false', 'merge', '--no-ff', '-qm', 'merge master into feature', 'master')
         head = gate.git('rev-parse', 'HEAD').strip()
-        self.assertEqual(gate.slice_counts(gate.commit_diff(head, '--numstat', '-z'), set()), (1, 300))
+        self.assertEqual(gate.slice_counts(gate.commit_diff(self.base, head, '--numstat', '-z'), set()), (1, 1))
         self.assertEqual(gate.changed(self.base, head), ['feature.py'])
         self.assertEqual(self.check('slices', head), [])
         self.assertEqual(self.check('total', head), [])

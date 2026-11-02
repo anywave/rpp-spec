@@ -125,8 +125,25 @@ def commits(base, head):
     return items
 
 
+def merge_base(base, head):
+    candidates = git('merge-base', '--all', base, head).splitlines()
+    if len(candidates) != 1:
+        raise ValueError('exactly one merge base required; criss-cross history refused')
+    return candidates[0]
+
+
+def ancestor_of(ancestor, descendant):
+    try:
+        git('merge-base', '--is-ancestor', ancestor, descendant)
+    except subprocess.CalledProcessError as error:
+        if error.returncode == 1:
+            return False
+        raise
+    return True
+
+
 def changed(base, head, *options):
-    base = git('merge-base', base, head).strip()
+    base = merge_base(base, head)
     return git('diff', '--no-renames', '--name-only', '-z', *options, base, head).split('\0')[:-1]
 
 
@@ -140,15 +157,27 @@ def slice_counts(records, allow):
     return files, lines
 
 
-def commit_diff(commit, *options):
+def commit_diff(base, commit, *options):
     parents = git('show', '-s', '--format=%P', commit).split()
-    return git('diff', '--no-renames', *options, parents[0], commit) if parents else git('diff-tree', '--root', '--no-commit-id', '-r', '--no-renames', *options, commit)
+    if len(parents) > 2:
+        raise ValueError(f'{commit}: octopus merge refused')
+    if len(parents) == 2:
+        if ancestor_of(parents[0], base):
+            raise ValueError(f'{commit}: merge first parent is reachable from BASE')
+        candidates = [parent for parent in parents if ancestor_of(parent, base)]
+        if len(candidates) != 1:
+            raise ValueError(f'{commit}: merge requires one BASE-side parent')
+        parent = candidates[0]
+    else:
+        parent = parents[0] if parents else None
+    return git('diff', '--no-renames', *options, parent, commit) if parent else git('diff-tree', '--root', '--no-commit-id', '-r', '--no-renames', *options, commit)
 
 
 def slices(root, base, head, allow):
+    merge_base(base, head)
     errors = []
     for commit in commits(base, head):
-        records = commit_diff(commit, '--numstat', '-z')
+        records = commit_diff(base, commit, '--numstat', '-z')
         files, lines = slice_counts(records, allow)
         if files > 10 or lines > 400:
             errors.append(f'{commit}: files={files} lines={lines}; cap=10/400 (binary=401)')
@@ -156,7 +185,7 @@ def slices(root, base, head, allow):
 
 
 def total(root, base, head, allow):
-    ancestor = git('merge-base', base, head).strip()
+    ancestor = merge_base(base, head)
     files, lines = slice_counts(git('diff', '--no-renames', '--numstat', '-z', ancestor, head), allow)
     return [] if files <= 30 and lines <= 1500 else [f'PR total: files={files} lines={lines}; cap=30/1500']
 
@@ -168,7 +197,7 @@ def unreadable(text, path, line):
 
 def readable(root, base, head, allow):
     errors = []
-    ancestor = git('merge-base', base, head).strip()
+    ancestor = merge_base(base, head)
     records = git_bytes('diff', '--no-renames', '--numstat', '-z', ancestor, head).split(b'\0')[:-1]
     for record in records:
         added, deleted, raw_path = record.split(b'\t', 2)
@@ -228,7 +257,7 @@ def travel(root, base, head, allow):
         return []
     errors = []
     for commit in commits(base, head):
-        paths = commit_diff(commit, '--name-only', '-z').split('\0')[:-1]
+        paths = commit_diff(base, commit, '--name-only', '-z').split('\0')[:-1]
         if any(Path(path).suffix in SOURCE and not test_path(path) for path in paths) and not re.search(r'(?m)^no-test:[ \t]*\S[^\n]*$', message(commit)):
             errors.append(f'{commit}: source changed without PR test file or no-test: reason')
     return errors

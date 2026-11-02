@@ -112,24 +112,27 @@ class TrustedGateTests(unittest.TestCase):
             self.assertTrue(self.runner.owner_findings(self.base, head))
         backend.assert_not_called()
 
-    def test_owner_verification_checks_each_protected_commit_even_after_revert(self):
-        """Kills tip-only approval, net-diff-only approval and checking ordinary commits."""
+    def test_owner_checks_every_commit_for_net_gate_path_after_intermediate_revert(self):
+        """Kills tip-only/first-parent approval on a net gate path, including an intermediate revert."""
         self.write('.github/codex-gate-owners.txt', SIGNER + '\n')
+        self.write('nested/requirements-extra.txt', 'base\n')
         self.base = self.commit()
-        self.write('nested/requirements-extra.txt', 'inert\n')
+        self.write('nested/requirements-extra.txt', 'edited\n')
         edit = self.commit()
         self.write('README.md', 'ordinary change\n')
         ordinary = self.commit()
-        (self.root / 'nested/requirements-extra.txt').unlink()
+        self.write('nested/requirements-extra.txt', 'base\n')
+        reverted = self.commit()
+        self.write('nested/requirements-extra.txt', 'final\n')
         tip = self.commit()
-        self.assertEqual(self.git('diff', '--name-only', self.base, tip), 'README.md')
+        self.assertEqual(self.git('diff', '--name-only', self.base, tip).splitlines(), ['README.md', 'nested/requirements-extra.txt'])
         with mock.patch.object(self.runner, 'verify_owner', side_effect=lambda commit, *_: commit == tip) as verify:
             self.assertTrue(self.runner.owner_findings(self.base, tip))
-            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, tip])
+            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, reverted, tip])
             self.assertNotIn(ordinary, [call.args[0] for call in verify.call_args_list])
         with mock.patch.object(self.runner, 'verify_owner', return_value=True) as verify:
             self.assertEqual(self.runner.owner_findings(self.base, tip), [])
-            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, tip])
+            self.assertEqual([call.args[0] for call in verify.call_args_list], [edit, reverted, tip])
 
     def test_owner_policy_exports_base_public_signers_and_empty_revocations(self):
         """Kills HEAD signer-list substitution; mocked positives prove policy, not crypto."""
