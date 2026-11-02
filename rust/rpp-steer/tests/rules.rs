@@ -141,3 +141,24 @@ fn zero_throughput_is_bulk_ineligible_but_control_can_still_use_it() {
     assert_eq!(best_link(0, MessageClass::Bulk, 1, &links), Ok(None));
     assert_eq!(best_link(0, MessageClass::Control, 1, &links), Ok(Some(1)));
 }
+
+#[test]
+fn jitter_then_cost_break_equal_primary_scores_before_id() {
+    // Failing mutations: jitter_reversed and cost_reversed independently choose ID1.
+    let mut worse_jitter = link(1, 0, 100);
+    worse_jitter.reading.jitter_ms = 1;
+    let better = link(2, 0, 100);
+    let mut worse_cost = link(1, 0, 100);
+    worse_cost.cost = CostClass::Metered;
+    for (worse, better) in [(worse_jitter, better), (worse_cost, better)] {
+        for links in [[worse, better], [better, worse]] {
+            for class in [
+                MessageClass::Control,
+                MessageClass::Bulk,
+                MessageClass::Billboard,
+            ] {
+                assert_eq!(best_link(0, class, 20, &links), Ok(Some(2)));
+            }
+        }
+    }
+}
