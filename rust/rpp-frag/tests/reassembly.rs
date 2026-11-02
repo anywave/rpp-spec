@@ -41,13 +41,14 @@ fn push<const S: usize>(
 fn out_of_order_valid_and_forged_frames_require_caller_verifier() {
     // Mutation decode-bypass: only caller-verified complete frames are returned.
     for accept in [true, false] {
-        let v = Check {
-            calls: Cell::new(0),
-            accept,
-        };
+        let v = verifier();
+        let mut pieces = fragments(1);
+        if !accept {
+            *pieces.last_mut().unwrap().last_mut().unwrap() ^= 1;
+        }
         let mut r = Reassembler::<4, 112>::new(10).unwrap();
         let mut result = Ok(false);
-        for f in fragments(1).iter().rev() {
+        for f in pieces.iter().rev() {
             result = push(&mut r, f, 0, &v);
         }
         assert_eq!(
