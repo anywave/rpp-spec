@@ -175,10 +175,11 @@ paths use `/` as a separator, so a name such as `a/b` could alias two hops `a` a
 meter this rejection. Clock rollback reaches the existing policy, retains its
 `INVALID_INPUT` row and produces no adapter send.
 
-Billboard transport in this host module uses the literal opaque data placeholder
-`opaque-billboard-fixture` and a previously verified `Auth::fixture` assumption.
-It is not a billboard wire codec, receipt/signature verifier or production
-serialization of a fact/rule. `Delivered` and `HeldUntilSince` both count as
+Billboard transport now uses `rpp-billboard` frames and a literal exact-prefix
+and signature fixture verifier. Only a verified decoded view becomes the
+existing core billboard and prior-verification fixture; this adds no real
+signature mechanism or authority. The informative format and narrower fact/time
+domain are in [the unapplied proposal](../docs/design/BILLBOARD_WIRE_PROPOSAL.diff). `Delivered` and `HeldUntilSince` both count as
 accepted transport delivery; the latter remains inactive until `since`.
 Billboard transport-failure fixtures are unsupported and return
 `HostError::UnsupportedBillboardFailure` before policy storage or sends. These

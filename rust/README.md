@@ -7,6 +7,10 @@ workspace pins Rust **1.85.1** and commits its lockfile.
 CX-008 adds the unpublished `rpp-control` fixed-frame codec and `rpp-link`
 adapter interface crates to this workspace. [ESP32 adapter guidance](ESP32.md)
 describes their features, host simulation, provisional frame and board gaps.
+CX-020 adds `rpp-billboard`: borrowed heap-free decoding, checked encoding into
+caller buffers, and optional `alloc` conversion to existing core billboards.
+Its literal verifier fixtures implement no cryptography. The informative wire
+proposal remains [unapplied](../docs/design/BILLBOARD_WIRE_PROPOSAL.diff).
 The module and Python-parity details below describe `rpp-core`.
 
 CX-010 adds the unpublished `rpp-fleet` crate: explicit proposed address
