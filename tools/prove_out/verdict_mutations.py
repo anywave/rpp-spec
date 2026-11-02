@@ -45,13 +45,21 @@ def classify(result, selector):
         return re.search(rf"^{label}(?:, \d+ warnings?)? in [\d.]+s$", text, re.M)
     if result.returncode == 0 and summary("1 passed"):
         return "passed"
-    selected = re.search(rf"^FAILED {re.escape(selector)}(?: -|$)", text, re.M)
+    selected = re.search(rf"^FAILED {re.escape(selector)}(?: - (.*))?$", text, re.M)
     if result.returncode != 1 or not summary("1 failed") or not selected:
         return "tool_error"
-    assertion = re.search(r"^E\s+(?:assert\b|AssertionError(?:\b|:)|Failed: DID NOT RAISE\b)", text, re.M)
-    if assertion and not re.search(r"^ERROR\b|ImportError|ModuleNotFoundError|SyntaxError", text, re.M):
-        return "assertion_failure"
-    return "key_error" if re.search(r"^E\s+KeyError:", text, re.M) else "non_assertion_failure"
+    reason = selected[1] or ""
+    if reason and not re.match(r"(?:assert\b|AssertionError\b|Failed: DID NOT RAISE\b)", reason):
+        return "key_error" if re.match(r"(?:[\w]+\.)*KeyError\b", reason) else "non_assertion_failure"
+    terminal = "non_assertion_failure"
+    for diagnostic in re.findall(r"^E\s+(.+)$", text, re.M):
+        if re.match(r"(?:assert\b|AssertionError\b|Failed: DID NOT RAISE\b)", diagnostic):
+            terminal = "assertion_failure"
+        elif exception := re.match(r"([\w.]+)(?::(?:\s|$)|$)", diagnostic):
+            terminal = "key_error" if exception[1].rsplit(".", 1)[-1] == "KeyError" else "non_assertion_failure"
+    if re.search(r"^ERROR\b|ImportError|ModuleNotFoundError|SyntaxError", text, re.M):
+        return "tool_error"
+    return terminal
 
 
 def alter(source, case):

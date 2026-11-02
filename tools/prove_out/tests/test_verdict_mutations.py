@@ -51,3 +51,18 @@ def test_source_operations_require_one_named_function_and_one_reviewed_anchor():
             mutations.alter(source, changed)
     with pytest.raises(RuntimeError):
         mutations.alter(source + "\ndef f():\n    return 1\n", case)
+
+
+def test_classifier_refuses_terminal_runtime_chains_and_keeps_rich_assertions(tmp_path):
+    """Kills chained-runtime false kills and treating rich assertion context as a terminal exception."""
+    source = tmp_path / "test_chain.py"
+    source.write_text("def test_chain_message():\n    try:\n        assert False, 'earlier assertion'\n    except AssertionError:\n        raise RuntimeError('terminal runtime failure')\n\ndef test_chain_bare():\n    try:\n        assert False\n    except AssertionError:\n        raise RuntimeError\n\ndef test_rich_assertion():\n    actual = 0\n    assert actual == int(165 * 0.25) + int(509 * 0.5)\n", encoding="utf-8")
+    environment = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTEST_DISABLE_PLUGIN_AUTOLOAD="1")
+    environment.pop("PYTEST_ADDOPTS", None)
+    for name, expected in (("test_chain_message", "non_assertion_failure"), ("test_chain_bare", "non_assertion_failure"), ("test_rich_assertion", "assertion_failure")):
+        selector = "test_chain.py::" + name
+        command = [sys.executable, "-m", "pytest", "-q", "-o", "addopts=", "-p", "no:cacheprovider", "--tb=short", "--color=no", selector]
+        result = subprocess.run(command, cwd=tmp_path, env=environment, capture_output=True,
+                                text=True, encoding="utf-8", timeout=30)
+        assert result.returncode == 1
+        assert mutations.classify(result, selector) == expected
