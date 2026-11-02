@@ -44,6 +44,7 @@ pub const R_ID: NodeId = [b'R'; 16];
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AdapterError {
     InvalidReading,
+    Ble(ble::Error),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -65,6 +66,7 @@ pub struct SimulatedAdapter {
     data_outcome: DataOutcome,
     reads: u64,
     sent: Vec<SendRecord>,
+    ble_fragments: usize,
 }
 
 impl SimulatedAdapter {
@@ -82,6 +84,7 @@ impl SimulatedAdapter {
             data_outcome: DataOutcome::Sent,
             reads: 0,
             sent: Vec::new(),
+            ble_fragments: 0,
         }
     }
     pub fn with_reading(mut self, reading: LinkReading) -> Self {
@@ -94,6 +97,9 @@ impl SimulatedAdapter {
     }
     pub fn reads(&self) -> u64 {
         self.reads
+    }
+    pub fn ble_fragment_count(&self) -> usize {
+        self.ble_fragments
     }
     pub fn sent(&self) -> &[SendRecord] {
         &self.sent
@@ -125,6 +131,21 @@ impl LinkAdapter for SimulatedAdapter {
         &mut self,
         frame: &VerifiedControlFrame,
     ) -> Result<(), Self::Error> {
+        if self.metadata.underlay == Underlay::Bluetooth {
+            let encoded = frame.encode();
+            let verifier = ExactFixtureVerifier {
+                sender: *frame.sender(),
+                header: encoded[..HEADER_LEN]
+                    .try_into()
+                    .expect("fixed control header"),
+                signature: *frame.signature(),
+            };
+            let mut radio = ble::Ble::new(*frame.sender(), *frame.recipient(), verifier);
+            radio
+                .send_verified_control_frame(frame)
+                .map_err(AdapterError::Ble)?;
+            self.ble_fragments += radio.fragments().len();
+        }
         self.sent.push(SendRecord::Control {
             kind: frame.kind(),
             sequence: frame.sequence(),
@@ -132,6 +153,9 @@ impl LinkAdapter for SimulatedAdapter {
         Ok(())
     }
     fn send_data(&mut self, payload: &[u8]) -> Result<DataOutcome, Self::Error> {
+        if self.kind() == LinkKind::Ble {
+            return Err(AdapterError::Ble(ble::Error::DataUnsupported));
+        }
         self.sent.push(SendRecord::Data {
             bytes: payload.len(),
             outcome: self.data_outcome,
@@ -163,6 +187,7 @@ pub struct AdapterAudit {
     pub readings: u64,
     pub data_hops: u64,
     pub control_hops: u64,
+    pub control_fragments: usize,
     pub attempts: Vec<Attempt>,
 }
 
@@ -360,8 +385,10 @@ impl HostBridge {
                     .iter_mut()
                     .find(|x| x.name() == name)
                     .ok_or(HostError::MissingAdapter)?;
+                let before = adapter.ble_fragment_count();
                 dispatch(adapter, TrafficPath::Control, Outbound::Control(frame))
                     .map_err(|_| HostError::Dispatch)?;
+                self.audit.control_fragments += adapter.ble_fragment_count() - before;
                 self.audit.control_hops += 1;
             }
         }

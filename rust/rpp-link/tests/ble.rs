@@ -53,4 +53,13 @@ fn data_over_simulated_ble_is_refused_without_fragments() {
     );
     assert!(ble.fragments().is_empty());
     assert!(ble.received().is_none());
+    let link = rpp_core::overlay::Link::new("bt", "A", "B", rpp_core::overlay::Underlay::Bluetooth);
+    let mut scenario = rpp_link::simulated::SimulatedAdapter::from_link(link);
+    assert_eq!(
+        dispatch(&mut scenario, TrafficPath::Data, Outbound::Data(b"data")),
+        Err(DispatchError::Adapter(
+            rpp_link::simulated::AdapterError::Ble(Error::DataUnsupported)
+        ))
+    );
+    assert!(scenario.sent().is_empty());
 }

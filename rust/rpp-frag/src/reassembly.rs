@@ -123,12 +123,17 @@ impl<const SLOTS: usize, const MAX_LEN: usize> Reassembler<SLOTS, MAX_LEN> {
             };
         }
         let slot = &mut self.slots[index];
+        let mut added = false;
         for (i, byte) in data.iter().enumerate() {
             if !slot.seen[offset + i] {
+                added = true;
                 slot.covered += 1;
                 slot.seen[offset + i] = true;
                 slot.bytes[offset + i] = *byte;
             }
+        }
+        if !added {
+            return Ok(None);
         }
         self.clock = Some(tick);
         if slot.covered == slot.total {

@@ -44,8 +44,8 @@ is a byte offset. Payload follows immediately and must be nonempty.
   The adapter must bind the peer identifier to its actual ingress context.
 
 Fragments can arrive out of order. Preflight bounds and every conflicting byte
-before writing. Identical duplicate bytes add no coverage and do not extend the
-original deadline. Completion requires all bytes, then decoding clears the slot
+before writing. Identical duplicate bytes change neither coverage, the remembered tick nor
+the original deadline. Completion requires all bytes, then decoding clears the slot
 on success or failure. No unchecked completed-byte API exists. Decoding does not
 provide replay protection; tag reuse and sequence policy remain host duties.
 

@@ -1,4 +1,4 @@
-"""Execute nine bounded fragmentation counterfactuals in disposable Rust copies.
+"""Execute twelve bounded fragmentation counterfactuals in disposable Rust copies.
 
 Only the named test's assertion panic counts; compilation and arbitrary panic
 failures are tool errors. Baseline and unaffected mutated controls must pass.
@@ -23,6 +23,16 @@ def mutation(name, before, after, positive, clean=CLEAN):
 
 
 MUTATIONS = (
+    Mutation("scenario_data_over_ble", "rpp-link", "rpp-link/src/simulated.rs",
+             "if self.kind() == LinkKind::Ble {", "if false {",
+             Test("ble", "data_over_simulated_ble_is_refused_without_fragments", ("sim",)),
+             Test("simulated", "adapter_driven_scenarios_match_three_python_artifacts", ("sim",))),
+    mutation("duplicate_advances_clock", "if !added {", "if false {",
+             "identical_duplicate_does_not_advance_remembered_tick"),
+    Mutation("scenario_ble_bypass", "rpp-link", "rpp-link/src/simulated.rs",
+             "if self.metadata.underlay == Underlay::Bluetooth {", "if false {",
+             Test("simulated", "adapter_driven_scenarios_match_three_python_artifacts", ("sim",)),
+             Test("ble", "simulated_ble_fragments_control_at_mtu20_and_decodes_again", ("sim",))),
     mutation("overlap_accepted", "return Err(Error::Overlap);", "continue;",
              "different_byte_overlap_is_rejected_without_poisoning_uncovered_prefix"),
     mutation("bounds_accepted", "end > total", "end > MAX_LEN",

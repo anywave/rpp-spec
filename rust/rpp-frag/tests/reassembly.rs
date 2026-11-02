@@ -175,3 +175,17 @@ fn malformed_input_rollback_and_deadline_overflow_do_not_advance_state() {
     );
     assert_eq!(fresh.retained_slots(), 0);
 }
+
+#[test]
+fn identical_duplicate_does_not_advance_remembered_tick() {
+    // Mutation duplicate-advances-clock: the same new fragment at tick 6 stays admissible.
+    let f = fragments(1);
+    let v = verifier();
+    let mut r = Reassembler::<1, 112>::new(10).unwrap();
+    assert_eq!(push(&mut r, &f[0], 5, &v), Ok(false));
+    assert_eq!(push(&mut r, &f[0], 9, &v), Ok(false));
+    for part in &f[1..f.len() - 1] {
+        assert_eq!(push(&mut r, part, 6, &v), Ok(false));
+    }
+    assert_eq!(push(&mut r, f.last().unwrap(), 6, &v), Ok(true));
+}
