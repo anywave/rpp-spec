@@ -54,7 +54,7 @@ class RuleTests(unittest.TestCase):
         gate.git('checkout', '-q', 'feature')
         gate.git('-c', 'commit.gpgsign=false', 'merge', '--no-ff', '-qm', 'merge master into feature', 'master')
         head = gate.git('rev-parse', 'HEAD').strip()
-        self.assertEqual(gate.slice_counts(gate.commit_diff(self.base, head, '--numstat', '-z'), set()), (1, 1))
+        self.assertEqual(gate.slice_counts(gate.commit_diff(self.base, head, '--numstat', '-z'), set()), (0, 0))
         self.assertEqual(gate.changed(self.base, head), ['feature.py'])
         self.assertEqual(self.check('slices', head), [])
         self.assertEqual(self.check('total', head), [])

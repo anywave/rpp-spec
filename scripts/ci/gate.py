@@ -1,5 +1,6 @@
 """Offline PR checks; Git arguments are never interpreted by a shell."""
 import argparse
+import ast
 from pathlib import Path
 import re
 import subprocess
@@ -157,6 +158,41 @@ def slice_counts(records, allow):
     return files, lines
 
 
+def novel_merge_records(commit):
+    raw = git_bytes('diff-tree', '--cc', '--raw', '-z', '--no-abbrev', '--no-commit-id', '-r', '--no-renames', commit).split(b'\0')
+    if raw.pop() != b'' or len(raw) % 2:
+        raise ValueError('malformed combined raw diff')
+    records = {}
+    for header, path in zip(raw[::2], raw[1::2]):
+        fields = header.split()
+        if len(fields) != 7 or not fields[0].startswith(b'::') or not path or path in records:
+            raise ValueError('unsupported combined raw record')
+        path.decode('utf-8')  # Never replace invalid bytes in a path identity.
+        modes = [fields[0][2:], fields[1], fields[2]]
+        records[path] = [0, 0, False, all(mode != modes[2] for mode in modes[:2])]
+    current, active = None, False
+    patch = git_bytes('-c', 'core.quotePath=true', 'show', '--cc', '--format=', '--unified=0', '--no-ext-diff', '--no-textconv', '--no-color', '--no-renames', commit)
+    for line in patch.split(b'\n'):
+        if line.startswith(b'diff --cc '):
+            value = line[len(b'diff --cc '):]
+            path = ast.literal_eval('b' + value.decode('ascii')) if value.startswith(b'"') else value
+            if not isinstance(path, bytes) or path not in records:
+                raise ValueError('combined patch path differs from raw inventory')
+            current, active = records[path], False
+        elif line.startswith(b'@@@ '):
+            if current is None or not re.fullmatch(rb'@@@ -\d+(?:,\d+)? -\d+(?:,\d+)? \+\d+(?:,\d+)? @@@(?: .*)?', line):
+                raise ValueError('unsupported combined hunk')
+            active = True
+        elif current is not None and not active and line.startswith(b'Binary files '):
+            current[2] = True
+        elif active and line.startswith(b'++'):
+            current[0] += 1
+        elif active and line.startswith(b'--'):
+            current[1] += 1
+    return [(('-' if binary else str(added)), ('-' if binary else str(deleted)), path.decode('utf-8'))
+            for path, (added, deleted, binary, mode) in records.items() if added or deleted or binary or mode]
+
+
 def commit_diff(base, commit, *options):
     parents = git('show', '-s', '--format=%P', commit).split()
     if len(parents) > 2:
@@ -167,7 +203,12 @@ def commit_diff(base, commit, *options):
         candidates = [parent for parent in parents if ancestor_of(parent, base)]
         if len(candidates) != 1:
             raise ValueError(f'{commit}: merge requires one BASE-side parent')
-        parent = candidates[0]
+        records = novel_merge_records(commit)
+        if options == ('--numstat', '-z'):
+            return ''.join('\t'.join(record) + '\0' for record in records)
+        if options == ('--name-only', '-z'):
+            return ''.join(record[2] + '\0' for record in records)
+        raise ValueError('unsupported combined diff output')
     else:
         parent = parents[0] if parents else None
     return git('diff', '--no-renames', *options, parent, commit) if parent else git('diff-tree', '--root', '--no-commit-id', '-r', '--no-renames', *options, commit)
