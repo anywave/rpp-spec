@@ -219,6 +219,36 @@ fn accepted_future_billboard_uses_data_but_replay_and_expired_do_not_send() {
     assert_eq!(adapters[0].sent().len(), 1);
     assert!(expired[0].sent().is_empty());
 }
+
+#[test]
+fn billboard_data_contains_real_verified_wire_fields() {
+    // Failing mutation opaque-billboard-placeholder: replace the encoded bytes with a dummy payload.
+    struct Exact<'a>(&'a [u8]);
+    impl rpp_billboard::Verifier for Exact<'_> {
+        fn verify(
+            &self,
+            issuer: &str,
+            signing: &[u8],
+            signature: &rpp_billboard::Signature,
+        ) -> bool {
+            issuer == "A" && signing == &self.0[..self.0.len() - 64] && signature == &[0x6b; 64]
+        }
+    }
+    let mut host = bridge();
+    let board = board(0, 2);
+    let mut adapters = [lan(0)];
+    assert_eq!(
+        host.send_billboard(0, &board, &mut adapters)
+            .unwrap()
+            .status,
+        Status::Delivered
+    );
+    let bytes = &adapters[0].data_payloads()[0];
+    assert!(bytes.starts_with(b"RPPB"));
+    let decoded = rpp_billboard::decode(bytes, &Exact(bytes));
+    assert!(decoded.is_ok());
+    assert_eq!(decoded.unwrap().to_core(), board);
+}
 #[test]
 fn unsupported_billboard_failure_fixture_fails_before_storage_or_dispatch() {
     // Mutation accept-unmodeled-billboard-loss: partial transport fixtures must not be reported as delivered by the CX007 model.
