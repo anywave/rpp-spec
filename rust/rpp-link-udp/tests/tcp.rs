@@ -44,7 +44,7 @@ fn wake(address: SocketAddr) {
 }
 fn pair() -> (TcpAdapter, TcpStream) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+    let peer = TcpStream::connect_timeout(&listener.local_addr().unwrap(), TIMEOUT).unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(2))).unwrap();
     peer.set_write_timeout(Some(TIMEOUT)).unwrap();
     let stream = accept(&listener).unwrap();
