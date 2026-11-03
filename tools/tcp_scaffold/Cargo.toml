@@ -1,0 +1,20 @@
+[workspace]
+members = ["."]
+
+[package]
+name = "rpp-tcp-framing-properties"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85.1"
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+rpp-link-udp = { path = "../../rust/rpp-link-udp", version = "=0.1.0", default-features = false }
+
+[dev-dependencies]
+proptest = { version = "=1.6.0", default-features = false, features = ["std"] }
+
+[[test]]
+name = "properties"
+path = "tests/properties.rs"
