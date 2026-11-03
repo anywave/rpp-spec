@@ -17,6 +17,12 @@ pub(crate) fn validate(peer: SocketAddr, kind: LinkKind, timeout: Duration) -> R
 fn invalid(message: &str) -> Error {
     io::Error::new(io::ErrorKind::InvalidData, message).into()
 }
+fn timed_out(error: &io::Error) -> bool {
+    matches!(
+        error.kind(),
+        io::ErrorKind::TimedOut | io::ErrorKind::WouldBlock
+    )
+}
 /// Each call consumes part of ONE absolute budget, never a fresh chunk budget.
 fn transfer_chunks(
     bytes: &mut [u8],
@@ -77,6 +83,7 @@ impl TcpAdapter {
     ) -> Result<Self, Error> {
         validate(stream.peer_addr()?, kind, timeout)?;
         validate(stream.local_addr()?, kind, timeout)?;
+        stream.set_nonblocking(false)?;
         stream.set_nodelay(true)?;
         Ok(Self {
             stream,
@@ -102,20 +109,31 @@ impl TcpAdapter {
         self.closed = true;
         let _ = self.stream.shutdown(Shutdown::Both);
     }
-    fn transfer(&mut self, bytes: &mut [u8], deadline: Instant, write: bool) -> Result<(), Error> {
+    fn transfer(
+        &mut self,
+        bytes: &mut [u8],
+        deadline: Instant,
+        write: bool,
+        mut idle: bool,
+    ) -> Result<(), Error> {
         if self.closed {
             return Err(io::Error::new(io::ErrorKind::NotConnected, "closed frame stream").into());
         }
         let result = transfer_chunks(bytes, deadline, Instant::now, |remaining, budget| {
-            if write {
+            let result = if write {
                 self.stream.set_write_timeout(Some(budget))?;
                 self.stream.write(remaining)
             } else {
                 self.stream.set_read_timeout(Some(budget))?;
                 self.stream.read(remaining)
-            }
+            };
+            idle &= !result.as_ref().is_ok_and(|size| *size > 0);
+            result
         });
-        if result.is_err() {
+        if result
+            .as_ref()
+            .is_err_and(|error| !idle || !timed_out(error))
+        {
             self.close();
         }
         result.map_err(Error::from)
@@ -126,11 +144,11 @@ impl TcpAdapter {
         }
         let wire = [&[VERSION, tag][..], body].concat();
         let mut frame = framed::encode(&wire).map_err(|_| invalid("invalid outgoing envelope"))?;
-        self.transfer(&mut frame, deadline, true)
+        self.transfer(&mut frame, deadline, true, false)
     }
-    fn packet(&mut self, deadline: Instant) -> Result<Vec<u8>, Error> {
+    fn packet(&mut self, deadline: Instant, idle: bool) -> Result<Vec<u8>, Error> {
         let mut prefix = [0; 2];
-        self.transfer(&mut prefix, deadline, false)?;
+        self.transfer(&mut prefix, deadline, false, idle)?;
         let size = usize::from(u16::from_be_bytes(prefix));
         if !(2..=crate::MAX_DATAGRAM_LEN).contains(&size) {
             self.close();
@@ -138,7 +156,7 @@ impl TcpAdapter {
         }
         let mut frame = vec![0; size + 2];
         frame[..2].copy_from_slice(&prefix);
-        self.transfer(&mut frame[2..], deadline, false)?;
+        self.transfer(&mut frame[2..], deadline, false, false)?;
         if framed::decode_one(&frame).is_err() {
             self.close();
             return Err(invalid("invalid incoming envelope"));
@@ -182,7 +200,10 @@ impl TcpAdapter {
         let deadline = Instant::now() + self.timeout;
         let wire = match self.pending.pop_front() {
             Some(wire) => wire,
-            None => self.packet(deadline)?,
+            None => match self.packet(deadline, true) {
+                Err(Error::Io(error)) if !self.closed && timed_out(&error) => return Ok(None),
+                result => result?,
+            },
         };
         if self.internal(&wire, deadline)? {
             return Ok(None);
@@ -213,7 +234,7 @@ impl LinkAdapter for TcpAdapter {
         let result = (|| -> Result<(), Error> {
             self.send_until(1, &nonce, deadline)?;
             loop {
-                let wire = self.packet(deadline)?;
+                let wire = self.packet(deadline, false)?;
                 if wire[1] == 2 && wire[2..] == nonce {
                     sample = Some(start.elapsed().as_millis().min(u128::from(u64::MAX - 1)) as u64);
                     break;

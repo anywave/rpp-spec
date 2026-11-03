@@ -95,7 +95,7 @@ is replayed, and no connection is automatically reopened. A successful write
 means the local kernel accepted bytes, not that the peer delivered the frame.
 
 `TcpAdapter::connect` validates before connect. `from_stream` checks both actual
-endpoints of a caller-accepted stream before frame I/O. Lan/Wifi/Internet labels
+endpoints and restores blocking mode before frame I/O. Lan/Wifi/Internet labels
 remain metadata. There is no TLS, QUIC, encryption, peer authentication, tunnel,
 key exchange, consent or admission. TCP is currently refused even on tailnet.
 
@@ -108,12 +108,12 @@ are retained. Control passes the same caller recipient/verifier codec; replay
 policy remains outside the adapter. `framed` also provides pure encode/decode.
 
 One absolute monotonic deadline covers all prefix/body chunks of each frame,
-including Interrupted calls and final completion. Every frame I/O failure closes
-the stream, including idle timeout and clean EOF; malformed lengths/envelopes
-close it too. There is no resynchronization. TCP kernel retransmission and head
+including Interrupted calls and final completion. An empty receive timeout keeps
+the stream open; partial-frame errors, clean EOF and malformed lengths/envelopes
+close it. There is no resynchronization. TCP kernel retransmission and head
 of line blocking hide packet losses: readings describe application probe RTT
 and success, not raw IP loss. Unlike UDP's unavailable reading after probe
-loss, TCP frame failures propagate an error and leave the session closed.
+loss, a TCP probe timeout still propagates an error and closes the session (known difference).
 
 Tests use only prebound loopback peers, including an open-but-silent UDP socket
 and a ready TCP listener; fallback must complete within two seconds. Blocking

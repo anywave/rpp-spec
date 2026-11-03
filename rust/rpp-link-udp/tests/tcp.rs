@@ -48,6 +48,7 @@ fn pair() -> (TcpAdapter, TcpStream) {
     peer.set_read_timeout(Some(Duration::from_secs(2))).unwrap();
     peer.set_write_timeout(Some(TIMEOUT)).unwrap();
     let stream = accept(&listener).unwrap();
+    stream.set_nonblocking(true).unwrap();
     (
         TcpAdapter::from_stream(stream, LinkKind::Lan, TIMEOUT).unwrap(),
         peer,
@@ -95,30 +96,50 @@ fn framing_bounds_truncations_and_coalescing_are_unambiguous() {
             Err(framed::FrameError::InvalidLength)
         );
     }
-    for wire in [
-        vec![0, 4],
-        vec![1, 0],
-        vec![1, 5],
-        vec![1, 1],
-        vec![1, 2],
-        vec![1, 3],
-        vec![1; 1201],
-    ] {
-        assert!(framed::encode(&wire).is_err());
+    for class in [0, 5, 1, 2, 3] {
+        assert!(framed::encode(&[1, class]).is_err());
     }
+    assert!(framed::encode(&[0, 4]).is_err());
+    assert!(framed::encode(&[1; 1201]).is_err());
 }
-/// Mutations: leave a failed frame stream reusable or resume at leftover bytes.
+/// Mutation: omit_stream_blocking_normalization; pair supplies a nonblocking stream.
+#[test]
+fn nonblocking_stream_waits_for_the_configured_idle_timeout() {
+    let (mut adapter, _peer) = pair();
+    let start = Instant::now();
+    assert_eq!(adapter.receive(&[2; 16], &Check).ok(), Some(None));
+    assert!(start.elapsed() >= TIMEOUT / 2);
+}
+/// Mutation: idle_timeout_closes_stream; an empty poll must permit a later frame.
+#[test]
+fn idle_poll_keeps_the_link_for_a_later_frame() {
+    let (mut adapter, mut peer) = pair();
+    assert_eq!(adapter.receive(&[2; 16], &Check).ok(), Some(None));
+    assert!(!adapter.is_closed());
+    peer.write_all(&framed::encode(&[1, 4, 7]).unwrap())
+        .unwrap();
+    assert_eq!(
+        adapter.receive(&[2; 16], &Check).unwrap(),
+        Some(Received::Data(vec![7]))
+    );
+}
+/// Mutations: leave a failed frame reusable, resume leftovers, or treat a partial timeout as idle.
 #[test]
 fn truncated_or_oversized_streams_close_without_resynchronization() {
-    for bytes in [
-        vec![0],
-        vec![0, 3, 1],
-        1201_u16.to_be_bytes().to_vec(),
-        vec![0, 2, 0, 4],
+    for (bytes, eof) in [
+        (vec![], true),
+        (vec![0], true),
+        (vec![0], false),
+        (vec![0, 3], false),
+        (vec![0, 3, 1], true),
+        (1201_u16.to_be_bytes().to_vec(), true),
+        (vec![0, 2, 0, 4], true),
     ] {
         let (mut adapter, mut peer) = pair();
         peer.write_all(&bytes).unwrap();
-        peer.shutdown(Shutdown::Write).unwrap();
+        if eof {
+            peer.shutdown(Shutdown::Write).unwrap();
+        }
         assert!(adapter.receive(&[2; 16], &Check).is_err());
         assert!(adapter.is_closed());
         assert!(adapter.send_data(b"never replay").is_err());
