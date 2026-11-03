@@ -3,7 +3,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
-use rpp_control::DecodeError;
+use rpp_control::{DecodeError, NodeId};
 pub const HEADER_LEN: usize = 5;
 pub const WIRE_MAX: usize = 255;
 const DISPATCH: u8 = 0xe0;
@@ -18,6 +18,12 @@ pub enum Error {
     TooLarge,
     SlotsFull,
     Expired,
+    /// An old key expired; incoming bytes were not consumed. Retry locally once.
+    ExpiredKey {
+        peer: NodeId,
+        tag: u16,
+    },
+    RecentlyCompleted,
     ClockRollback,
     InvalidTimeout,
     Decode(DecodeError),

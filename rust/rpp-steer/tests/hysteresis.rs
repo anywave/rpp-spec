@@ -1,5 +1,8 @@
 use rpp_link::{LinkKind, LinkReading};
-use rpp_steer::{Candidate, CostClass, Error, Hysteresis, MessageClass as C, Reason, Selector};
+use rpp_steer::{
+    best_link, best_link_with_ceiling, Candidate, CostClass, Error, Hysteresis, MessageClass as C,
+    Reason, Selector,
+};
 fn link(id: u32, loss: u32, speed: u64) -> Candidate {
     Candidate {
         id,
@@ -175,4 +178,41 @@ fn no_channel_clears_hold_before_a_new_initial_selection() {
     assert_eq!((d.link_id, d.reason.as_str()), (None, "no-channel"));
     let d = s.choose(2, C::Control, 1, &[link(2, 0, 1)]).unwrap();
     assert_eq!((d.link_id, d.reason), (Some(2), Reason::Initial));
+}
+#[test]
+fn bulk_loss_ceiling_is_inclusive_configurable_and_overrides_hold() {
+    // Mutations ceiling_ignored/exclusive, configuration_ignored and total_loss_allowed.
+    for loss in [0, 200_000, 200_001, 999_999, 1_000_000] {
+        let bank = [link(1, loss, u64::MAX)];
+        let expected = (loss <= 200_000).then_some(1);
+        assert_eq!(best_link(0, C::Bulk, 1, &bank), Ok(expected));
+        let mut s = Selector::new(params(0, 0)).unwrap();
+        assert_eq!(s.choose(0, C::Bulk, 1, &bank).unwrap().link_id, expected);
+        for class in [C::Control, C::Billboard] {
+            assert_eq!(best_link(0, class, 1, &bank), Ok(Some(1)));
+        }
+        for ceiling in [0, 300_000, 1_000_000] {
+            let expected = (loss <= ceiling && loss < 1_000_000).then_some(1);
+            assert_eq!(
+                best_link_with_ceiling(0, C::Bulk, 1, &bank, ceiling),
+                Ok(expected)
+            );
+            let mut s = Selector::with_loss_ceiling(params(0, 0), ceiling).unwrap();
+            assert_eq!(s.choose(0, C::Bulk, 1, &bank).unwrap().link_id, expected);
+        }
+    }
+    assert_eq!(
+        Selector::with_loss_ceiling(params(0, 0), 1_000_001),
+        Err(Error::InvalidLossCeiling)
+    );
+    assert_eq!(
+        best_link_with_ceiling(0, C::Bulk, 1, &[], 1_000_001),
+        Err(Error::InvalidLossCeiling)
+    );
+    let mut s = Selector::new(params(u64::MAX, 1_000_000)).unwrap();
+    s.choose(0, C::Bulk, 1, &[link(1, 0, u64::MAX)]).unwrap();
+    let d = s
+        .choose(1, C::Bulk, 1, &[link(1, 200_001, u64::MAX), link(2, 0, 1)])
+        .unwrap();
+    assert_eq!((d.link_id, d.reason), (Some(2), Reason::Ineligible));
 }

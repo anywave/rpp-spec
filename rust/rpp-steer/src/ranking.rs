@@ -1,6 +1,14 @@
 use crate::{Candidate, CostClass, Error, MessageClass, MAX_LINKS};
 use core::cmp::Ordering;
 use rpp_link::LinkKind;
+pub(crate) const DEFAULT_BULK_LOSS_PPM: u32 = 200_000;
+
+pub(crate) fn validate_ceiling(ceiling_ppm: u32) -> Result<(), Error> {
+    if ceiling_ppm > 1_000_000 {
+        return Err(Error::InvalidLossCeiling);
+    }
+    Ok(())
+}
 
 pub(crate) fn validate(tick: u64, wire_bytes: usize, links: &[Candidate]) -> Result<(), Error> {
     if wire_bytes == 0 {
@@ -22,8 +30,18 @@ pub(crate) fn validate(tick: u64, wire_bytes: usize, links: &[Candidate]) -> Res
     }
     Ok(())
 }
-pub(crate) fn eligible(link: &Candidate, class: MessageClass, wire_bytes: usize) -> bool {
+pub(crate) fn eligible(
+    link: &Candidate,
+    class: MessageClass,
+    wire_bytes: usize,
+    ceiling_ppm: u32,
+) -> bool {
     if class == MessageClass::Bulk && link.throughput_kbps == 0 {
+        return false;
+    }
+    if class == MessageClass::Bulk
+        && (link.reading.loss_ppm > ceiling_ppm || link.reading.loss_ppm == 1_000_000)
+    {
         return false;
     }
     if class != MessageClass::Control
@@ -50,10 +68,11 @@ pub(crate) fn best(
     links: &[Candidate],
     class: MessageClass,
     wire_bytes: usize,
+    ceiling_ppm: u32,
 ) -> Option<&Candidate> {
     links
         .iter()
-        .filter(|link| eligible(link, class, wire_bytes))
+        .filter(|link| eligible(link, class, wire_bytes, ceiling_ppm))
         .min_by(|a, b| compare(a, b, class))
 }
 /// Stateless ranking; the caller supplies a logical tick shared by observations.
@@ -64,6 +83,17 @@ pub fn best_link(
     wire_bytes: usize,
     links: &[Candidate],
 ) -> Result<Option<u32>, Error> {
+    best_link_with_ceiling(tick, class, wire_bytes, links, DEFAULT_BULK_LOSS_PPM)
+}
+/// Configurable bulk loss ceiling in ppm; total loss is always bulk-ineligible.
+pub fn best_link_with_ceiling(
+    tick: u64,
+    class: MessageClass,
+    wire_bytes: usize,
+    links: &[Candidate],
+    ceiling_ppm: u32,
+) -> Result<Option<u32>, Error> {
+    validate_ceiling(ceiling_ppm)?;
     validate(tick, wire_bytes, links)?;
-    Ok(best(links, class, wire_bytes).map(|link| link.id))
+    Ok(best(links, class, wire_bytes, ceiling_ppm).map(|link| link.id))
 }

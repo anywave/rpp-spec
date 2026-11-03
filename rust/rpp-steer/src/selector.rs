@@ -47,9 +47,15 @@ pub struct Selector {
     params: Hysteresis,
     states: [State; 3],
     clock: Option<u64>,
+    bulk_loss_ceiling_ppm: u32,
 }
 impl Selector {
     pub fn new(params: Hysteresis) -> Result<Self, Error> {
+        Self::with_loss_ceiling(params, ranking::DEFAULT_BULK_LOSS_PPM)
+    }
+    /// Ceiling in ppm, inclusive except that total loss never carries bulk.
+    pub fn with_loss_ceiling(params: Hysteresis, ceiling_ppm: u32) -> Result<Self, Error> {
+        ranking::validate_ceiling(ceiling_ppm)?;
         if params.control_margin_ppm > 1_000_000 || params.billboard_margin_ppm > 1_000_000 {
             return Err(Error::InvalidMargin);
         }
@@ -57,6 +63,7 @@ impl Selector {
             params,
             states: [State { id: None, since: 0 }; 3],
             clock: None,
+            bulk_loss_ceiling_ppm: ceiling_ppm,
         })
     }
     /// One atomic underlay payload only. This does not fragment a larger frame.
@@ -78,10 +85,14 @@ impl Selector {
             MessageClass::Billboard => 2,
         };
         let state = self.states[index];
-        let current = links
-            .iter()
-            .find(|link| Some(link.id) == state.id && ranking::eligible(link, class, wire_bytes));
-        let decision = match (current, ranking::best(links, class, wire_bytes)) {
+        let current = links.iter().find(|link| {
+            Some(link.id) == state.id
+                && ranking::eligible(link, class, wire_bytes, self.bulk_loss_ceiling_ppm)
+        });
+        let decision = match (
+            current,
+            ranking::best(links, class, wire_bytes, self.bulk_loss_ceiling_ppm),
+        ) {
             (_, None) => Decision {
                 link_id: None,
                 reason: Reason::NoChannel,
@@ -99,6 +110,15 @@ impl Selector {
                 reason: Reason::Best,
             },
             (Some(current), Some(best)) => {
+                // Primary ranking and accepted-clock monotonicity justify every subtraction.
+                debug_assert!(state.since <= tick);
+                debug_assert!(
+                    class != MessageClass::Bulk || best.throughput_kbps >= current.throughput_kbps
+                );
+                debug_assert!(
+                    class == MessageClass::Bulk
+                        || current.reading.loss_ppm >= best.reading.loss_ppm
+                );
                 let (improvement, margin) = match class {
                     MessageClass::Bulk => (
                         best.throughput_kbps - current.throughput_kbps,
