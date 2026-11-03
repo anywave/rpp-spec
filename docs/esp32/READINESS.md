@@ -6,9 +6,9 @@ flash a device, open a radio/socket, implement cryptography or measure a board.
 
 ## Current integrated source
 
-This branch now integrates master `402f6d02294cdd3356bad41d4f793d905090d54d`
-and CX-023 `224e2f9b19515794db4410092ef506acb198082b`. Its product Rust tree
-matches that updated steering base, including merged UDP and CX-024 A repairs.
+This branch now integrates master `e571a84c1efa3c83cd65a17596c824377eba431b`.
+Its product Rust tree matches that master byte for byte, including merged UDP,
+fragmentation repairs, steering and the standalone measured UDP bridge.
 The checker builds this actual checkout; no dependency source is copied in.
 Earlier b330-based builds and outside verification snapshots remain historical
 evidence in the immutable CX-025-001/002 reports. The table below describes the
@@ -31,6 +31,33 @@ bounded by this probe. Long-lived state need not occupy a small task stack.
 Measure firmware stack high-water marks and heap budgets on the chosen board.
 The three library builds alone do not establish whole-application allocation use.
 
+## Fixed reservation gates (CX-028)
+
+The compiled probe now enforces these independent RISC-V caller reservation
+profiles. Caps are the original baseline plus 10%, rounded up; they stay fixed
+when object sizes change. Equality passes, and one byte above a cap fails a named
+compile-time assertion. The eight original diagnostic globals remain available.
+
+| Profile | Explicit reservation | Baseline bytes | Fixed cap bytes |
+| --- | --- | --- | --- |
+| Billboard encode | Two 925-byte buffers: codec scratch and caller output | 1850 | 2035 |
+| Control fragmentation | `Reassembler<4,112>` + `Fragmenter<112>` + declared 20-byte caller wire buffer | 1120 | 1232 |
+| Steering | `Selector` + `[Candidate;16]` | 856 | 942 |
+
+These are scoped stack/static storage reservations, depending on caller
+placement. They exclude compiler/callee/verifier frames, temporaries, interrupts,
+linker/BSS, allocator overhead, firmware stack/heap and board measurements.
+The 20-byte wire buffer is a declared caller profile, not a general MTU maximum.
+Do not sum the three scenarios into an application bound. Current object sizes
+of 1144 bytes for the reassembler and 96 bytes for the selector produce profiles
+of 1184 and 864 bytes. These fit the original caps without raising them; the
+billboard profile remains 1850 bytes.
+
+The existing checker compiles the assertions before cleaning temporary outputs.
+Only its exact `riscv32imc-unknown-none-elf` result reports `budget_status: PASS`;
+Thumb remains a compile stand-in with `budget_status: NOT_RISCV`, never a RISC-V
+budget pass. Genuine tool/target absence remains an explicit ordinary `SKIP`.
+
 Current fragmentation outputs only through the 112-byte control decoder. It does
 not fragment 925-byte billboard envelopes. A billboard needs a sufficient
 transport or separately reviewed framing. Steering ranks **one atomic underlay
@@ -43,6 +70,7 @@ a reviewed verifier, and the same consent/trust policy on every channel.
 ```sh
 python tools/esp32_scaffold/check_no_std.py
 python -m unittest tools.esp32_scaffold.test_check_no_std -v
+python -m tools.esp32_scaffold.test_memory_budget --require-riscv
 ```
 
 The checker discovers **already installed** Rust/Cargo 1.85.1 with auto-install
@@ -66,7 +94,12 @@ CI runs the checker's stdlib unit tests before this compile-only check inside
 its existing Rust job **after existing pinned provisioning**. Successful checks
 also compile the sibling safe memory probe against the same three built rlibs,
 selected target/compiler/sysroot, before temporary output cleanup. This compiles
-current types; it does not assert historical table values or measure stack use.
+current types and enforces the fixed reservations above; it does not measure stack use.
+The separate native regression compiles exact-cap and cap+1 synthetic probe
+copies against those same libraries, requiring each named E0080 assertion.
+CI requires RISC-V for that suite; missing tools/target fail instead of skipping.
+Ordinary unittest discovery may explicitly skip the native suite when that target
+is absent. The checker and regression do not install targets or use the network.
 The workflow's existing setup can use the network; the checker/build do not
 install or fetch. CI checks its actual checkout. The historical outside snapshots do not replace
 this integrated-tree check; repeat it after any future base or source change.
