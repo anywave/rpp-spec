@@ -1,0 +1,16 @@
+[workspace]
+members = ["."]
+
+[package]
+name = "rpp-steer-udp"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85.1"
+license = "Apache-2.0"
+publish = false
+description = "Loopback-only measured UDP observations for the existing steering selector"
+
+[dependencies]
+rpp-link = { path = "../rpp-link", version = "=0.1.0", default-features = false }
+rpp-steer = { path = "../rpp-steer", version = "=0.1.0", default-features = false }
+rpp-link-udp = { path = "../rpp-link-udp", version = "=0.1.0", default-features = false }

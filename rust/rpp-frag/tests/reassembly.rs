@@ -189,3 +189,87 @@ fn identical_duplicate_does_not_advance_remembered_tick() {
     }
     assert_eq!(push(&mut r, f.last().unwrap(), 6, &v), Ok(true));
 }
+
+fn finish<const S: usize>(
+    r: &mut Reassembler<S, 112>,
+    peer: NodeId,
+    parts: &[Vec<u8>],
+    tick: u64,
+    v: &Check,
+) -> Result<bool, Error> {
+    let mut complete = false;
+    for part in parts {
+        complete = r.push(peer, part, tick, &TARGET, v)?.is_some();
+    }
+    Ok(complete)
+}
+/// Mutations: omit recent-key rejection, refresh its deadline, or call the verifier again.
+#[test]
+fn completed_duplicates_do_not_reopen_or_extend_original_deadline() {
+    let v = verifier();
+    let f = fragments(1);
+    let mut r = Reassembler::<1, 112>::new(10).unwrap();
+    assert_eq!(finish(&mut r, PEER, &f, 0, &v), Ok(true));
+    assert_eq!(push(&mut r, &f[0], 9, &v), Err(Error::RecentlyCompleted));
+    let mut changed = f[0].clone();
+    changed[5] ^= 1;
+    assert_eq!(push(&mut r, &changed, 9, &v), Err(Error::RecentlyCompleted));
+    assert_eq!((r.retained_slots(), v.calls.get()), (0, 1));
+    assert_eq!(push(&mut r, &f[0], 10, &v), Ok(false));
+}
+/// Mutations: duplicate reorders FIFO, cache has more than two keys, or peer is omitted.
+#[test]
+fn completion_cache_is_fifo_two_keys_and_peer_scoped() {
+    let v = verifier();
+    let mut r = Reassembler::<2, 112>::new(10).unwrap();
+    assert_eq!(finish(&mut r, PEER, &fragments(1), 0, &v), Ok(true));
+    assert_eq!(finish(&mut r, PEER, &fragments(2), 1, &v), Ok(true));
+    assert_eq!(
+        push(&mut r, &fragments(1)[0], 2, &v),
+        Err(Error::RecentlyCompleted)
+    );
+    assert_eq!(finish(&mut r, PEER, &fragments(3), 2, &v), Ok(true));
+    assert_eq!(push(&mut r, &fragments(1)[0], 2, &v), Ok(false));
+    assert_eq!(
+        push(&mut r, &fragments(2)[0], 2, &v),
+        Err(Error::RecentlyCompleted)
+    );
+    assert_eq!(finish(&mut r, [9; 16], &fragments(3), 2, &v), Ok(true));
+}
+/// Mutation: record completion before the caller's verification succeeds.
+#[test]
+fn failed_verification_does_not_poison_completion_cache() {
+    let v = Check {
+        calls: Cell::new(0),
+        accept: false,
+    };
+    let f = fragments(1);
+    let mut r = Reassembler::<1, 112>::new(10).unwrap();
+    assert_eq!(
+        finish(&mut r, PEER, &f, 0, &v),
+        Err(Error::Decode(rpp_control::DecodeError::InvalidSignature))
+    );
+    assert_eq!(push(&mut r, &f[0], 0, &v), Ok(false));
+}
+/// Mutations: silently reclaim an expired key, consume incoming bytes, or prefer another expiry over an empty slot.
+#[test]
+fn expired_old_key_is_observable_and_one_identical_retry_accepts() {
+    let v = verifier();
+    let f = fragments(1);
+    let mut r = Reassembler::<2, 112>::new(10).unwrap();
+    assert_eq!(push(&mut r, &f[0], 0, &v), Ok(false));
+    assert_eq!(r.push([9; 16], &fragments(2)[0], 0, &TARGET, &v), Ok(None));
+    let incoming = fragments(3);
+    assert_eq!(
+        r.push([8; 16], &incoming[0], 10, &TARGET, &v),
+        Err(Error::ExpiredKey { peer: PEER, tag: 1 })
+    );
+    assert_eq!(r.retained_slots(), 1);
+    assert_eq!(r.push([8; 16], &incoming[0], 10, &TARGET, &v), Ok(None));
+    // A malformed far-future call must neither erase this session nor lock its clock.
+    assert_eq!(
+        r.push([8; 16], &[0], u64::MAX, &TARGET, &v),
+        Err(Error::InvalidHeader)
+    );
+    assert_eq!(finish(&mut r, [8; 16], &incoming[1..], 10, &v), Ok(true));
+}

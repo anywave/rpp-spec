@@ -1,0 +1,34 @@
+name: codex-gate
+# PR-code feedback; authoritative App status is anywave/codex-gate.
+on: pull_request
+permissions:
+  contents: read
+concurrency:
+  group: codex-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - run: |
+          python -I -m pip --isolated install --require-hashes --no-deps --only-binary=:all: -r scripts/ci/requirements.txt
+      - run: python -m unittest discover -s scripts/ci -p 'test_*.py' -v
+      - name: Review PR range
+        if: ${{ !cancelled() }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for check in pinned_actions permissions slice_cap readable_text tests_travel pr_total; do
+            python "scripts/ci/$check.py" --base "$BASE_SHA" --head "$HEAD_SHA" || status=1
+          done
+          exit "$status"

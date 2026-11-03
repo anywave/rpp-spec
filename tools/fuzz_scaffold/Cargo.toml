@@ -1,0 +1,41 @@
+[workspace]
+members = ["."]
+
+[package]
+name = "rpp-input-hardening"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85.1"
+publish = false
+license = "Apache-2.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[features]
+fuzzing = ["dep:libfuzzer-sys"]
+
+[dependencies]
+rpp-billboard = { path = "../../rust/rpp-billboard", version = "=0.1.0", default-features = false }
+rpp-control = { path = "../../rust/rpp-control", version = "=0.1.0", default-features = false }
+rpp-frag = { path = "../../rust/rpp-frag", version = "=0.1.0", default-features = false }
+libfuzzer-sys = { version = "=0.4.9", optional = true }
+
+[dev-dependencies]
+proptest = { version = "=1.6.0", default-features = false, features = ["std"] }
+
+[[bin]]
+name = "decode"
+path = "fuzz_targets/decode.rs"
+required-features = ["fuzzing"]
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "reassemble"
+path = "fuzz_targets/reassemble.rs"
+required-features = ["fuzzing"]
+test = false
+doc = false
+bench = false
