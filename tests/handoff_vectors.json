@@ -1,0 +1,159 @@
+{
+  "readme": "Synthetic reference fixtures only. allowed_names applies to each flat references entry, not fixture metadata. meter_rows pairs are existing request/row context. Example values define no external value domain. The nested job card case is exempt along with all invalid fixtures.",
+  "allowed_names": [
+    "job_id",
+    "attempt_id",
+    "worker",
+    "slot",
+    "epoch",
+    "fence",
+    "component",
+    "result_sha256"
+  ],
+  "banned_words": [
+    "sign",
+    "signing",
+    "signature",
+    "door",
+    "state"
+  ],
+  "cases": [
+    {
+      "name": "two attempts",
+      "valid": true,
+      "meter_rows": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "references": [
+        {
+          "job_id": "job-example",
+          "attempt_id": "attempt-a",
+          "worker": "worker-example",
+          "slot": "slot-example",
+          "epoch": "epoch-example",
+          "fence": "fence-example",
+          "component": "design statement",
+          "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "job_id": "job-example",
+          "attempt_id": "attempt-b",
+          "worker": "worker-example",
+          "slot": "slot-example",
+          "epoch": "epoch-example",
+          "fence": "fence-example",
+          "component": "design statement",
+          "result_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ]
+    },
+    {
+      "name": "result by reference",
+      "valid": true,
+      "references": [
+        {
+          "job_id": "job-example",
+          "attempt_id": "attempt-a",
+          "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "proof without job_id",
+      "valid": false,
+      "references": [
+        {
+          "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "attempt without job_id",
+      "valid": false,
+      "references": [
+        {
+          "attempt_id": "attempt-a"
+        }
+      ]
+    },
+    {
+      "name": "outside eight names",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "extra": "example"
+        }
+      ]
+    },
+    {
+      "name": "nested job card",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "component": {
+            "job_id": "nested-example"
+          }
+        }
+      ]
+    },
+    {
+      "name": "key_sign",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "sign": "example"
+        }
+      ]
+    },
+    {
+      "name": "key_signing",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "signing": "example"
+        }
+      ]
+    },
+    {
+      "name": "key_signature",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "signature": "example"
+        }
+      ]
+    },
+    {
+      "name": "key_door",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "door": "example"
+        }
+      ]
+    },
+    {
+      "name": "key_state",
+      "valid": false,
+      "references": [
+        {
+          "job_id": "job-example",
+          "state": "example"
+        }
+      ]
+    }
+  ]
+}
