@@ -9,8 +9,8 @@ description = "Offline byte conformance against pinned source implementations"
 [workspace]
 
 [dependencies]
-serde = { version = "=1.0.228", features = ["derive"] }
-serde_json = "=1.0.145"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
 sha2 = "=0.10.9"
 lw-jobcard = { path = "../.conformance-sources/latticeworks/crates/lw-jobcard" }
 lw-registry = { path = "../.conformance-sources/latticeworks/crates/lw-registry" }

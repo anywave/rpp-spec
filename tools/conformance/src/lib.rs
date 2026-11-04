@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+mod formats;
 
 pub const LATTICEWORKS: &str = "86899f736f751e32603129fcdaf47e4aa313052f";
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -34,6 +35,23 @@ fn bytes(v: impl AsRef<[u8]>) -> Outcome {
     }
 }
 pub fn evaluate(c: &Case) -> Result<(Outcome, Option<Value>), String> {
+    if ![
+        "jobcard-json",
+        "jobcard-attempt",
+        "registry-json",
+        "registry-fact",
+        "plan-json",
+        "meter-csv",
+        "overlay-csv",
+        "overlay-md",
+        "overlay-json",
+        "lend-proof",
+        "handoff",
+    ]
+    .contains(&c.profile.as_str())
+    {
+        return Err("profile unavailable; shared index has no adopted byte rule".into());
+    }
     let v: Value = match serde_json::from_str(&c.json) {
         Ok(v) => v,
         Err(_) => return Ok((Outcome::Reject, None)),
@@ -53,7 +71,7 @@ pub fn evaluate(c: &Case) -> Result<(Outcome, Option<Value>), String> {
             bytes(actual)
         }
         "registry-json" => bytes(lw_registry::canonical_json(&v)),
-        _ => return Err(format!("unknown profile: {}", c.profile)),
+        _ => return formats::evaluate(c, v),
     };
     Ok((result, None))
 }
@@ -63,8 +81,15 @@ pub fn corpus(text: &str) -> Result<Vec<Case>, String> {
     }
     let mut ids = std::collections::BTreeSet::new();
     let mut cases = Vec::new();
-    for line in text.lines().filter(|s| !s.trim().is_empty()) {
-        let c: Case = serde_json::from_str(line).map_err(|_| "invalid case schema")?;
+    let input: Vec<Case> = if text.trim_start().starts_with('[') {
+        serde_json::from_str(text).map_err(|_| "invalid case schema")?
+    } else {
+        text.lines()
+            .filter(|s| !s.trim().is_empty())
+            .map(|line| serde_json::from_str(line).map_err(|_| "invalid case schema"))
+            .collect::<Result<_, _>>()?
+    };
+    for c in input {
         if c.id.is_empty()
             || c.id.len() > 64
             || !c
