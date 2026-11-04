@@ -1,5 +1,5 @@
 use rpp_conformance::{corpus, evaluate};
-const VECTORS: &str = include_str!("../corpus.jsonl");
+const VECTORS: &str = include_str!("../corpus.json");
 #[test]
 fn kills_changed_pinned_expectation() {
     for case in corpus(VECTORS).unwrap() {
@@ -8,8 +8,8 @@ fn kills_changed_pinned_expectation() {
 }
 #[test]
 fn kills_duplicate_corpus_id() {
-    let line = VECTORS.lines().next().unwrap();
-    assert!(corpus(&format!("{line}\n{line}\n")).is_err());
+    let rows: Vec<serde_json::Value> = serde_json::from_str(VECTORS).unwrap();
+    assert!(corpus(&serde_json::to_string(&vec![&rows[0], &rows[0]]).unwrap()).is_err());
 }
 #[test]
 fn kills_unknown_case_metadata() {

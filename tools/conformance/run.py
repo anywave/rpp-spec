@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent
 
 def snapshot(repo):
     def git(*args):
-        return subprocess.check_output(["git", "--no-replace-objects", "-C", str(repo), *args])
+        return subprocess.check_output(["git", "--no-replace-objects", "-C", str(repo), *args], timeout=30)
 
     if git("rev-parse", f"{PIN}^{{commit}}").decode().strip() != PIN:
         raise ValueError("pinned LatticeWorks commit unavailable")
@@ -45,9 +45,13 @@ def snapshot(repo):
         actual = {str(p.relative_to(target)).replace(os.sep, "/"): p for p in target.rglob("*") if p.is_file()}
         if set(actual) != set(blobs) | {"SOURCE.json"} or any(p.is_symlink() for p in target.rglob("*")):
             raise ValueError("source snapshot changed")
-        if any(hashlib.sha256(actual[p].read_bytes()).hexdigest() != h for p, h in hashes.items()):
+        def bounded(path, size):
+            with path.open("rb") as stream:
+                return stream.read(size + 1)
+        if any(hashlib.sha256(bounded(actual[p], len(blobs[p]))).hexdigest() != h for p, h in hashes.items()):
             raise ValueError("source snapshot changed")
-        if json.loads(actual["SOURCE.json"].read_text()) != provenance:
+        receipt = (json.dumps(provenance, sort_keys=True, indent=2) + "\n").encode()
+        if bounded(actual["SOURCE.json"], len(receipt)) != receipt:
             raise ValueError("source provenance changed")
     else:
         target.parent.mkdir(exist_ok=True)
@@ -78,12 +82,12 @@ def main():
         command.append("--no-fail-fast")
     if rest:
         command += ["--", *rest]
-    return subprocess.call(command)
+    return subprocess.call(command, env=dict(os.environ, RPP_CONFORMANCE_PYTHON=sys.executable))
 
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except (OSError, ValueError, subprocess.CalledProcessError):
+    except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         print("REFUSED: pinned source or build prerequisites unavailable", file=sys.stderr)
         sys.exit(2)

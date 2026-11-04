@@ -21,4 +21,4 @@ tools/fuzz_scaffold/seeds/** -text
 rust/rpp-steer/tests/data/** -text
 
 # Conformance corpus hashes and expected bytes use the committed LF stream.
-tools/conformance/corpus.jsonl -text
+tools/conformance/corpus.json -text

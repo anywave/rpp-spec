@@ -77,7 +77,15 @@ fn adapter(program: &str, args: &[String], request: &Value) -> Result<Vec<Reply>
         }
         std::thread::sleep(Duration::from_millis(10));
     }
-    let raw = fs::read(output).map_err(|_| "candidate output")?;
+    let mut raw = Vec::new();
+    fs::File::open(output)
+        .map_err(|_| "candidate output")?
+        .take(8 * 1024 * 1024 + 1)
+        .read_to_end(&mut raw)
+        .map_err(|_| "candidate output")?;
+    if fs::metadata(error).map_err(|_| "candidate error")?.len() > 65536 {
+        return Err("candidate error output limit".into());
+    }
     if raw.len() > 8 * 1024 * 1024 {
         return Err("candidate output limit".into());
     }
@@ -96,9 +104,16 @@ fn run() -> Result<bool, String> {
     let mut program = None;
     let mut candidate_args = Vec::new();
     let mut node = "node".to_owned();
+    let mut python = std::env::var("RPP_CONFORMANCE_PYTHON")
+        .unwrap_or_else(|_| if cfg!(windows) { "python" } else { "python3" }.into());
+    let mut emit = false;
     while let Some(arg) = args.next() {
+        if arg == "--emit-native" {
+            emit = true;
+            continue;
+        }
         if arg == "--help" {
-            println!("cargo run --locked --manifest-path tools/conformance/Cargo.toml -- [--profile NAME]\nDefault: pinned native source versus independent Node byte adapter.\n--vectors FILE reads bounded JSONL cases.\n--node EXE selects Node; --candidate EXE [--candidate-arg ARG] replaces it.\nExit 0: selected cases conform; 1: mismatch; 2: unavailable/invalid input.");
+            println!("cargo run --locked --manifest-path tools/conformance/Cargo.toml -- [--profile NAME]\nDefault: native sources versus independent Node/Python adapters.\n--vectors FILE reads bounded JSON or JSONL; --python EXE and --node EXE select runtimes.\n--candidate EXE [--candidate-arg ARG] selects your trusted implementation.\n--emit-native emits diagnostics only; normal exits: 0 conform, 1 mismatch, 2 unavailable/invalid.");
             return Ok(true);
         }
         let value = args.next().ok_or("missing option value")?;
@@ -106,6 +121,7 @@ fn run() -> Result<bool, String> {
             "--vectors" => path = Some(value),
             "--profile" => profile = Some(value),
             "--node" => node = value,
+            "--python" => python = value,
             "--candidate" => program = Some(value),
             "--candidate-arg" => candidate_args.push(value),
             _ => return Err("unknown option".into()),
@@ -123,10 +139,15 @@ fn run() -> Result<bool, String> {
             .map_err(|_| "vectors must be UTF-8")?;
         s
     } else {
-        include_str!("../corpus.jsonl").to_owned()
+        include_str!("../corpus.json").to_owned()
     };
     let mut cases = corpus(&text)?;
     if let Some(p) = profile {
+        if p == "index" {
+            return Err(
+                "shared-index schema unavailable at source pin; no conformance claimed".into(),
+            );
+        }
         cases.retain(|c| c.profile == p);
     }
     if cases.is_empty() {
@@ -141,19 +162,66 @@ fn run() -> Result<bool, String> {
         );
         actual.push(outcome);
     }
-    let (program, candidate_args) = if let Some(p) = program {
-        (p, candidate_args)
+    if emit {
+        println!(
+            "{}",
+            serde_json::to_string(
+                &json!({"mode":"native-diagnostic","claims_conformance":false,"results":cases
+                    .iter()
+                    .zip(actual)
+                    .map(|(c, o)| json!({"id":c.id,"outcome":o}))
+                    .collect::<Vec<_>>()})
+            )
+            .map_err(|_| "native diagnostic")?
+        );
+        return Ok(true);
+    }
+    let reply = if let Some(p) = program {
+        adapter(&p, &candidate_args, &Value::Array(request))?
     } else {
-        (
-            node,
-            vec![
-                "--input-type=module".into(),
-                "--eval".into(),
-                include_str!("../reference.mjs").into(),
-            ],
-        )
+        let (refs, data): (Vec<_>, Vec<_>) = request.into_iter().partition(|r| {
+            matches!(
+                r["profile"].as_str(),
+                Some("handoff" | "overlay-csv" | "overlay-md" | "overlay-json")
+            )
+        });
+        let groups = [
+            (
+                node,
+                vec![
+                    "--input-type=module".into(),
+                    "--eval".into(),
+                    include_str!("../reference.mjs").into(),
+                ],
+                data,
+            ),
+            (
+                python,
+                vec![
+                    "-B".into(),
+                    concat!(env!("CARGO_MANIFEST_DIR"), "/reference_scaffold.py").into(),
+                    concat!(env!("CARGO_MANIFEST_DIR"), "/../..").into(),
+                ],
+                refs,
+            ),
+        ];
+        let mut combined = Vec::new();
+        let mut unavailable = false;
+        for (program, args, rows) in groups {
+            if !rows.is_empty() {
+                match adapter(&program, &args, &Value::Array(rows)) {
+                    Ok(rows) => combined.extend(rows),
+                    Err(_) => unavailable = true,
+                }
+            }
+        }
+        if unavailable {
+            return Err(
+                "one or more reference adapters unavailable; no conformance claimed".into(),
+            );
+        }
+        combined
     };
-    let reply = adapter(&program, &candidate_args, &Value::Array(request))?;
     if reply.len() != cases.len() {
         return Err("candidate dropped or added rows".into());
     }
@@ -176,7 +244,7 @@ fn run() -> Result<bool, String> {
     if !indexed.is_empty() {
         return Err("unknown candidate ID".into());
     }
-    println!("{}", serde_json::to_string_pretty(&json!({"status":if failed==0 {"PASS"} else {"FAIL"},"latticeworks":LATTICEWORKS,"corpus_sha256":hex(&Sha256::digest(text.as_bytes())),"cases":rows.len(),"failed":failed,"results":rows})).map_err(|_| "report")?);
+    println!("{}", serde_json::to_string_pretty(&json!({"status":if failed==0 {"PASS"} else {"FAIL"},"coverage":"finite supported corpus only","unavailable_profiles":["index"],"latticeworks":LATTICEWORKS,"corpus_sha256":hex(&Sha256::digest(text.as_bytes())),"cases":rows.len(),"failed":failed,"results":rows})).map_err(|_| "report")?);
     Ok(failed == 0)
 }
 fn main() {
