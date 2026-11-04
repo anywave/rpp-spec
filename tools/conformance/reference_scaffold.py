@@ -39,7 +39,7 @@ def main():
             if request["profile"] == "handoff":
                 if method is None:
                     def git(path):
-                        return subprocess.check_output(["git", "--no-replace-objects", "-C", str(root), "show", f"{PIN}:{path}"], stderr=subprocess.PIPE)
+                        return subprocess.check_output(["git", "--no-replace-objects", "-C", str(root), "show", f"{PIN}:{path}"], stderr=subprocess.PIPE, timeout=10)
                     source = git("tests/test_handoff_vectors.py")
                     if hashlib.sha256(source).hexdigest() != SOURCE_SHA:
                         raise ValueError("handoff source changed")
