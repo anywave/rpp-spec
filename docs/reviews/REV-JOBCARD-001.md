@@ -41,8 +41,9 @@ bash: line 1: rustup: command not found
 ```
 
 No toolchain was installed. No Rust tests or builds ran in this review.
-PL-926 S1 reports 39 contract tests and 2 doc tests passed, zero failed, on
-86899f7, then a regenerated manifest. That is PL's reported run, not mine.
+PL-926 S1 reports 39 contract tests and 2 doc tests passed, zero failed, then
+a regenerated manifest and publication of 86899f7. It does not name the exact
+pre-manifest test commit. That is PL's reported run, not mine.
 The two failing cases below are source-traced reproducers for PL, not executed
 Rust assertions. Byte probes used Python 3.12 and Node v24.19.0, outside both
 repositories' tracked files: 9 families / 10 rows, all probe assertions passed.
@@ -107,14 +108,16 @@ replace proposal label checks with text. No word blacklist is needed.
 
 File: docs/design/JOB_CARD_V0.md:276-278 says the commit_mib-derived digest
 ID "has not yet been checked by the Rust test". tests/contract.rs:85-90
-recomputes the ID and compares it to the archive. PL-926 S1 reports this
-suite green at the very head reviewed here.
+recomputes the ID and compares it to the archive. PL-926 S1 later reports
+the suite green, followed by manifest regeneration and publication.
 
-Concrete contradiction: that successful reported test checks the same ID that
-the doc labels untested. Refutation: I could not rerun it or inspect its raw
-execution log; the assertion is based on PL-926 plus the test body, not a new
-claim that Rust passed here. It affects proof status, not runtime behavior.
-Replace the note with the pinned PL run and its limited scope once confirmed.
+Concrete status conflict: the published success report includes this fixture
+test, while the source doc still says it has never checked the ID. Refutation:
+I could not rerun it, inspect its raw log, or pin the pre-manifest run commit.
+Confirm that the reported run covered this fixture/test body, then replace the
+note with that run and its limited scope. Until then, date the old NOT_RUN note
+so readers can distinguish the two claims. This is a LOW proof-status gap,
+not a new claim that Rust passed here or a runtime failure.
 
 These three deltas are absent from a3-gaps.md's open list. JC-02 also qualifies
 its CLOSED assertion about short labels. JC-03 reflects a later reported run;
@@ -219,8 +222,10 @@ production keys/revokes, a real lock/log/door adapter, real work, Windows, or
 cross-site operation. No keys, signatures, model work, or consent were created.
 Source-only negative cases do not prove those integrations safe.
 
-RPP publication checks: one new report, ASCII/LF/control-byte check and
-git diff --check. Run the BASE-side trusted gate and drift on the exact report
-commit before the one normal push; resolve the final branch ref with
-git ls-remote. No source, workflows, gates, owners, allowlists, baselines or
-published outboxes are changed by this review.
+RPP publication checks on the report branch: one new report; ASCII/LF/control
+and ten-vector transcription checks passed; git diff --check exit 0. The
+BASE-side trusted gate passed all 7 groups with 0 findings; drift passed with
+0 HIGH / 0 MEDIUM / 0 LOW (239 existing baselines and one advisory stay open).
+Repeat both gates on the final report commit before the one normal push;
+resolve the final branch ref with git ls-remote. No source, workflows, gates,
+owners, allowlists, baselines or published outboxes are changed by this review.
