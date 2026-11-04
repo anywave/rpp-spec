@@ -19,3 +19,6 @@ tools/fuzz_scaffold/seeds/** -text
 
 # CX-023 Rust-generated steering snapshots preserve exact LF bytes.
 rust/rpp-steer/tests/data/** -text
+
+# Conformance corpus hashes and expected bytes use the committed LF stream.
+tools/conformance/corpus.jsonl -text
