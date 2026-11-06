@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import atexit
 import base64
-import ctypes
 import functools
+import importlib
 import json
 import os
 import re
@@ -31,8 +31,8 @@ class MirrorPending(Exception):
     """Retryable mirror lag or transient read failure."""
 
 
-# Instance/registry state never contains a Python signing operation. Unnamed
-# capsules hold native references; no C destructor, weakref callback or key closure.
+# Instance/registry state never contains a Python signing operation. Native
+# capsules own references from creation, including interrupted Python transfers.
 _SIGNING_OPERATIONS = {}
 _SIGNER_LOCK = threading.RLock()
 _NATIVE_SIGNER_API = None
@@ -60,19 +60,10 @@ def _native_signer_api():
         raise HederaError("Experimental Python signing requires CPython capsule support")
     if _NATIVE_SIGNER_API is None:
         try:
-            library = ctypes.PyDLL(None)
-            new = library.PyCapsule_New
-            new.argtypes, new.restype = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p], ctypes.py_object
-            pointer = library.PyCapsule_GetPointer
-            pointer.argtypes, pointer.restype = [ctypes.py_object, ctypes.c_char_p], ctypes.c_void_p
-            invalidate = library.PyCapsule_SetPointer
-            invalidate.argtypes, invalidate.restype = [ctypes.py_object, ctypes.c_void_p], ctypes.c_int
-            pin, unpin = library.Py_IncRef, library.Py_DecRef
-            for function in (pin, unpin):
-                function.argtypes, function.restype = [ctypes.c_void_p], None
-            _NATIVE_SIGNER_API = SimpleNamespace(new=new, pointer=pointer, invalidate=invalidate,
-                                                pin=pin, unpin=unpin)
-        except (AttributeError, OSError, TypeError):
+            native = importlib.import_module("rpp.adapters._hedera_signer_native")
+            _NATIVE_SIGNER_API = SimpleNamespace(new=native.new, release=native.release,
+                                                closed=native.closed, invoke=native.invoke)
+        except (ImportError, AttributeError, OSError, TypeError):
             raise HederaError("CPython capsule support unavailable; local signing refused") from None
     return _NATIVE_SIGNER_API
 
@@ -82,29 +73,21 @@ def _release_capsule(capsule):
     if api is None:  # Late interpreter teardown: normal release already ran via atexit.
         return
     with _SIGNER_LOCK:
-        pointer = api.pointer(capsule, None)
-        if pointer == 1:
-            return
-        api.invalidate(capsule, 1)  # Tombstone saved capsule references before releasing their operation.
-        api.unpin(pointer)
+        api.release(capsule)  # Native tombstone + release is one ownership operation.
 
 
 def _invoke_capsule(capsule, payload):
-    operation, failed, closed, control, code = None, False, False, None, None
+    failed, closed, control, code = False, False, None, None
     try:
         api = _native_signer_api()
         with _SIGNER_LOCK:
-            pointer = api.pointer(capsule, None)
-            if pointer == 1:
+            if api.closed(capsule):
                 closed = True
                 raise HederaError("Hedera signer is closed")
-            operation = ctypes.cast(pointer, ctypes.py_object).value
-        result = operation(payload)
+        result = api.invoke(capsule, payload)
     except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
         control, code = _control_token(error)
         failed = True
-    finally:
-        operation = None  # Rich traceback logging must never retain a raw SDK bound method.
     if failed:
         if control is not None:
             _raise_control(control, code)
@@ -132,7 +115,7 @@ class _Signer:
     __slots__ = ("_public_key",)
 
     def __init__(self, key):
-        operation, failure, control, code = None, None, None, None
+        operation, capsule, failure, control, code = None, None, None, None, None
         try:
             api = _native_signer_api()
             with _SIGNER_LOCK:
@@ -140,22 +123,18 @@ class _Signer:
                     raise TypeError("Hedera signer cannot be reinitialized")
                 self._public_key = key.public_key()
                 operation = key.sign
-                api.pin(id(operation))
-                try:
-                    capsule = api.new(id(operation), None, None)
-                except BaseException:
-                    api.unpin(id(operation))
-                    raise
-                try:
-                    _SIGNING_OPERATIONS[id(self)] = capsule
-                except BaseException:
-                    _release_capsule(capsule)
-                    raise
+                capsule = api.new(operation)  # Owns its callback before returning to Python.
+                _SIGNING_OPERATIONS[id(self)] = capsule
         except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
             control, code = _control_token(error)
             failure = MemoryError if isinstance(error, MemoryError) else TypeError if isinstance(error, TypeError) else HederaError
         finally:
             key = operation = None  # Clear even unsupported-API, allocation and reinitialization tracebacks.
+            if failure is not None and capsule is not None:
+                _release_capsule(capsule)
+                if _SIGNING_OPERATIONS.get(id(self)) is capsule:
+                    _SIGNING_OPERATIONS.pop(id(self), None)
+            capsule = None
         if control is not None:
             _raise_control(control, code)
         if failure is not None:
@@ -177,9 +156,10 @@ class _Signer:
         lock = globals().get("_SIGNER_LOCK")
         if operations is not None and lock is not None and globals().get("_NATIVE_SIGNER_API") is not None:
             with lock:
-                capsule = operations.pop(id(self), None)
+                capsule = operations.get(id(self))
                 if capsule is not None:
                     _release_capsule(capsule)
+                    operations.pop(id(self), None)  # Release before unpublishing; interrupted cleanup stays discoverable.
 
     def __repr__(self):
         return "<HederaSigner redacted>"

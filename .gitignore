@@ -1,6 +1,8 @@
 
 __pycache__/
 *.pyc
+rpp/adapters/_hedera_signer_native*.so
+rpp/adapters/_hedera_signer_native*.pyd
 dist/
 
 # Installer binaries

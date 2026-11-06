@@ -56,6 +56,10 @@ Security = "https://github.com/anywave/rpp-spec/security/policy"
 
 [tool.hatch.build.targets.wheel]
 packages = ["rpp"]
+exclude = ["rpp/adapters/_hedera_signer_native*.so", "rpp/adapters/_hedera_signer_native*.pyd"]
+
+[tool.hatch.build.hooks.custom]
+path = "scripts/hatch_hedera_native.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

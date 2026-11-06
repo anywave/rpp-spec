@@ -486,7 +486,7 @@ def test_actual_sdk_saved_capsule_is_invalidated(actual):
     del key
     signer.__del__()
     signer.__del__()
-    tombstoned = safe._native_signer_api().pointer(capsule, None) == 1
+    tombstoned = safe._native_signer_api().closed(capsule)
     assert tombstoned, "Saved capsule must be invalidated before any stale invocation"
     safe._release_capsule(capsule)
     released = reference() is None
@@ -502,21 +502,26 @@ def test_actual_sdk_closed_capsule_never_dereferences(actual, monkeypatch):
     signer = probe.client.operator.signer
     capsule = safe._SIGNING_OPERATIONS[id(signer)]
     signer.__del__()
-    cast = Mock(side_effect=AssertionError("Closed native pointer must never be dereferenced"))
-    monkeypatch.setattr(safe.ctypes, "cast", cast)
+    invoke = Mock(side_effect=AssertionError("Closed native operation must never be invoked"))
+    monkeypatch.setattr(safe._native_signer_api(), "invoke", invoke)
     with pytest.raises(safe.HederaError, match="closed"):
         safe._invoke_capsule(capsule, b"closed")
-    cast.assert_not_called()
+    invoke.assert_not_called()
 
 
-def test_actual_sdk_double_release_never_unpins_tombstone(actual, monkeypatch):
+def test_actual_sdk_double_release_never_unpins_tombstone(actual):
     signer = actual().client.operator.signer
     capsule = safe._SIGNING_OPERATIONS[id(signer)]
     signer.__del__()
-    unpin = Mock(side_effect=AssertionError("Closed native pointer must never be decreferenced"))
-    monkeypatch.setattr(safe._native_signer_api(), "unpin", unpin)
-    safe._release_capsule(capsule)
-    unpin.assert_not_called()
+    repeated = True
+    try:
+        safe._release_capsule(capsule)
+        safe._native_signer_api().release(capsule)
+    except safe.HederaError:
+        repeated = False
+    assert repeated, "Repeated native release must be safe"
+    assert safe._native_signer_api().closed(capsule)
+    assert not gc.get_referents(capsule), "Native capsule must not expose its signing operation through GC reflection"
 
 
 @pytest.mark.parametrize("failure", ["allocation", "store"])
@@ -524,12 +529,15 @@ def test_actual_sdk_native_initialization_rollback(actual, monkeypatch, failure)
     probe = actual()
     key = probe.sdk.PrivateKey.generate_ed25519()
     reference = weakref.ref(key)
+    saved = []
 
     def refuse(*args):
         raise MemoryError("Synthetic initialization refusal")
 
     class RejectStore(dict):
-        __setitem__ = refuse
+        def __setitem__(self, name, capsule):
+            saved.append(capsule)
+            refuse()
 
     with monkeypatch.context() as patch:
         if failure == "allocation":
@@ -542,6 +550,92 @@ def test_actual_sdk_native_initialization_rollback(actual, monkeypatch, failure)
     gc.collect()
     released = reference() is None
     assert released, "Failed initialization retained native ownership"
+    assert all(safe._native_signer_api().closed(capsule) for capsule in saved)
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("point", ["new-result", "before-register", "after-register",
+                                    "before-release", "after-release", "after-unpublish"])
+def test_actual_sdk_interrupted_ownership(actual, algorithm, point):
+    # Actual SIGINT at bytecode/line boundaries; the returned error and saved
+    # capsule stay alive while checking release. Only booleans leave the child.
+    actual()
+    program = '''
+import dis, gc, inspect, json, resource, signal, socket, sys, weakref
+resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+import hiero_sdk_python as sdk
+from rpp.adapters import hedera_safe as safe
+def forbidden(*args): raise RuntimeError("No network permitted")
+socket.socket.connect = forbidden
+safe._close_signers()
+key = sdk.PrivateKey.generate(ALGORITHM)
+reference = weakref.ref(key)
+saved, error, signer = None, None, None
+initializer = safe._Signer.__init__
+finalizer = safe._Signer.__del__
+function = initializer if POINT in {"new-result", "before-register", "after-register"} else finalizer
+instructions = list(dis.get_instructions(function))
+if POINT == "new-result":
+    call_start = next(item.offset for item in instructions if item.argval == "new")
+    target = next(item.offset for item in instructions if item.offset > call_start and
+                  item.opname == "STORE_FAST" and item.argval == "capsule")
+    event_kind = "opcode"
+elif POINT == "after-unpublish":
+    pop_start = next(item.offset for item in instructions if item.argval == "pop")
+    target = next(item.offset for item in instructions if item.offset > pop_start and
+                  item.opname in {"RETURN_VALUE", "RETURN_CONST"})
+    event_kind = "opcode"
+else:
+    fragments = {"before-register": "_SIGNING_OPERATIONS[id(self)] = capsule",
+                 "after-register": "if failure is not None and capsule is not None:",
+                 "before-release": "_release_capsule(capsule)",
+                 "after-release": "operations.pop(id(self), None)"}
+    lines, first = inspect.getsourcelines(function)
+    target = first + next(index for index, line in enumerate(lines) if fragments[POINT] in line)
+    event_kind = "line"
+if function is finalizer:
+    signer = safe._Signer(key)
+    saved = safe._SIGNING_OPERATIONS[id(signer)]
+fired = False
+def trace(frame, event, arg):
+    global fired
+    if frame.f_code is function.__code__:
+        frame.f_trace_opcodes = True
+        position = frame.f_lasti if event_kind == "opcode" else frame.f_lineno
+        if event == event_kind and position == target and not fired:
+            fired = True
+            signal.raise_signal(signal.SIGINT)
+    return trace
+old_handler = signal.signal(signal.SIGINT, signal.default_int_handler)
+try:
+    sys._getframe().f_trace_opcodes = True
+    sys.settrace(trace)
+    try:
+        if function is initializer: safe._Signer(key)
+        else: signer.__del__()
+    except KeyboardInterrupt as caught:
+        error = caught
+finally:
+    sys.settrace(None)
+    signal.signal(signal.SIGINT, old_handler)
+key = None
+safe._close_signers()
+safe._close_signers()
+gc.collect()
+result = {"interrupted": fired and isinstance(error, KeyboardInterrupt),
+          "released": reference() is None, "empty": not safe._SIGNING_OPERATIONS,
+          "saved_closed": saved is None or safe._native_signer_api().closed(saved)}
+print(json.dumps(result))
+'''
+    program = "ALGORITHM = " + repr(algorithm) + "\nPOINT = " + repr(point) + "\n" + program
+    environment = {name: value for name, value in safe.os.environ.items()
+                   if name not in {"HEDERA_OPERATOR_KEY", "HEDERA_OPERATOR_ID"}}
+    result = subprocess.run([sys.executable, "-X", "faulthandler", "-c", program],
+                            env=environment, capture_output=True, text=True, timeout=20, check=False)
+    succeeded = result.returncode == 0 and not result.stderr
+    assert succeeded, "Interrupted native ownership child failed"
+    assert json.loads(result.stdout) == {"interrupted": True, "released": True,
+                                       "empty": True, "saved_closed": True}, "Interrupted callback was retained"
 
 
 @pytest.mark.parametrize("unsupported", ["runtime", "api"])
@@ -552,7 +646,7 @@ def test_actual_sdk_native_support_fails_closed(actual, monkeypatch, unsupported
         if unsupported == "runtime":
             patch.setattr(safe.sys, "implementation", SimpleNamespace(name="unsupported"))
         else:
-            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+            patch.setattr(safe.importlib, "import_module", lambda _: SimpleNamespace())
         with pytest.raises(safe.HederaError, match="CPython capsule"):
             safe._Signer(probe.sdk.PrivateKey.generate_ed25519())
 
@@ -669,19 +763,22 @@ def _assert_public_error_safe(probe, error, diagnostic):
 
 
 @pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
-@pytest.mark.parametrize("boundary", ["signer", "record"])
+@pytest.mark.parametrize("boundary", ["signer", "record", "native"])
 @pytest.mark.parametrize("payload", [None, "invalid", object()])
 def test_actual_sdk_invalid_payload_rich_diagnostics(actual, algorithm, boundary, payload):
     probe = actual(algorithm)
     operation = probe.client.operator.signer if boundary == "signer" else probe.backend.signed_record
+    if boundary == "native":
+        capsule = safe._SIGNING_OPERATIONS[id(probe.client.operator.signer)]
+        operation = lambda payload: safe._native_signer_api().invoke(capsule, payload)
     error, diagnostic = _capture_public_error(lambda: operation(payload))
-    category_ok = isinstance(error, safe.HederaError)
+    category_ok = isinstance(error, RuntimeError if boundary == "native" else safe.HederaError)
     assert category_ok, "Unexpected sanitized failure category"
     _assert_public_error_safe(probe, error, diagnostic)
 
 
 @pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
-@pytest.mark.parametrize("boundary", ["signer", "record"])
+@pytest.mark.parametrize("boundary", ["signer", "record", "native"])
 @pytest.mark.parametrize("failure", ["ordinary", "keyboard", "system-int", "system-none", "system-secret", "generator", "cancel"])
 def test_actual_sdk_callback_failure_rich_diagnostics(actual, monkeypatch, algorithm, boundary, failure):
     sdk = pytest.importorskip("hiero_sdk_python")
@@ -704,10 +801,15 @@ def test_actual_sdk_callback_failure_rich_diagnostics(actual, monkeypatch, algor
     monkeypatch.setattr(sdk.PrivateKey, "sign", refuse)
     probe = actual(algorithm)
     operation = probe.client.operator.signer if boundary == "signer" else probe.backend.signed_record
+    if boundary == "native":
+        capsule = safe._SIGNING_OPERATIONS[id(probe.client.operator.signer)]
+        operation = lambda payload: safe._native_signer_api().invoke(capsule, payload)
     error, diagnostic = _capture_public_error(lambda: operation(b"valid-sdk-input"))
     expected = {"ordinary": safe.HederaError, "keyboard": KeyboardInterrupt,
                 "system-int": SystemExit, "system-none": SystemExit, "system-secret": SystemExit,
                 "generator": GeneratorExit, "cancel": safe.CancelledError}[failure]
+    if boundary == "native" and failure == "ordinary":
+        expected = RuntimeError
     category_ok = isinstance(error, expected)
     assert category_ok, "Unexpected sanitized failure category"
     if isinstance(error, SystemExit):
@@ -741,7 +843,7 @@ def test_actual_sdk_backend_init_rich_diagnostics(actual, monkeypatch, algorithm
             patch.setenv("HEDERA_OPERATOR_ID", "invalid")
         elif failure == "api":
             patch.setattr(safe, "_NATIVE_SIGNER_API", None)
-            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+            patch.setattr(safe.importlib, "import_module", lambda _: SimpleNamespace())
         elif failure == "allocation":
             patch.setattr(safe._native_signer_api(), "new", refuse)
         elif failure == "store":
@@ -770,7 +872,7 @@ def test_actual_sdk_direct_init_rich_diagnostics(actual, monkeypatch, algorithm,
         operation = lambda: safe._Signer(probe.sdk.PrivateKey.from_string(safe.os.environ["HEDERA_OPERATOR_KEY"]))
         if failure == "api":
             patch.setattr(safe, "_NATIVE_SIGNER_API", None)
-            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+            patch.setattr(safe.importlib, "import_module", lambda _: SimpleNamespace())
         elif failure == "allocation":
             patch.setattr(safe._native_signer_api(), "new", refuse)
         elif failure == "store":

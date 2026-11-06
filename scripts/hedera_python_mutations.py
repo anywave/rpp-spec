@@ -37,24 +37,24 @@ MUTATIONS = [
     ("reduce-ex-refusal", 'raise TypeError("Hedera signer cannot be serialized")', 'return None', "test_actual_sdk_signer_explicit_protocol_refusal"),
     ("copy-refusal", 'raise TypeError("Hedera signer cannot be copied")', 'return self', "test_actual_sdk_signer_explicit_protocol_refusal"),
     ("deepcopy-refusal", 'raise TypeError("Hedera signer cannot be deep-copied")', 'return self', "test_actual_sdk_signer_explicit_protocol_refusal"),
-    ("closed-native-invoke", 'if pointer == 1:\n                closed = True\n                raise HederaError("Hedera signer is closed")', 'if False:\n                closed = True\n                raise HederaError("Hedera signer is closed")', "test_actual_sdk_closed_capsule_never_dereferences"),
-    ("closed-native-release", 'if pointer == 1:\n            return', 'if False:\n            return', "test_actual_sdk_double_release_never_unpins_tombstone"),
-    ("capsule-tombstone", 'api.invalidate(capsule, 1)', 'pass', "test_actual_sdk_saved_capsule_is_invalidated"),
-    ("native-new-rollback", 'except BaseException:\n                    api.unpin(id(operation))\n                    raise', 'except BaseException:\n                    pass\n                    raise', "test_actual_sdk_native_initialization_rollback"),
-    ("native-store-rollback", 'except BaseException:\n                    _release_capsule(capsule)\n                    raise', 'except BaseException:\n                    pass\n                    raise', "test_actual_sdk_native_initialization_rollback"),
+    ("closed-native-invoke", 'if api.closed(capsule):', 'if False:', "test_actual_sdk_closed_capsule_never_dereferences"),
+    ("native-close-idempotence", 'api.release(capsule)  # Native tombstone + release is one ownership operation.', 'if api.closed(capsule):\n            raise HederaError("Repeated close refused")\n        api.release(capsule)', "test_actual_sdk_double_release_never_unpins_tombstone"),
+    ("native-release", 'api.release(capsule)  # Native tombstone + release is one ownership operation.', 'pass', "test_actual_sdk_saved_capsule_is_invalidated"),
+    ("native-automatic-owner", 'PyCapsule_New(operation, signer_name, signer_destructor)', 'PyCapsule_New(operation, signer_name, NULL)', "test_actual_sdk_interrupted_ownership"),
+    ("native-constructor-rollback", 'if failure is not None and capsule is not None:', 'if False:', "test_actual_sdk_native_initialization_rollback"),
     ("native-cpython-only", 'if sys.implementation.name != "cpython":', 'if False:', "test_actual_sdk_native_support_fails_closed"),
-    ("native-owner-cleanup", 'if capsule is not None:\n                    _release_capsule(capsule)', 'if capsule is not None:\n                    pass', "test_actual_sdk_native_signer_lifecycle"),
+    ("native-owner-cleanup", 'if capsule is not None:\n                    _release_capsule(capsule)', 'if capsule is not None:\n                    pass', "test_actual_sdk_saved_capsule_is_invalidated"),
     ("native-exit-cleanup", 'atexit.register(_close_signers)', 'pass', "test_actual_sdk_native_atexit_cleanup"),
-    ("callback-local-cleanup", 'operation = None  # Rich traceback logging must never retain a raw SDK bound method.', 'pass  # Raw operation retained in diagnostic locals.', "test_actual_sdk_invalid_payload_rich_diagnostics"),
-    ("callback-context-discard", 'failed = True\n    finally:\n        operation = None', 'failed = True\n        raise HederaError("Unsafe SDK context") from None\n    finally:\n        operation = None', "test_actual_sdk_invalid_payload_rich_diagnostics"),
-    ("callback-control-cleanup", '    except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.\n        control, code = _control_token(error)\n        failed = True', '    except Exception as error:\n        control, code = _control_token(error)\n        failed = True', "test_actual_sdk_callback_failure_rich_diagnostics"),
+    ("native-unpublish-order", 'capsule = operations.get(id(self))', 'capsule = operations.pop(id(self), None)', "test_actual_sdk_interrupted_ownership"),
+    ("callback-context-discard", '        failed = True\n    if failed:', '        failed = True\n        raise HederaError("Unsafe SDK context") from None\n    if failed:', "test_actual_sdk_invalid_payload_rich_diagnostics"),
+    ("native-error-redaction", 'sanitize_signing_error();', ';', "test_actual_sdk_callback_failure_rich_diagnostics"),
     ("constructor-local-cleanup", 'key = operation = None  # Clear even unsupported-API, allocation and reinitialization tracebacks.', 'pass  # Raw constructor inputs retained.', "test_actual_sdk_direct_init_rich_diagnostics"),
     ("constructor-context-discard", 'failure = MemoryError if isinstance(error, MemoryError) else TypeError if isinstance(error, TypeError) else HederaError', 'failure = MemoryError if isinstance(error, MemoryError) else TypeError if isinstance(error, TypeError) else HederaError\n            raise HederaError("Unsafe constructor context") from None', "test_actual_sdk_key_derivation_failure_rich_diagnostics"),
     ("constructor-control-cleanup", '        except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.\n            control, code = _control_token(error)\n            failure = MemoryError', '        except Exception as error:\n            control, code = _control_token(error)\n            failure = MemoryError', "test_actual_sdk_key_derivation_failure_rich_diagnostics"),
     ("init-no-secret-local", 'account = os.environ.get("HEDERA_OPERATOR_ID")', 'secret = os.environ.get("HEDERA_OPERATOR_KEY")\n        account = os.environ.get("HEDERA_OPERATOR_ID")', "test_actual_sdk_backend_init_rich_diagnostics"),
     ("init-context-discard", 'failed = True\n        finally:\n            if failed and signer is not None:', 'failed = True\n            raise HederaError("Unsafe initialization context") from None\n        finally:\n            if failed and signer is not None:', "test_actual_sdk_backend_init_rich_diagnostics"),
     ("init-partial-signer-cleanup", 'if failed and signer is not None:\n                signer.__del__()', 'if failed and signer is not None:\n                pass', "test_actual_sdk_backend_init_rich_diagnostics"),
-    ("control-code-redaction", 'code = error.code if type(error.code) is int or error.code is None else None', 'code = error.code', "test_actual_sdk_callback_failure_rich_diagnostics"),
+    ("control-code-redaction", 'code = error.code if type(error.code) is int or error.code is None else None', 'code = error.code', "test_actual_sdk_key_derivation_failure_rich_diagnostics"),
     ("admin-readback", '(state.get("admin_key") or {}).get("key") != self.backend.public_key', 'False', "test_topic_mismatch"),
     ("redaction", 'HederaError("Hedera submission unconfirmed; reconcile before retrying")', 'HederaError(str(__import__("sys").exception()))', "test_sdk_error_redaction"),
 ]
@@ -68,17 +68,24 @@ def main():
     else:
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     for label, before, after, test in MUTATIONS:
-        module = "hedera.py" if label == "environment-only" else "hedera_safe.py"
+        native = label in {"native-automatic-owner", "native-error-redaction"}
+        module = "hedera.py" if label == "environment-only" else "_hedera_signer_native.c" if native else "hedera_safe.py"
         source = (ROOT / "rpp/adapters" / module).read_text()
         assert source.count(before) == 1, label
         mutated = source.replace(before, after)
-        compile(mutated, "hedera_safe.py", "exec")
+        if not module.endswith(".c"):
+            compile(mutated, module, "exec")
         with tempfile.TemporaryDirectory(prefix="hedera-python-mutation-") as scratch:
             target = Path(scratch)
             shutil.copytree(ROOT / "rpp", target / "rpp", ignore=shutil.ignore_patterns("__pycache__"))
             shutil.copy(ROOT / "tests/test_hedera_safe.py", target / "test_hedera_safe.py")
             shutil.copy(ROOT / "tests/test_hedera_sdk_security.py", target / "test_hedera_sdk_security.py")
             (target / "rpp/adapters" / module).write_text(mutated)
+            if module.endswith(".c"):
+                subprocess.run([sys.executable, str(ROOT / "scripts/build_hedera_native.py"),
+                                "--source", str(target / "rpp/adapters" / module),
+                                "--output-dir", str(target / "rpp/adapters")],
+                               check=True, capture_output=True, text=True, timeout=30)
             test_file = "test_hedera_sdk_security.py" if test.startswith("test_actual_") else "test_hedera_safe.py"
             result = subprocess.run([sys.executable, "-m", "pytest", "-q", f"{test_file}::{test}"],
                                     cwd=target, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},

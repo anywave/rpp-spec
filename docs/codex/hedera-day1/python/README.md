@@ -25,7 +25,7 @@ enable environment variable has no effect. The backend calls only
 SDK `set_operator_with` receives an opaque callable signer. Its only instance
 slot contains the public key; no raw key, signing method, weakref callback,
 closure or default argument appears in instance state. The original SDK signing
-callback remains behind an unnamed CPython native capsule in a private registry.
+callback remains behind a named CPython native capsule in a private registry.
 Registry and function-global representations contain opaque handles. The SDK
 client, Operator and retained transaction signers expose the same safe callable.
 `__getstate__`, `__setstate__`, both reduction hooks and both copy hooks explicitly
@@ -45,15 +45,27 @@ GeneratorExit and asyncio cancellation keep their control-flow types; SystemExit
 keeps integer/None codes and discards other arguments. Actual interrupted SDK
 signing and synthetic SDK failure/cancellation paths run for Ed25519 and ECDSA.
 
-Local experimental signing requires CPython with the checked capsule C API;
-unsupported runtimes/API availability fail closed. No native build or SDK
-replacement is introduced. Manual native references are balanced under a lock;
-release first tombstones the capsule, so saved handles refuse instead of touching
-freed memory. Construction failures roll back ownership, destructor cleanup is
-idempotent, in-flight calls retain a strong reference, and normal interpreter
-exit releases the registry before module teardown. Capsules have no C destructor
-callback or name-buffer lifetime. Tests verify GC/stress, failure rollback,
-concurrent close, stale handles and interpreter cleanup.
+Local experimental signing requires the optional native ownership helper on
+GIL-enabled CPython in its main interpreter. Missing/unsupported helpers fail
+closed. From a source checkout, run `python scripts/build_hedera_native.py` with
+the active interpreter and a compatible POSIX compiler toolchain. The default
+wheel stays pure Python and refuses this experimental signer without the helper;
+`RPP_BUILD_HEDERA_NATIVE=true python -m hatchling build -t wheel` explicitly builds
+a platform-tagged wheel containing it. The build never reads Hedera configuration
+or keys. Shipping Python callers should continue using the official JS/Rust
+service boundary. No native binary is committed.
+
+The small C helper atomically acquires a callback and creates its owning capsule;
+a stable native destructor balances failed/interrupted transfers. Python never
+manually increments/decrements references. Native close tombstones and releases
+in one call, and Python releases before unpublishing the registry entry. Saved
+handles refuse; repeated cleanup is safe, including after interruption. Native
+invocation holds a strong reference across concurrent close and sanitizes SDK
+exceptions even when called directly. Capsule state and GC referents expose no
+callback. Tests cover actual SIGINT before/after acquisition, publication and
+release, plus GC/stress, rollback, concurrency, stale handles and interpreter
+cleanup. The automatic-owner removal control recompiles the C helper and fails
+the actual-interruption regression; it cannot count a native crash as a kill.
 
 This guards supported object inspection/serialization. Deliberate native C API
 pointer dereferencing, arbitrary process-memory inspection and direct access to
