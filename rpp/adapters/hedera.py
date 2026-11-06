@@ -6,13 +6,11 @@ The RPP theta field maps to the HCS topic ID (0.0.{theta}).
 The RPP phi and harmonic fields map to the sequence metadata.
 
 In mock mode: simulates HCS topic publish/subscribe with in-memory queues.
-In real mode: requires hedera-sdk-py and valid credentials.
+Real mode uses the shared fail-closed experimental Python policy layer.
 """
 
 import time
 from collections import defaultdict
-from typing import Dict, List, Optional
-
 
 # ---------------------------------------------------------------------------
 # Address bit-field extraction helpers (mirrors rpp/address.py constants)
@@ -46,9 +44,8 @@ class HederaTransport:
     - is_available() always returns True.
 
     In real mode (mock=False):
-    - Requires hedera-sdk-py: pip install hedera-sdk-py
-    - Requires valid operator_account (e.g. "0.0.12345") and operator_key
-      (ED25519 or ECDSA private key in DER or hex format).
+    - Requires explicit experimental Python opt-in and runtime environment credentials.
+    - Python SDK is community Pre-Alpha; use the official JS/Rust boundary for shipping.
     - HCS topic must already exist on the Hedera network.
 
     Topic mapping:
@@ -75,8 +72,8 @@ class HederaTransport:
 
     def __init__(
         self,
-        operator_account: Optional[str] = None,
-        operator_key: Optional[str] = None,
+        operator_account: str | None = None,
+        operator_key: str | None = None,
         mock: bool = True,
     ) -> None:
         """
@@ -84,21 +81,21 @@ class HederaTransport:
 
         Args:
             operator_account: Hedera account ID (e.g. "0.0.12345").
-                              Required for real mode; ignored in mock mode.
-            operator_key:     ED25519 or ECDSA private key for signing.
-                              Required for real mode; ignored in mock mode.
+                              Deprecated: explicit credentials are rejected.
+            operator_key:     Deprecated: explicit credentials are rejected.
             mock:             If True (default), operate in-memory without
                               a real Hedera network connection.
         """
-        self._operator_account = operator_account
-        self._operator_key = operator_key
+        if operator_account is not None or operator_key is not None:
+            raise ValueError("Operator credentials must come from the runtime environment")
         self._mock = mock
+        self._session = None
 
         # Per-topic message queues: {"0.0.N": [record, ...]}
-        self._topics: Dict[str, List[dict]] = defaultdict(list)
+        self._topics: dict[str, list[dict]] = defaultdict(list)
 
         # Per-topic sequence counters (1-indexed, matching HCS convention)
-        self._sequence_counters: Dict[str, int] = defaultdict(int)
+        self._sequence_counters: dict[str, int] = defaultdict(int)
 
     # ------------------------------------------------------------------
     # Topic-ID derivation
@@ -143,7 +140,7 @@ class HederaTransport:
         Returns:
             Message record dict with keys:
                 sequence, phi, harmonic, data, timestamp_ns
-            Returns an empty dict on real-mode failure.
+            Raises a sanitized exception on real-mode failure.
         """
         _shell, theta, phi, harmonic = _decode_address(address_int)
         topic_id = self.topic_id_for_theta(theta)
@@ -153,7 +150,7 @@ class HederaTransport:
 
         return self._real_publish(topic_id, address_int, data)
 
-    def subscribe(self, theta: int) -> List[dict]:
+    def subscribe(self, theta: int) -> list[dict]:
         """
         Retrieve all messages published to the topic for a given theta value.
 
@@ -213,113 +210,48 @@ class HederaTransport:
         return record
 
     # ------------------------------------------------------------------
-    # Real-mode implementation stubs
+    # Real-mode implementation (experimental Python transport; explicit opt-in)
     # ------------------------------------------------------------------
 
-    def _real_publish(
-        self,
-        topic_id: str,
-        address_int: int,
-        data: bytes,
-    ) -> dict:
-        """
-        Submit a TopicMessageSubmitTransaction to the Hedera network.
+    def _get_session(self):
+        if self._session is None:
+            from rpp.adapters.hedera_safe import Session
+            self._session = Session.from_env()
+        return self._session
 
-        Requires: pip install hedera-sdk-py
-        See: https://docs.hedera.com/hedera/sdks-and-apis/sdks/consensus-service
+    def _real_publish(self, topic_id: str, address_int: int, data: bytes) -> dict:
+        # Policy errors propagate: an empty object must not look like a receipt.
+        result = self._get_session().submit(topic_id, data)
+        _shell, _theta, phi, harmonic = _decode_address(address_int)
+        return {**result, "phi": phi, "harmonic": harmonic, "timestamp_ns": time.time_ns()}
 
-        Returns:
-            Receipt dict with sequence number on success, empty dict on failure.
-        """
-        try:
-            # Real Hedera SDK usage (requires hedera-sdk-py):
-            #
-            # from hedera import (
-            #     Client, TopicMessageSubmitTransaction, AccountId, PrivateKey
-            # )
-            # client = Client.for_mainnet()  # or for_testnet()
-            # client.set_operator(
-            #     AccountId.from_string(self._operator_account),
-            #     PrivateKey.from_string(self._operator_key),
-            # )
-            # receipt = (
-            #     TopicMessageSubmitTransaction()
-            #     .set_topic_id(topic_id)
-            #     .set_message(data)
-            #     .execute(client)
-            #     .get_receipt(client)
-            # )
-            # return {"sequence": receipt.topic_sequence_number, "data": data}
-            raise NotImplementedError(
-                "Real Hedera publish requires hedera-sdk-py and valid credentials. "
-                "Install with: pip install hedera-sdk-py"
-            )
-        except Exception:
-            return {}
-
-    def _real_subscribe(self, topic_id: str) -> List[dict]:
-        """
-        Query HCS topic message history via Hedera Mirror Node REST API.
-
-        Mirror node endpoint: https://mainnet-public.mirrornode.hedera.com
-        Path: /api/v1/topics/{topic_id}/messages
-
-        Returns empty list on any error.
-        """
-        try:
-            import urllib.request
-            import json
-
-            mirror_url = (
-                f"https://mainnet-public.mirrornode.hedera.com"
-                f"/api/v1/topics/{topic_id}/messages"
-            )
-            with urllib.request.urlopen(mirror_url, timeout=10) as resp:
-                result = json.loads(resp.read().decode())
-                messages = result.get("messages", [])
-                return [
-                    {
-                        "sequence":     m.get("sequence_number", 0),
-                        "phi":          0,   # not recoverable from raw message alone
-                        "harmonic":     0,
-                        "data":         m.get("message", b""),
-                        "timestamp_ns": 0,
-                    }
-                    for m in messages
-                ]
-        except Exception:
-            return []
+    def _real_subscribe(self, topic_id: str) -> list[dict]:
+        import base64
+        session = self._get_session()
+        result = session._read(f"/api/v1/topics/{topic_id}/messages?limit=100&order=asc")
+        return [{"sequence": m["sequence_number"], "phi": 0, "harmonic": 0,
+                 "data": base64.b64decode(m["message"], validate=True), "timestamp_ns": 0}
+                for m in result.get("messages", [])]
 
     def _real_check_credentials(self) -> bool:
-        """
-        Attempt to validate Hedera credentials without submitting a transaction.
-
-        Returns True only if both operator_account and operator_key are set
-        and the account ID is parseable. Does not make a network call.
-        """
-        if not self._operator_account or not self._operator_key:
-            return False
-        # Basic format check: "0.0.NNNNN"
-        parts = self._operator_account.split(".")
-        if len(parts) != 3:
-            return False
         try:
-            int(parts[2])
+            self._get_session()
             return True
-        except ValueError:
+        except Exception:  # noqa: BLE001 - SDK errors may contain secrets; sanitize boundary
             return False
 
     # ------------------------------------------------------------------
     # Context manager support
     # ------------------------------------------------------------------
 
-    def __enter__(self) -> "HederaTransport":
+    def __enter__(self) -> "HederaTransport":  # noqa: PYI034 - supports Python 3.10
         return self
 
     def __exit__(self, *_) -> None:
-        pass  # No persistent connections to close in mock mode
+        if self._session is not None:
+            self._session.close()
 
     def __repr__(self) -> str:
-        mode = "mock" if self._mock else f"account={self._operator_account!r}"
+        mode = "mock" if self._mock else "experimental"
         topic_count = len(self._topics)
         return f"HederaTransport({mode}, topics={topic_count})"
