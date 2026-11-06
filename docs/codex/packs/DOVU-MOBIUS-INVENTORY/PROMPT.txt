@@ -1,0 +1,9 @@
+Read JOB.md and WHY.md beside this prompt. Inventory existing Mobius DovuSink v2
+against the current canon before proposing new code. Pin every source observation.
+Compare the exact Tier-1 boundary and existing durable claim/receipt/host/secret
+tests with digigami-audit's closed fake prototype at
+617beedb5cb008621a784e02a4d2ac4d515eb5ff. Do not import its memory journal.
+Deliver findings and a bounded reuse-first plan only. Keep Tier 0 and the release
+valve. No product edit, account, email, key, money, mainnet, provider call, live
+transaction, vendor contact or public post. No DOVU response grants authority.
+Separate historical reports, inspected current code, executed tests and UNKNOWN.
