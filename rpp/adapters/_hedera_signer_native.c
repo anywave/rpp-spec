@@ -10,17 +10,25 @@ static const char signer_name[] = "rpp.hedera.signer.v1";
 static char closed_marker;
 
 static void
-sanitize_signing_error(void)
+sanitize_error(int initializing)
 {
     PyObject *error_type = NULL, *error_value = NULL, *error_traceback = NULL;
     PyObject *replacement = NULL, *code = NULL, *asyncio_module = NULL;
-    PyObject *cancelled_error = NULL;
+    PyObject *cancelled_error = NULL, *adapter_module = NULL, *adapter_error = NULL;
     PyErr_Fetch(&error_type, &error_value, &error_traceback);
     PyErr_NormalizeException(&error_type, &error_value, &error_traceback);
     if (PyErr_Occurred()) {
         PyErr_Clear();
     }
-    if (error_type != NULL &&
+    if (initializing && error_type != NULL &&
+            PyErr_GivenExceptionMatches(error_type, PyExc_MemoryError)) {
+        replacement = PyExc_MemoryError;
+    }
+    else if (initializing && error_type != NULL &&
+            PyErr_GivenExceptionMatches(error_type, PyExc_TypeError)) {
+        replacement = PyExc_TypeError;
+    }
+    else if (error_type != NULL &&
             PyErr_GivenExceptionMatches(error_type, PyExc_SystemExit)) {
         replacement = PyExc_SystemExit;
         if (error_value != NULL && PyObject_TypeCheck(
@@ -57,8 +65,20 @@ sanitize_signing_error(void)
     Py_XDECREF(error_traceback);
     Py_XDECREF(asyncio_module);
     PyErr_Clear();
+    if (initializing && replacement == NULL) {
+        adapter_module = PyImport_ImportModule("rpp.adapters.hedera_safe");
+        if (adapter_module != NULL) {
+            adapter_error = PyObject_GetAttrString(adapter_module, "HederaError");
+        }
+        PyErr_Clear();
+        replacement = adapter_error;
+    }
     if (replacement == PyExc_SystemExit) {
         PyErr_SetObject(replacement, code == NULL ? Py_None : code);
+    }
+    else if (replacement == PyExc_MemoryError || replacement == PyExc_TypeError ||
+             adapter_error != NULL) {
+        PyErr_SetString(replacement, "CPython capsule signer initialization failed");
     }
     else if (replacement != NULL) {
         PyErr_SetNone(replacement);
@@ -68,6 +88,8 @@ sanitize_signing_error(void)
     }
     Py_XDECREF(code);
     Py_XDECREF(cancelled_error);
+    Py_XDECREF(adapter_error);
+    Py_XDECREF(adapter_module);
 }
 
 static int
@@ -152,6 +174,81 @@ signer_new(PyObject *module, PyObject *operation)
     return capsule;
 }
 
+/* The raw key and bound method exist only in this native call. Python sees
+ * the public key and an already owning opaque capsule, never a cleanup local. */
+static PyObject *
+signer_initialize(PyObject *self, PyObject *args, PyObject *keywords)
+{
+    static char *keyword_names[] = {"key", NULL};
+    PyObject *key = NULL;
+    PyObject *public_key = NULL, *operation = NULL, *capsule = NULL, *result = NULL;
+    PyObject *adapter = NULL, *getter = NULL, *api = NULL, *factory = NULL;
+    if (require_main_interpreter() < 0) {
+        return NULL;
+    }
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O:__init__", keyword_names, &key)) {
+        sanitize_error(1);
+        return NULL;
+    }
+    adapter = PyImport_ImportModule("rpp.adapters.hedera_safe");
+    if (adapter != NULL) {
+        getter = PyObject_GetAttrString(adapter, "_native_signer_api");
+    }
+    if (getter != NULL) {
+        api = PyObject_CallNoArgs(getter);
+    }
+    if (api != NULL) {
+        factory = PyObject_GetAttrString(api, "new");
+    }
+    if (factory != NULL) {
+        public_key = PyObject_CallMethod(key, "public_key", NULL);
+    }
+    if (public_key != NULL) {
+        operation = PyObject_GetAttrString(key, "sign");
+    }
+    if (operation != NULL) {
+        capsule = PyObject_CallOneArg(factory, operation);
+    }
+    Py_CLEAR(operation);
+    if (capsule != NULL) {
+        result = PyObject_CallMethod(self, "_initialize", "OO", public_key, capsule);
+    }
+    if (result == NULL && capsule != NULL) {
+        /* Preserve the failure while closing even if Python cleanup was itself
+         * interrupted. The destructor/explicit close remain idempotent. */
+        signer_destructor(capsule);
+    }
+    Py_XDECREF(capsule);
+    Py_XDECREF(public_key);
+    Py_XDECREF(factory);
+    Py_XDECREF(api);
+    Py_XDECREF(getter);
+    Py_XDECREF(adapter);
+    if (result == NULL) {
+        sanitize_error(1);
+    }
+    return result;
+}
+
+static PyMethodDef initializer_method = {
+    "__init__", (PyCFunction)(void (*)(void))signer_initialize, METH_VARARGS | METH_KEYWORDS,
+    "Initialize from a key entirely inside the native ownership boundary."
+};
+
+static PyObject *
+signer_initializer(PyObject *module, PyObject *type)
+{
+    (void)module;
+    if (require_main_interpreter() < 0) {
+        return NULL;
+    }
+    if (!PyType_Check(type)) {
+        PyErr_SetString(PyExc_TypeError, "A signer class is required");
+        return NULL;
+    }
+    return PyDescr_NewMethod((PyTypeObject *)type, &initializer_method);
+}
+
 static PyObject *
 signer_release(PyObject *module, PyObject *capsule)
 {
@@ -200,7 +297,7 @@ signer_invoke(PyObject *module, PyObject *args)
     result = PyObject_CallOneArg(operation, payload);
     Py_DECREF(operation);
     if (result == NULL) {
-        sanitize_signing_error();
+        sanitize_error(0);
         return NULL;
     }
     if (!PyBytes_CheckExact(result)) {
@@ -212,6 +309,7 @@ signer_invoke(PyObject *module, PyObject *args)
 }
 
 static PyMethodDef signer_methods[] = {
+    {"initializer", signer_initializer, METH_O, "Bind an opaque native signer initializer."},
     {"new", signer_new, METH_O, "Create an opaque native signing-operation owner."},
     {"release", signer_release, METH_O, "Close a signing-operation owner idempotently."},
     {"closed", signer_closed, METH_O, "Check whether an owner has been closed."},

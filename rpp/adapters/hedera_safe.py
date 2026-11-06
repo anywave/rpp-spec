@@ -62,7 +62,8 @@ def _native_signer_api():
         try:
             native = importlib.import_module("rpp.adapters._hedera_signer_native")
             _NATIVE_SIGNER_API = SimpleNamespace(new=native.new, release=native.release,
-                                                closed=native.closed, invoke=native.invoke)
+                                                closed=native.closed, invoke=native.invoke,
+                                                initializer=native.initializer)
         except (ImportError, AttributeError, OSError, TypeError):
             raise HederaError("CPython capsule support unavailable; local signing refused") from None
     return _NATIVE_SIGNER_API
@@ -114,22 +115,20 @@ class _Signer:
 
     __slots__ = ("_public_key",)
 
-    def __init__(self, key):
-        operation, capsule, failure, control, code = None, None, None, None, None
+    def _initialize(self, public_key, capsule):
+        """Publish only opaque/public state; native __init__ consumes raw keys."""
+        failure, control, code = None, None, None
         try:
-            api = _native_signer_api()
+            _native_signer_api()
             with _SIGNER_LOCK:
                 if id(self) in _SIGNING_OPERATIONS:
                     raise TypeError("Hedera signer cannot be reinitialized")
-                self._public_key = key.public_key()
-                operation = key.sign
-                capsule = api.new(operation)  # Owns its callback before returning to Python.
+                self._public_key = public_key
                 _SIGNING_OPERATIONS[id(self)] = capsule
         except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
             control, code = _control_token(error)
             failure = MemoryError if isinstance(error, MemoryError) else TypeError if isinstance(error, TypeError) else HederaError
         finally:
-            key = operation = None  # Clear even unsupported-API, allocation and reinitialization tracebacks.
             if failure is not None and capsule is not None:
                 _release_capsule(capsule)
                 if _SIGNING_OPERATIONS.get(id(self)) is capsule:
@@ -181,6 +180,14 @@ class _Signer:
 
     def __deepcopy__(self, memo):
         raise TypeError("Hedera signer cannot be deep-copied")
+
+
+try:
+    _Signer.__init__ = _native_signer_api().initializer(_Signer)
+except HederaError:
+    # Pure-Python installs remain usable. object.__init__ refuses key arguments
+    # without ever creating a Python frame containing one.
+    pass
 
 
 class _TestnetRoute:

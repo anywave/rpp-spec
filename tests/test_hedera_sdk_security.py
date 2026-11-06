@@ -19,6 +19,7 @@ import threading
 import traceback
 import types
 import weakref
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -571,14 +572,16 @@ safe._close_signers()
 key = sdk.PrivateKey.generate(ALGORITHM)
 reference = weakref.ref(key)
 saved, error, signer = None, None, None
-initializer = safe._Signer.__init__
+initializer = safe._Signer._initialize
 finalizer = safe._Signer.__del__
 function = initializer if POINT in {"new-result", "before-register", "after-register"} else finalizer
+def abandon_native_result():
+    safe._native_signer_api().new(key.sign)
+if POINT == "new-result": function = abandon_native_result
 instructions = list(dis.get_instructions(function))
 if POINT == "new-result":
     call_start = next(item.offset for item in instructions if item.argval == "new")
-    target = next(item.offset for item in instructions if item.offset > call_start and
-                  item.opname == "STORE_FAST" and item.argval == "capsule")
+    target = next(item.offset for item in instructions if item.offset > call_start and item.opname == "POP_TOP")
     event_kind = "opcode"
 elif POINT == "after-unpublish":
     pop_start = next(item.offset for item in instructions if item.argval == "pop")
@@ -611,7 +614,8 @@ try:
     sys._getframe().f_trace_opcodes = True
     sys.settrace(trace)
     try:
-        if function is initializer: safe._Signer(key)
+        if POINT == "new-result": abandon_native_result()
+        elif function is initializer: safe._Signer(key)
         else: signer.__del__()
     except KeyboardInterrupt as caught:
         error = caught
@@ -636,6 +640,38 @@ print(json.dumps(result))
     assert succeeded, "Interrupted native ownership child failed"
     assert json.loads(result.stdout) == {"interrupted": True, "released": True,
                                        "empty": True, "saved_closed": True}, "Interrupted callback was retained"
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("boundary", ["direct", "factory"])
+def test_actual_sdk_initializer_sigint_locals(actual, algorithm, boundary):
+    actual()
+    program = Path(__file__).with_name("hedera_initializer_sigint_probe.py").read_text()
+    environment = {name: value for name, value in safe.os.environ.items()
+                   if name not in {"HEDERA_OPERATOR_KEY", "HEDERA_OPERATOR_ID"}}
+    result = subprocess.run([sys.executable, "-X", "faulthandler", "-c", program, algorithm, boundary],
+                            env=environment, capture_output=True, text=True, timeout=30, check=False)
+    succeeded = result.returncode == 0 and not result.stderr
+    assert succeeded, "Initializer SIGINT diagnostic probe failed"
+    outcome = json.loads(result.stdout)
+    assert outcome["cases"] > 10 and outcome["covered_initializer_lines"] > 2, "Initializer coverage was vacuous"
+    assert outcome["failed_signals"] == 0, "An initializer SIGINT did not escape"
+    assert outcome["key_leaks"] == 0, "Escaped product traceback locals exposed a signing key"
+    assert outcome["live_local_key_leaks"] == 0, "An interruptible product local held a signing key"
+    if boundary == "direct":
+        assert outcome["uncovered_initializer_lines"] == [], "An executable initializer line was not interrupted"
+    assert outcome["open_escaped_handles"] == 0, "Failed initialization left an escaped signing handle open"
+    assert outcome["registry_empty"], "Interrupted initialization retained a registry entry"
+
+
+def test_actual_sdk_native_initializer_public_handoff(actual):
+    sdk = pytest.importorskip("hiero_sdk_python")
+    for keywords in (False, True):
+        key = sdk.PrivateKey.generate_ed25519()
+        signer = safe._Signer(key=key) if keywords else safe._Signer(key)
+        public_only = signer.public_key.to_string_raw() == key.public_key().to_string_raw()
+        assert public_only, "Native initializer handed private signing state to Python"
+        signer.__del__()
 
 
 @pytest.mark.parametrize("unsupported", ["runtime", "api"])
@@ -819,7 +855,7 @@ def test_actual_sdk_callback_failure_rich_diagnostics(actual, monkeypatch, algor
 
 
 @pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
-@pytest.mark.parametrize("failure", ["missing-id", "bad-key", "bad-account", "api", "allocation", "store", "post-operator"])
+@pytest.mark.parametrize("failure", ["missing-id", "bad-key", "bad-account", "api", "allocation", "store", "post-operator", "system-secret"])
 def test_actual_sdk_backend_init_rich_diagnostics(actual, monkeypatch, algorithm, failure):
     probe = actual(algorithm)
     client = probe.sdk.Client.for_network({"offline-init.invalid:50212": probe.sdk.AccountId.from_string("0.0.3")},
@@ -848,10 +884,14 @@ def test_actual_sdk_backend_init_rich_diagnostics(actual, monkeypatch, algorithm
             patch.setattr(safe._native_signer_api(), "new", refuse)
         elif failure == "store":
             patch.setattr(safe, "_SIGNING_OPERATIONS", RejectStore())
+        elif failure == "system-secret":
+            def control(*args):
+                raise SystemExit(safe.os.environ["HEDERA_OPERATOR_KEY"])
+            patch.setattr(safe, "_TestnetRoute", control)
         else:
             patch.setattr(safe, "_TestnetRoute", refuse)
         error, diagnostic = _capture_public_error(lambda: safe.ExperimentalHieroBackend(safe.Config()))
-    category_ok = isinstance(error, safe.HederaError)
+    category_ok = isinstance(error, SystemExit if failure == "system-secret" else safe.HederaError)
     assert category_ok, "Unexpected sanitized failure category"
     _assert_public_error_safe(probe, error, diagnostic)
     assert len(safe._SIGNING_OPERATIONS) == baseline  # Keep the error and its frames alive while checking release.

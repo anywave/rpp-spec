@@ -34,8 +34,13 @@ dir/member discovery, bound method self/defaults/closures, JSON, all pickle
 protocols, copy/deepcopy, logging and direct formatting of function globals are
 checked on actual SDK objects. Constructor credentials remain rejected.
 
-Error diagnostics are covered too: raw SDK method/key locals are cleared on every
-exit, and encoded environment credentials are never bound to a backend local.
+Error diagnostics are covered too: the raw-key `__init__` entry is a native
+descriptor, so neither the key nor its bound signing method enters a Python
+initializer local. It derives the public key and creates an owning capsule before
+calling Python `_initialize(public_key, capsule)`. Even SIGINT before a Python
+cleanup assignment leaves only public/opaque locals. Native initialization
+releases its owner and replaces SDK error graphs before letting failures escape.
+Encoded environment credentials are never bound to a backend local.
 Sanitized failures are raised after their handlers finish, without retaining the
 SDK exception/context graph. Failed backend construction releases any partially
 installed native signer while the returned error is still alive. Ordinary rich
@@ -54,6 +59,8 @@ wheel stays pure Python and refuses this experimental signer without the helper;
 a platform-tagged wheel containing it. The build never reads Hedera configuration
 or keys. Shipping Python callers should continue using the official JS/Rust
 service boundary. No native binary is committed.
+Rebuild the helper when updating from FIX-3: an older helper lacking the native
+initializer entry refuses local signing.
 
 The small C helper atomically acquires a callback and creates its owning capsule;
 a stable native destructor balances failed/interrupted transfers. Python never
@@ -64,7 +71,11 @@ invocation holds a strong reference across concurrent close and sanitizes SDK
 exceptions even when called directly. Capsule state and GC referents expose no
 callback. Tests cover actual SIGINT before/after acquisition, publication and
 release, plus GC/stress, rollback, concurrency, stale handles and interpreter
-cleanup. The automatic-owner removal control recompiles the C helper and fails
+cleanup. Both key algorithms receive actual SIGINT at every executable Python
+initializer line across success, reinitialization, store failures and controls;
+escaped traceback locals and rich diagnostic copies are inspected in memory.
+Factory paths are checked too. Restoring a raw-key Python initializer fails the
+named diagnostic assertion. The automatic-owner removal control recompiles the C helper and fails
 the actual-interruption regression; it cannot count a native crash as a kill.
 
 This guards supported object inspection/serialization. Deliberate native C API
