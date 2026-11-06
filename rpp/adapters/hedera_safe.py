@@ -7,6 +7,7 @@ No credential files, dotenv loading, arbitrary mirror URLs, or secret logging.
 from __future__ import annotations
 
 import base64
+import functools
 import json
 import os
 import re
@@ -22,6 +23,81 @@ class HederaError(RuntimeError):
 
 class MirrorPending(Exception):
     """Retryable mirror lag or transient read failure."""
+
+
+class _Signer:
+    """Opaque callback: no bound PrivateKey repr or serializable credential state."""
+
+    __slots__ = ("__operation", "public_key")
+
+    def __init__(self, key):
+        self.__operation = key.sign
+        self.public_key = key.public_key()
+
+    def __call__(self, payload):
+        return self.__operation(payload)
+
+    def __repr__(self):
+        return "<HederaSigner redacted>"
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError("Hedera signer cannot be serialized")
+
+
+class _TestnetRoute:
+    """Pin the initialized testnet network object, node identities and endpoints."""
+
+    def __init__(self, client):
+        self.network = client.network
+        self.nodes = self._nodes(client)
+        self.mirror = client.network.mirror_address
+        self.validate(client)
+
+    @staticmethod
+    def _nodes(client):
+        return tuple((id(node), str(node._account_id), str(node._address)) for node in client.network.nodes)
+
+    def validate(self, client):
+        if (client.network is not self.network or client.network.network != "testnet" or
+                client.network.ledger_id != b"\x01" or self._nodes(client) != self.nodes or
+                client.network.mirror_address != self.mirror or
+                not client.is_transport_security() or not client.is_verify_certificates()):
+            raise HederaError("Initialized testnet routing or TLS configuration changed")
+
+
+class _SendGuard:
+    """One total consensus-send budget; validate immediately before each RPC."""
+
+    def __init__(self, config, original_method, route_check):
+        self.config, self.remaining, self.original_method = config, config.attempts, original_method
+        self.route_check = route_check
+
+    def method_for(self, channel):
+        method = self.original_method(channel)
+        method.transaction = functools.partial(self.send, method.transaction)
+        return method
+
+    def send(self, rpc, request, timeout):
+        self.config.validate()  # Concrete consensus RPC authorization boundary.
+        self.route_check()  # Pin actual node routing, not only the SDK network label.
+        if self.remaining <= 0:
+            raise HederaError("Consensus send budget exhausted")
+        self.remaining -= 1
+        return rpc(request, timeout=timeout)
+
+
+def _disable_native_retries(client):
+    # Pinned 0.3.0 private hook: preserve TLS options and disable native resends.
+    for node in client.network.nodes:
+        original = node._build_channel_options
+        if getattr(original, "_day1_no_retries", False):
+            continue
+
+        def options(base=original):
+            return [(key, value) for key, value in base() if key != "grpc.enable_retries"] + [("grpc.enable_retries", 0)]
+
+        options._day1_no_retries = True
+        node._build_channel_options = options
 
 
 @dataclass(frozen=True)
@@ -47,10 +123,8 @@ class Config:
         return result
 
     def validate(self):
-        if self.network not in {"testnet", "previewnet", "mainnet"}:
-            raise HederaError("Unsupported Hedera network")
-        if self.network == "mainnet" and os.environ.get("RADIX_HEDERA_MAINNET_ENABLED") != "true":
-            raise HederaError("Mainnet requires RADIX runtime authorization")
+        if self.network != "testnet" or os.environ.get("HEDERA_NETWORK", "testnet") != "testnet":
+            raise HederaError("Only Hedera testnet is permitted")
         if type(self.fee_tinybars) is not int or not 0 < self.fee_tinybars <= 100_000_000:
             raise HederaError("Fee cap must be 1..100000000 tinybars")
         if type(self.attempts) is not int or not 1 <= self.attempts <= 5:
@@ -64,14 +138,32 @@ class Config:
 
     @property
     def mirror(self):
-        host = "mainnet-public" if self.network == "mainnet" else self.network
-        return f"https://{host}.mirrornode.hedera.com"
+        return "https://testnet.mirrornode.hedera.com"
 
 
 def _topic_id(value):
     if not isinstance(value, str) or not re.fullmatch(r"0\.0\.[1-9][0-9]*", value):
         raise HederaError("Invalid topic ID")
     return value
+
+
+def _require_no_custom_fees(state, topic):
+    fees = state.get("custom_fees") if isinstance(state, dict) else None
+    if (not isinstance(state, dict) or state.get("topic_id") != topic or not isinstance(fees, dict) or
+            set(fees) - {"created_timestamp", "fixed_fees"} or fees.get("fixed_fees") != [] or
+            ("created_timestamp" in fees and (not isinstance(fees["created_timestamp"], str) or
+             not re.fullmatch(r"[0-9]+\.[0-9]{9}", fees["created_timestamp"])))):
+        raise HederaError("Custom fees must have an explicit readable empty schedule")
+
+
+def _read_mirror(config, mirror, path, pause=time.sleep):
+    for attempt in range(config.mirror_attempts):
+        try:
+            return mirror.get(path)
+        except MirrorPending:
+            if attempt + 1 == config.mirror_attempts:
+                raise HederaError("Mirror confirmation unavailable; write may have succeeded") from None
+            pause(config.retry_delay_ms / 1000)
 
 
 class _NoRedirect(HTTPRedirectHandler):
@@ -112,13 +204,7 @@ class Session:
         return cls(config, ExperimentalHieroBackend(config))
 
     def _read(self, path):
-        for attempt in range(self.config.mirror_attempts):
-            try:
-                return self.mirror.get(path)
-            except MirrorPending:
-                if attempt + 1 == self.config.mirror_attempts:
-                    raise HederaError("Mirror confirmation unavailable; write may have succeeded") from None
-                self.pause(self.config.retry_delay_ms / 1000)
+        return _read_mirror(self.config, self.mirror, path, self.pause)
 
     @staticmethod
     def _receipt(receipt):
@@ -127,14 +213,15 @@ class Session:
         return receipt
 
     def create_topic(self, memo="hedera-day1"):
-        self.config.validate()  # Recheck RADIX flag at every write.
+        self.config.validate()  # Recheck live testnet-only selection at every write.
         if not isinstance(memo, str) or len(memo.encode()) > 100:
             raise HederaError("Topic memo exceeds 100 bytes")
         receipt = self._receipt(self.backend.create_topic(memo, self.config))
         topic = _topic_id(receipt.get("topic_id"))
         state = self._read(f"/api/v1/topics/{topic}")
         if (state.get("topic_id") != topic or state.get("memo") != memo or
-                (state.get("submit_key") or {}).get("key") != self.backend.public_key):
+                (state.get("submit_key") or {}).get("key") != self.backend.public_key or
+                (state.get("admin_key") or {}).get("key") != self.backend.public_key):
             raise HederaError("Mirror topic metadata mismatch")
         match = re.fullmatch(r"(0\.0\.[1-9][0-9]*)@([0-9]+)\.([0-9]{1,9})", receipt.get("transaction_id", ""))
         if not match or match[1] != self.backend.operator_id:
@@ -152,7 +239,9 @@ class Session:
         topic = _topic_id(topic)
         if not isinstance(payload, bytes) or not 0 < len(payload) <= 1024:
             raise HederaError("HCS payload must be 1..1024 bytes; chunking is disabled")
-        # A single backend call: ambiguous writes are never rebuilt/resubmitted.
+        state = self._read(f"/api/v1/topics/{topic}")
+        _require_no_custom_fees(state, topic)
+        # Consensus-enforced zero allowance below also protects fee-schedule races.
         receipt = self._receipt(self.backend.submit(topic, payload, self.config))
         sequence = receipt.get("sequence")
         if type(sequence) is not int or sequence < 1:
@@ -188,14 +277,18 @@ class ExperimentalHieroBackend:
         try:
             import hiero_sdk_python as sdk
             self.sdk = sdk
-            self.client = getattr(sdk.Client, "for_" + config.network)()
+            self.mirror = Mirror(config)
+            self.client = sdk.Client.for_testnet()
             self.client.logger.set_silent(True)
             self.client.set_transport_security(True).set_verify_certificates(True)
-            self.client.set_max_attempts(config.attempts)
+            self.client.set_max_attempts(1)  # No hidden SDK consensus retries.
             self.client.set_grpc_deadline(config.timeout_seconds)
             self.client.set_request_timeout(config.timeout_seconds)
+            _disable_native_retries(self.client)
             self.client.set_default_max_query_payment(sdk.Hbar.from_tinybars(config.fee_tinybars))
-            self.client.set_operator(sdk.AccountId.from_string(account), sdk.PrivateKey.from_string(secret))
+            signer = _Signer(sdk.PrivateKey.from_string(secret))
+            self.client.set_operator_with(sdk.AccountId.from_string(account), signer.public_key, signer)
+            self._route = _TestnetRoute(self.client)
             self.operator_id = str(self.client.operator.account_id)
             self.public_key = self.client.operator_public_key.to_string_raw()
         except Exception:  # noqa: BLE001 - SDK errors may contain secrets; sanitize boundary
@@ -206,11 +299,23 @@ class ExperimentalHieroBackend:
     def _execute(self, transaction, config):
         config.validate()
         try:
+            self._route.validate(self.client)
+            _disable_native_retries(self.client)
             transaction.transaction_fee = config.fee_tinybars
-            transaction.set_max_attempts(config.attempts)
+            transaction.set_max_attempts(1)  # Shared boundary owns the total send budget.
             transaction.freeze_with(self.client).sign_with_operator(self.client)
-            # SDK retries the same frozen transaction identity; no new tx on timeout.
-            response = transaction.execute(self.client, timeout=config.timeout_seconds, wait_for_receipt=False)
+            transaction._get_method = _SendGuard(config, transaction._get_method,
+                                                  lambda: self._route.validate(self.client)).method_for
+            for attempt in range(config.attempts):
+                try:
+                    self._route.validate(self.client)  # Before SDK discovery/channel access, including retries.
+                    response = transaction.execute(self.client, timeout=config.timeout_seconds, wait_for_receipt=False)
+                    break
+                except Exception as error:
+                    cause = getattr(error, "last_error", error)
+                    if getattr(cause, "status", None) not in {12, 67, 69} or attempt + 1 == config.attempts:
+                        raise
+                    time.sleep(config.retry_delay_ms / 1000)
             receipt = response.get_receipt(self.client, timeout=config.timeout_seconds, validate_status=True)
             return {"status": int(receipt.status), "transaction_id": str(response.transaction_id),
                     "topic_id": str(receipt.topic_id) if receipt.topic_id else None,
@@ -224,8 +329,17 @@ class ExperimentalHieroBackend:
         return self._execute(tx, config)
 
     def submit(self, topic, payload, config):
+        config.validate()
+        topic = _topic_id(topic)
+        if not isinstance(payload, bytes) or not 0 < len(payload) <= 1024:
+            raise HederaError("HCS payload must be 1..1024 bytes; chunking is disabled")
+        _require_no_custom_fees(_read_mirror(config, self.mirror, f"/api/v1/topics/{topic}"), topic)
         tx = (self.sdk.TopicMessageSubmitTransaction().set_topic_id(self.sdk.TopicId.from_string(topic))
               .set_message(payload))
+        # Nonempty payer allowance: zero HBAR; no token denomination is authorized.
+        tx.set_custom_fee_limits([self.sdk.CustomFeeLimit(
+            payer_id=self.client.operator.account_id,
+            custom_fees=[self.sdk.CustomFixedFee(amount=0, denominating_token_id=None)])])
         return self._execute(tx, config)
 
     def signed_record(self, payload):

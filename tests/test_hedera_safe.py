@@ -34,6 +34,8 @@ def session():
     mirror = Mock()
     mirror.get.return_value = {"topic_id": "0.0.123", "memo": "hedera-day1",
                                "submit_key": {"key": FakeBackend.public_key},
+                               "admin_key": {"key": FakeBackend.public_key},
+                               "custom_fees": {"fixed_fees": []},
                                "payer_account_id": "0.0.456", "sequence_number": 1, "message": base64.b64encode(b"record").decode()}
     original = mirror.get.return_value
     def respond(path):
@@ -48,25 +50,24 @@ def session():
 def test_default_testnet(monkeypatch):
     monkeypatch.delenv("HEDERA_NETWORK", raising=False)
     assert Config.from_env().network == "testnet"
+    assert Config().network == "testnet"
     assert Config().mirror == "https://testnet.mirrornode.hedera.com"
 
 
 def test_mainnet_guard(monkeypatch):
     monkeypatch.delenv("RADIX_HEDERA_MAINNET_ENABLED", raising=False)
-    with pytest.raises(HederaError, match="RADIX"):
+    with pytest.raises(HederaError, match="testnet"):
         Session(Config(network="mainnet"), FakeBackend())
-    monkeypatch.setenv("RADIX_HEDERA_MAINNET_ENABLED", "TRUE")
+    monkeypatch.setenv("RADIX_HEDERA_MAINNET_ENABLED", "true")
     with pytest.raises(HederaError):
         Config(network="mainnet").validate()
 
 
-def test_runtime_mainnet_revocation(monkeypatch, session):
-    monkeypatch.setenv("RADIX_HEDERA_MAINNET_ENABLED", "true")
-    session.config = Config(network="mainnet")
-    monkeypatch.delenv("RADIX_HEDERA_MAINNET_ENABLED")
-    with pytest.raises(HederaError, match="RADIX"):
+def test_runtime_network_change(monkeypatch, session):
+    monkeypatch.setenv("HEDERA_NETWORK", "mainnet")
+    with pytest.raises(HederaError, match="testnet"):
         session.submit("0.0.123", b"record")
-    with pytest.raises(HederaError, match="RADIX"):
+    with pytest.raises(HederaError, match="testnet"):
         session.create_topic()
 
 
@@ -99,23 +100,34 @@ def test_topic_readback(session):
 
 
 @pytest.mark.parametrize("field,value", [("topic_id", "0.0.999"), ("memo", "different"),
-                                        ("submit_key", {"key": "different"})])
+                                        ("submit_key", {"key": "different"}),
+                                        ("admin_key", {"key": "different"}), ("admin_key", None)])
 def test_topic_mismatch(session, field, value):
     session.mirror.get.return_value[field] = value
     with pytest.raises(HederaError, match="metadata mismatch"):
         session.create_topic()
 
 
+@pytest.mark.parametrize("field", ["admin_key", "submit_key"])
+def test_missing_security_key(session, field):
+    session.mirror.get.return_value.pop(field)
+    with pytest.raises(HederaError, match="metadata mismatch"):
+        session.create_topic()
+
+
 def test_submit_bytes(session):
     assert session.submit("0.0.123", b"record")["data"] == b"record"
-    session.mirror.get.assert_called_once_with("/api/v1/topics/0.0.123/messages/1")
+    assert session.mirror.get.call_args_list[-1].args == ("/api/v1/topics/0.0.123/messages/1",)
+    assert session.mirror.get.call_count == 2
 
 
 @pytest.mark.parametrize("changes", [{"message": base64.b64encode(b"tampered").decode()},
                                    {"sequence_number": 2}, {"topic_id": "0.0.321"},
                                    {"payer_account_id": "0.0.999"}, {"message": "%%%"}])
 def test_message_mismatch(session, changes):
-    session.mirror.get.return_value.update(changes)
+    state = session.mirror.get.return_value.copy()
+    observed = {**state, **changes}
+    session.mirror.get.side_effect = [state, observed]
     with pytest.raises(HederaError):
         session.submit("0.0.123", b"record")
 
@@ -125,7 +137,7 @@ def test_receipt_failure(session, operation):
     setattr(session.backend, operation, Mock(return_value={"status": 23, "topic_id": "0.0.123", "sequence": 1}))
     with pytest.raises(HederaError, match="SUCCESS"):
         session.create_topic() if operation == "create_topic" else session.submit("0.0.123", b"record")
-    session.mirror.get.assert_not_called()
+    assert session.mirror.get.call_count == (1 if operation == "submit" else 0)
 
 
 def test_mirror_retry_bound(session):
@@ -138,10 +150,10 @@ def test_mirror_retry_bound(session):
 def test_mirror_eventual_consistency_no_resubmit(session):
     session.backend.submit = Mock(wraps=session.backend.submit)
     result = session.mirror.get.return_value
-    session.mirror.get.side_effect = [MirrorPending(), result]
+    session.mirror.get.side_effect = [result, MirrorPending(), result]
     assert session.submit("0.0.123", b"record")["mirror_confirmed"]
     session.backend.submit.assert_called_once()
-    assert session.mirror.get.call_count == 2
+    assert session.mirror.get.call_count == 3
 
 
 def test_ambiguous_write_never_resubmitted(session):
@@ -149,7 +161,7 @@ def test_ambiguous_write_never_resubmitted(session):
     with pytest.raises(HederaError):
         session.submit("0.0.123", b"record")
     session.backend.submit.assert_called_once()
-    session.mirror.get.assert_not_called()
+    assert session.mirror.get.call_count == 1
 
 
 @pytest.mark.parametrize("topic,payload", [("0.0.0", b"x"), ("../../x", b"x"),
@@ -162,7 +174,8 @@ def test_input_limits(session, topic, payload):
 def test_sdk_transaction_policy():
     # Contract fake exposes SDK method names; no signing material is created.
     backend = object.__new__(ExperimentalHieroBackend)
-    backend.client = object()
+    backend.client = SimpleNamespace(network=SimpleNamespace(nodes=[]))
+    backend._route = Mock()
     receipt = SimpleNamespace(status=22, topic_id=None, topic_sequence_number=1)
     response = Mock(transaction_id="fake-transaction")
     response.get_receipt.return_value = receipt
@@ -172,7 +185,7 @@ def test_sdk_transaction_policy():
     transaction.execute.return_value = response
     assert backend._execute(transaction, Config())["status"] == 22
     assert transaction.transaction_fee == 100_000_000
-    transaction.set_max_attempts.assert_called_once_with(3)
+    transaction.set_max_attempts.assert_called_once_with(1)
     transaction.freeze_with.assert_called_once_with(backend.client)
     transaction.sign_with_operator.assert_called_once_with(backend.client)
     transaction.execute.assert_called_once_with(backend.client, timeout=10, wait_for_receipt=False)
@@ -181,7 +194,8 @@ def test_sdk_transaction_policy():
 
 def test_sdk_error_redaction():
     backend = object.__new__(ExperimentalHieroBackend)
-    backend.client = object()
+    backend.client = SimpleNamespace(network=SimpleNamespace(nodes=[]))
+    backend._route = Mock()
     transaction = Mock()
     transaction.freeze_with.side_effect = ValueError("sensitive runtime marker")
     with pytest.raises(HederaError) as error:
