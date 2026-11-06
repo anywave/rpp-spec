@@ -1,0 +1,62 @@
+[
+  {
+    "algorithm": "ed25519",
+    "boundary": "direct",
+    "cases": 78,
+    "covered_initializer_lines": 20,
+    "uncovered_initializer_lines": [],
+    "product_frames_checked": 0,
+    "failed_signals": 0,
+    "key_leaks": 0,
+    "live_local_key_leaks": 0,
+    "open_escaped_handles": 0,
+    "native_entry": true,
+    "registry_empty": true
+  },
+  {
+    "algorithm": "ed25519",
+    "boundary": "factory",
+    "cases": 165,
+    "covered_initializer_lines": 19,
+    "uncovered_initializer_lines": [
+      125
+    ],
+    "product_frames_checked": 292,
+    "failed_signals": 0,
+    "key_leaks": 0,
+    "live_local_key_leaks": 0,
+    "open_escaped_handles": 0,
+    "native_entry": true,
+    "registry_empty": true
+  },
+  {
+    "algorithm": "ecdsa",
+    "boundary": "direct",
+    "cases": 78,
+    "covered_initializer_lines": 20,
+    "uncovered_initializer_lines": [],
+    "product_frames_checked": 0,
+    "failed_signals": 0,
+    "key_leaks": 0,
+    "live_local_key_leaks": 0,
+    "open_escaped_handles": 0,
+    "native_entry": true,
+    "registry_empty": true
+  },
+  {
+    "algorithm": "ecdsa",
+    "boundary": "factory",
+    "cases": 165,
+    "covered_initializer_lines": 19,
+    "uncovered_initializer_lines": [
+      125
+    ],
+    "product_frames_checked": 292,
+    "failed_signals": 0,
+    "key_leaks": 0,
+    "live_local_key_leaks": 0,
+    "open_escaped_handles": 0,
+    "native_entry": true,
+    "registry_empty": true
+  }
+]

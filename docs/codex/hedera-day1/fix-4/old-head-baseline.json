@@ -1,0 +1,30 @@
+[
+  {
+    "algorithm": "ed25519",
+    "boundary": "direct",
+    "cases": 89,
+    "covered_initializer_lines": 23,
+    "uncovered_initializer_lines": [],
+    "product_frames_checked": 138,
+    "failed_signals": 0,
+    "key_leaks": 98,
+    "live_local_key_leaks": 1714,
+    "open_escaped_handles": 21,
+    "native_entry": false,
+    "registry_empty": true
+  },
+  {
+    "algorithm": "ecdsa",
+    "boundary": "direct",
+    "cases": 89,
+    "covered_initializer_lines": 23,
+    "uncovered_initializer_lines": [],
+    "product_frames_checked": 138,
+    "failed_signals": 0,
+    "key_leaks": 98,
+    "live_local_key_leaks": 1714,
+    "open_escaped_handles": 21,
+    "native_entry": false,
+    "registry_empty": true
+  }
+]
