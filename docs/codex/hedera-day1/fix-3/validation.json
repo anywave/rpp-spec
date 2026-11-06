@@ -1,0 +1,134 @@
+{
+  "task": "HEDERA-DAY1-FIX-3",
+  "finding_closed": "N2",
+  "date": "2026-11-06",
+  "review_head": "4b9a4efe0560c48fea7609a04dba646f51c0242e",
+  "reviewed_parent": "42e7c75a4f742e830adc7c37fe2b6a504c97a6ee",
+  "source_head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+  "source_sha256": {
+    "rpp/adapters/hedera_safe.py": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+    "rpp/adapters/_hedera_signer_native.c": "e3fd22111baf81ab5b1c80d4426085b63e6cd6f076144957edd0a952c87b48f9",
+    "scripts/build_hedera_native.py": "7210cd705f15dcd00528111067f51bd970caa9b2b34224d90b372d2c12c1f01e",
+    "scripts/hatch_hedera_native.py": "44a3424771a433dc2cb69a972270e822f2e6390823a15e842b56d916c8cbeee6",
+    "scripts/hedera_python_mutations.py": "ea70736b78f80e9837826a3cab9c8641793f501558ad911668d67dbf82a4fac9",
+    "tests/test_hedera_sdk_security.py": "f40ed17a8b1a29872e3be408ddbf295268ac84616039f5b08a03ef23dc1eba31",
+    "pyproject.toml": "7dcba3490e29f0599b7ad617e90c68dd89c8529e1f1b9e69aea6599ba7817ba1"
+  },
+  "tests": {
+    "focused": 244,
+    "full": 1500,
+    "skipped": 0,
+    "named_mutants_killed": 49,
+    "actual_sigint_points": 270,
+    "sdk_diagnostic_cases": 106,
+    "sdk_lifecycle_cycles": 256
+  },
+  "optional_native_build": "GIL-enabled CPython main interpreter; tested Linux/CPython3.12.14; default pure wheel fails closed for signing without helper",
+  "mainnet_allowed": false,
+  "custom_fees_allowed": false,
+  "live_testnet": "UNPROVED; no credentials or ledger writes",
+  "delivery": "one ordinary push to primary codex/HEDERA-DAY1 only; report-inclusive remote head provided in final delivery",
+  "independent_evidence_summaries": {
+    "n2-owned-matrix-result": {
+      "raw_evidence_sha256": "f3334b552adb456bfa9fb9e4ff86fee1ff632ddec34cc7b82b17b8c71b41a46d",
+      "summary": {
+        "status": "PASS",
+        "head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+        "sha256": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+        "mode_event_counts": {
+          "init": {
+            "all": 72,
+            "opcodes": 57
+          },
+          "release": {
+            "all": 27,
+            "opcodes": 22
+          },
+          "del": {
+            "all": 88,
+            "opcodes": 74
+          },
+          "close": {
+            "all": 83,
+            "opcodes": 70
+          }
+        },
+        "interruption_cases": 270,
+        "actual_sigint_cases": 270,
+        "failure_count": 0,
+        "native_capsule_gc_referents_empty": true,
+        "scope": "No keys generated; harmless receiver weakrefs only; actual SIGINT at every observed line/opcode ownership boundary; no core or native pointer reads."
+      }
+    },
+    "f3-diagnostics-result": {
+      "raw_evidence_sha256": "aecc8fb5d15ec0024c0c7efadfc58edba0601c52f71226660e0545fc93966107",
+      "summary": {
+        "status": "PASS",
+        "source_head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+        "source_sha256": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+        "cases": 106,
+        "failing_cases": 0,
+        "connection_attempts": 0
+      }
+    },
+    "f3-attack-result": {
+      "raw_evidence_sha256": "da90afec8c2e5774711a5bad8b25b800b9d946d15942b7abbbb1a97daffcca89",
+      "summary": {
+        "status": "PASS",
+        "source_head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+        "source_sha256": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+        "observations": {
+          "rendered": 2004,
+          "protocol_calls": 125,
+          "protocol_refusals": 53,
+          "dir_attributes": 575,
+          "bound_method_self": 469,
+          "function_closure_checks": 194,
+          "copied": 7
+        },
+        "graph_objects": 584,
+        "old_getstate_controls": {
+          "repr_getstate_leak_detected": true,
+          "json_getstate_leak_detected": true
+        },
+        "weakref_denied": true,
+        "signature_verifies": true,
+        "connection_attempts": 0,
+        "secret_leak_count": 0,
+        "scope": "Public object state/serialization, dir-generated attributes, bound self/defaults/closures, rendered function globals and capsule values; excludes explicit native pointer dereference and process/module/environment memory traversal."
+      }
+    },
+    "f3-lifecycle-result": {
+      "raw_evidence_sha256": "61c8689bfc12a11cbce807eda2e88b67880688e5fff8d9d28832ca691153ad78",
+      "summary": {
+        "status": "PASS",
+        "source_head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+        "source_sha256": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+        "results": {
+          "stress_sign_verify_gc_cycles": 256,
+          "repeated_del_and_saved_capsule_refused": true,
+          "capsule_allocation_failure_releases_key": true,
+          "registry_insertion_failure_releases_key": true,
+          "unsupported_runtime_and_missing_api_refused": true,
+          "concurrent_close_preserves_active_sign_and_releases_after": true
+        },
+        "registry_returns_to_baseline": true,
+        "connection_attempts": 0,
+        "scope": "Native pointer dereference is performed only by production code; no probe exports or formats key material."
+      }
+    },
+    "n2-final-source-identities": {
+      "raw_evidence_sha256": "afe026ae188432f3cb0887d20cc5dfc713b5ed91334410a2eca3c461fd564fce",
+      "summary": {
+        "head": "28f0335aab6626fe3d3a73f937449642fd6a4a12",
+        "sha256": {
+          "rpp/adapters/hedera_safe.py": "229777966b0126153e68e892b2a6def669856c599fd2aa62b97f9424f62ce6ac",
+          "rpp/adapters/_hedera_signer_native.c": "e3fd22111baf81ab5b1c80d4426085b63e6cd6f076144957edd0a952c87b48f9",
+          "scripts/build_hedera_native.py": "7210cd705f15dcd00528111067f51bd970caa9b2b34224d90b372d2c12c1f01e",
+          "scripts/hatch_hedera_native.py": "44a3424771a433dc2cb69a972270e822f2e6390823a15e842b56d916c8cbeee6"
+        },
+        "current_blobs_match": true
+      }
+    }
+  }
+}
