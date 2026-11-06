@@ -29,13 +29,34 @@ MUTATIONS = [
     ("concrete-send-authorization", 'self.config.validate()  # Concrete consensus RPC authorization boundary.', 'pass  # Authorization removed', "test_actual_sdk_revoke_at_channel_boundary"),
     ("concrete-route-pin", 'self.route_check()  # Pin actual node routing, not only the SDK network label.', 'pass  # Route pin removed', "test_actual_sdk_public_routing_change_refused"),
     ("concrete-send-budget", 'if self.remaining <= 0:', 'if False:', "test_actual_sdk_rpc_guard_budget"),
-    ("opaque-signer-repr", 'return "<HederaSigner redacted>"', 'return repr(self.__operation)', "test_actual_sdk_signer_inspection_is_redacted"),
+    ("native-opaque-store", '_SIGNING_OPERATIONS[id(self)] = capsule', '_SIGNING_OPERATIONS[id(self)] = operation', "test_actual_sdk_signer_public_protocol_graph"),
+    ("no-key-slot", '__slots__ = ("_public_key",)\n\n    def __init__(self, key):', '__slots__ = ("_public_key", "__operation")\n\n    def __init__(self, key):\n        self.__operation = key.sign', "test_actual_sdk_signer_public_protocol_graph"),
+    ("state-get-refusal", 'raise TypeError("Hedera signer state cannot be serialized")', 'return {}', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("state-set-refusal", 'raise TypeError("Hedera signer state cannot be restored")', 'return None', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("reduce-refusal", 'raise TypeError("Hedera signer reduction cannot be serialized")', 'return None', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("reduce-ex-refusal", 'raise TypeError("Hedera signer cannot be serialized")', 'return None', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("copy-refusal", 'raise TypeError("Hedera signer cannot be copied")', 'return self', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("deepcopy-refusal", 'raise TypeError("Hedera signer cannot be deep-copied")', 'return self', "test_actual_sdk_signer_explicit_protocol_refusal"),
+    ("closed-native-invoke", 'if pointer == 1:\n            raise HederaError("Hedera signer is closed")', 'if False:\n            raise HederaError("Hedera signer is closed")', "test_actual_sdk_closed_capsule_never_dereferences"),
+    ("closed-native-release", 'if pointer == 1:\n            return', 'if False:\n            return', "test_actual_sdk_double_release_never_unpins_tombstone"),
+    ("capsule-tombstone", 'api.invalidate(capsule, 1)', 'pass', "test_actual_sdk_saved_capsule_is_invalidated"),
+    ("native-new-rollback", 'except BaseException:\n                api.unpin(id(operation))\n                raise', 'except BaseException:\n                pass\n                raise', "test_actual_sdk_native_initialization_rollback"),
+    ("native-store-rollback", 'except BaseException:\n                _release_capsule(capsule)\n                raise', 'except BaseException:\n                pass\n                raise', "test_actual_sdk_native_initialization_rollback"),
+    ("native-cpython-only", 'if sys.implementation.name != "cpython":', 'if False:', "test_actual_sdk_native_support_fails_closed"),
+    ("native-owner-cleanup", 'if capsule is not None:\n                    _release_capsule(capsule)', 'if capsule is not None:\n                    pass', "test_actual_sdk_native_signer_lifecycle"),
+    ("native-exit-cleanup", 'atexit.register(_close_signers)', 'pass', "test_actual_sdk_native_atexit_cleanup"),
     ("admin-readback", '(state.get("admin_key") or {}).get("key") != self.backend.public_key', 'False', "test_topic_mismatch"),
     ("redaction", 'HederaError("Hedera submission unconfirmed; reconcile before retrying")', 'HederaError(str(__import__("sys").exception()))', "test_sdk_error_redaction"),
 ]
 
 
 def main():
+    try:
+        import resource
+    except ImportError:
+        pass
+    else:
+        resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     for label, before, after, test in MUTATIONS:
         module = "hedera.py" if label == "environment-only" else "hedera_safe.py"
         source = (ROOT / "rpp/adapters" / module).read_text()
@@ -52,7 +73,8 @@ def main():
             result = subprocess.run([sys.executable, "-m", "pytest", "-q", f"{test_file}::{test}"],
                                     cwd=target, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
                                     capture_output=True, text=True, timeout=30, check=False)
-            if result.returncode != 1 or "FAILED " + test_file + "::" + test not in result.stdout:
+            assertion = "AssertionError" in result.stdout or "DID NOT RAISE" in result.stdout
+            if result.returncode != 1 or "FAILED " + test_file + "::" + test not in result.stdout or not assertion:
                 raise RuntimeError(f"Mutation {label} survived or did not fail its named assertion")
             print(f"KILLED {label}: {test}")
 

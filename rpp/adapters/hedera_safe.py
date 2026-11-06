@@ -6,13 +6,18 @@ No credential files, dotenv loading, arbitrary mirror URLs, or secret logging.
 """
 from __future__ import annotations
 
+import atexit
 import base64
+import ctypes
 import functools
 import json
 import os
 import re
+import sys
+import threading
 import time
 from dataclasses import dataclass
+from types import SimpleNamespace
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, build_opener
 
@@ -25,23 +30,135 @@ class MirrorPending(Exception):
     """Retryable mirror lag or transient read failure."""
 
 
-class _Signer:
-    """Opaque callback: no bound PrivateKey repr or serializable credential state."""
+# Instance/registry state never contains a Python signing operation. Unnamed
+# capsules hold native references; no C destructor, weakref callback or key closure.
+_SIGNING_OPERATIONS = {}
+_SIGNER_LOCK = threading.RLock()
+_NATIVE_SIGNER_API = None
 
-    __slots__ = ("__operation", "public_key")
+
+def _native_signer_api():
+    global _NATIVE_SIGNER_API
+    if sys.implementation.name != "cpython":
+        raise HederaError("Experimental Python signing requires CPython capsule support")
+    if _NATIVE_SIGNER_API is None:
+        try:
+            library = ctypes.PyDLL(None)
+            new = library.PyCapsule_New
+            new.argtypes, new.restype = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p], ctypes.py_object
+            pointer = library.PyCapsule_GetPointer
+            pointer.argtypes, pointer.restype = [ctypes.py_object, ctypes.c_char_p], ctypes.c_void_p
+            invalidate = library.PyCapsule_SetPointer
+            invalidate.argtypes, invalidate.restype = [ctypes.py_object, ctypes.c_void_p], ctypes.c_int
+            pin, unpin = library.Py_IncRef, library.Py_DecRef
+            for function in (pin, unpin):
+                function.argtypes, function.restype = [ctypes.c_void_p], None
+            _NATIVE_SIGNER_API = SimpleNamespace(new=new, pointer=pointer, invalidate=invalidate,
+                                                pin=pin, unpin=unpin)
+        except (AttributeError, OSError, TypeError):
+            raise HederaError("CPython capsule support unavailable; local signing refused") from None
+    return _NATIVE_SIGNER_API
+
+
+def _release_capsule(capsule):
+    api = globals().get("_NATIVE_SIGNER_API")
+    if api is None:  # Late interpreter teardown: normal release already ran via atexit.
+        return
+    with _SIGNER_LOCK:
+        pointer = api.pointer(capsule, None)
+        if pointer == 1:
+            return
+        api.invalidate(capsule, 1)  # Tombstone saved capsule references before releasing their operation.
+        api.unpin(pointer)
+
+
+def _invoke_capsule(capsule, payload):
+    api = _native_signer_api()
+    with _SIGNER_LOCK:
+        pointer = api.pointer(capsule, None)
+        if pointer == 1:
+            raise HederaError("Hedera signer is closed")
+        operation = ctypes.cast(pointer, ctypes.py_object).value
+    return operation(payload)  # Local strong reference survives concurrent close; never return the operation.
+
+
+def _close_signers():
+    operations, lock = globals().get("_SIGNING_OPERATIONS"), globals().get("_SIGNER_LOCK")
+    if operations is None or lock is None or globals().get("_NATIVE_SIGNER_API") is None:
+        return
+    with lock:
+        for capsule in tuple(operations.values()):
+            _release_capsule(capsule)
+        operations.clear()
+
+
+atexit.register(_close_signers)
+
+
+class _Signer:
+    """Opaque callable; public/slot state contains only the public key."""
+
+    __slots__ = ("_public_key",)
 
     def __init__(self, key):
-        self.__operation = key.sign
-        self.public_key = key.public_key()
+        api = _native_signer_api()
+        with _SIGNER_LOCK:
+            if id(self) in _SIGNING_OPERATIONS:
+                raise TypeError("Hedera signer cannot be reinitialized")
+            self._public_key = key.public_key()
+            operation = key.sign
+            api.pin(id(operation))
+            try:
+                capsule = api.new(id(operation), None, None)
+            except BaseException:
+                api.unpin(id(operation))
+                raise
+            try:
+                _SIGNING_OPERATIONS[id(self)] = capsule
+            except BaseException:
+                _release_capsule(capsule)
+                raise
+
+    @property
+    def public_key(self):
+        return self._public_key
 
     def __call__(self, payload):
-        return self.__operation(payload)
+        with _SIGNER_LOCK:
+            capsule = _SIGNING_OPERATIONS.get(id(self))
+            if capsule is None:
+                raise HederaError("Hedera signer is closed")
+        return _invoke_capsule(capsule, payload)
+
+    def __del__(self):
+        operations = globals().get("_SIGNING_OPERATIONS")
+        lock = globals().get("_SIGNER_LOCK")
+        if operations is not None and lock is not None and globals().get("_NATIVE_SIGNER_API") is not None:
+            with lock:
+                capsule = operations.pop(id(self), None)
+                if capsule is not None:
+                    _release_capsule(capsule)
 
     def __repr__(self):
         return "<HederaSigner redacted>"
 
+    def __getstate__(self):
+        raise TypeError("Hedera signer state cannot be serialized")
+
+    def __setstate__(self, state):
+        raise TypeError("Hedera signer state cannot be restored")
+
+    def __reduce__(self):
+        raise TypeError("Hedera signer reduction cannot be serialized")
+
     def __reduce_ex__(self, protocol):
         raise TypeError("Hedera signer cannot be serialized")
+
+    def __copy__(self):
+        raise TypeError("Hedera signer cannot be copied")
+
+    def __deepcopy__(self, memo):
+        raise TypeError("Hedera signer cannot be deep-copied")
 
 
 class _TestnetRoute:

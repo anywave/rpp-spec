@@ -22,13 +22,32 @@ is no mainnet client, mirror URL, enable flag or configuration path. A historica
 enable environment variable has no effect. The backend calls only
 `Client.for_testnet()` and the mirror origin is fixed to testnet.
 `HEDERA_OPERATOR_ID` and `HEDERA_OPERATOR_KEY` are read only at client creation.
-SDK `set_operator_with` receives an opaque callable signer; the SDK client and
-its Operator retain no PrivateKey object. The slot-only signer has a constant
-redacted representation and refuses pickling. Ordinary repr/str/vars, JSON,
-pickle and logging of the actual client/operator/signed transaction are checked
-for leaks. This is an in-process inspection boundary, not protection against
-hostile reflective access to private Python slots. Constructor credentials are
-rejected, including in mock mode.
+SDK `set_operator_with` receives an opaque callable signer. Its only instance
+slot contains the public key; no raw key, signing method, weakref callback,
+closure or default argument appears in instance state. The original SDK signing
+callback remains behind an unnamed CPython native capsule in a private registry.
+Registry and function-global representations contain opaque handles. The SDK
+client, Operator and retained transaction signers expose the same safe callable.
+`__getstate__`, `__setstate__`, both reduction hooks and both copy hooks explicitly
+refuse; even `object.__getstate__` can return only public-key state. Repr/str/vars,
+dir/member discovery, bound method self/defaults/closures, JSON, all pickle
+protocols, copy/deepcopy, logging and direct formatting of function globals are
+checked on actual SDK objects. Constructor credentials remain rejected.
+
+Local experimental signing requires CPython with the checked capsule C API;
+unsupported runtimes/API availability fail closed. No native build or SDK
+replacement is introduced. Manual native references are balanced under a lock;
+release first tombstones the capsule, so saved handles refuse instead of touching
+freed memory. Construction failures roll back ownership, destructor cleanup is
+idempotent, in-flight calls retain a strong reference, and normal interpreter
+exit releases the registry before module teardown. Capsules have no C destructor
+callback or name-buffer lifetime. Tests verify GC/stress, failure rollback,
+concurrent close, stale handles and interpreter cleanup.
+
+This guards supported object inspection/serialization. Deliberate native C API
+pointer dereferencing, arbitrary process-memory inspection and direct access to
+the process environment remain outside this in-process boundary; it provides no
+hardware or separate-process isolation.
 
 `HEDERA_MAX_FEE_TINYBARS` defaults to and cannot exceed 100000000 (1 test HBAR per
 transaction); SDK queries use the same maximum. `HEDERA_MAX_ATTEMPTS` defaults to
@@ -85,6 +104,9 @@ and fake discovery/channel/RPC endpoints. Synthetic keys are generated in memory
 at runtime, never written or printed; even failing assertions/mutations report
 only leak booleans. Socket connections are refused. These checks establish wire
 and boundary behavior; they are not deployed-consensus or live testnet proof.
+Key-bearing test/mutation processes disable core dumps. Native guard-removal
+controls assert before stale-pointer use or mock the cast/decrement operation;
+crashes, import failures and timeouts do not count as killed mutations.
 
 For legacy `silver-pancake/hedera`, replace automatic success-on-stub fallback with
 this explicit policy or the official write boundary. Keep AVT, Vizor and Soul NFT

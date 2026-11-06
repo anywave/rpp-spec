@@ -4,18 +4,35 @@ No socket can connect. Key comparisons reduce to booleans before assertions so a
 failing regression/mutation cannot disclose synthetic material through pytest.
 """
 import base64
+import copy
+import copyreg
+import gc
 import io
 import json
 import logging
 import pickle
 import pprint
 import socket
+import subprocess
+import sys
+import threading
+import types
+import weakref
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
 
 from rpp.adapters import hedera_safe as safe
+
+
+@pytest.fixture(autouse=True)
+def no_native_core_dump():
+    try:
+        import resource
+    except ImportError:  # Platforms without Unix core dumps.
+        return
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
 
 @pytest.fixture
@@ -334,3 +351,278 @@ def test_actual_sdk_public_routing_change_refused(actual, monkeypatch, phase, ch
         probe.backend.submit("0.0.123", b"record", probe.config)
     assert len(probe.sends) == (1 if phase == "retry" else 0)
     assert probe.connections == []
+
+
+@pytest.mark.parametrize("protocol", ["getstate", "setstate", "reduce", "reduce_ex", "copy", "deepcopy"])
+def test_actual_sdk_signer_explicit_protocol_refusal(actual, protocol):
+    signer = actual().client.operator.signer
+    actions = {"getstate": signer.__getstate__, "setstate": lambda: signer.__setstate__({}),
+               "reduce": signer.__reduce__, "reduce_ex": lambda: signer.__reduce_ex__(5),
+               "copy": lambda: copy.copy(signer), "deepcopy": lambda: copy.deepcopy(signer)}
+    with pytest.raises(TypeError, match="Hedera signer"):
+        actions[protocol]()
+
+
+def test_actual_sdk_signer_public_protocol_graph(actual):
+    probe = actual()
+    signer = probe.client.operator.signer
+    globals_text = repr(signer.__call__.__func__.__globals__)
+    leaked = probe.contains_secret(globals_text)
+    assert not leaked, "Retained native operations must not disclose keys through function globals formatting"
+    # No send is required to inspect retained SDK signing state. This also makes
+    # the raw-operation storage ablation fail a leak assertion before invocation.
+    transaction = probe.sdk.TopicCreateTransaction().set_memo("public-signer-probe")
+    transaction.freeze_with(probe.client).sign_with_operator(probe.client)
+    roots = [probe.backend, probe.client, probe.client.operator, signer, transaction,
+             transaction._signers, *safe._SIGNING_OPERATIONS.values()]
+
+    def inspect(value):
+        for render in (str, repr, pprint.pformat, lambda x: json.dumps(x, default=str),
+                       lambda x: json.dumps(x, default=vars), pickle.dumps):
+            try:
+                rendered = render(value)
+            except Exception as error:  # noqa: BLE001 - inspect refusal text without disclosing it.
+                rendered = str(error)
+            leaked = probe.contains_secret(rendered)
+            assert not leaked, "Public signer protocol graph disclosed synthetic key material"
+
+    def protocol_call(action):
+        try:
+            result = action()
+        except Exception as error:  # noqa: BLE001 - any protocol refusal must itself remain safe.
+            result = str(error)
+        inspect(result)
+        return result
+
+    for target in roots:
+        inspect(target)
+        protocol_call(lambda value=target: vars(value))
+        for name, arguments in (("__getstate__", ()), ("__reduce__", ()), ("__reduce_ex__", (5,))):
+            method = getattr(target, name, None)
+            if method is not None:
+                protocol_call(lambda bound=method, args=arguments: bound(*args))
+        protocol_call(lambda value=target: copy.copy(value))
+        protocol_call(lambda value=target: copy.deepcopy(value))
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            protocol_call(lambda value=target, p=protocol: pickle.dumps(value, protocol=p))
+    for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+        with pytest.raises(TypeError):
+            pickle.dumps(signer, protocol=protocol)
+        with pytest.raises(TypeError):
+            object.__reduce_ex__(signer, protocol)
+    with pytest.raises(TypeError):
+        object.__reduce__(signer)
+    for protocol in (0, 1):
+        with pytest.raises(TypeError):
+            copyreg._reduce_ex(signer, protocol)
+    inspect(object.__getstate__(signer))  # Base fallback can expose only public key state.
+    with pytest.raises(TypeError):
+        weakref.ref(signer)
+
+    queue, seen, retained = [(signer, 0), (probe.client.operator, 0), (transaction._signers, 0)], set(), []
+    queue.extend((capsule, 0) for capsule in safe._SIGNING_OPERATIONS.values())
+    while queue:
+        value, depth = queue.pop()
+        if id(value) in seen or depth > 6 or isinstance(value, types.ModuleType):
+            continue
+        seen.add(id(value))
+        retained.append(value)  # Prevent identity reuse from skipping newly discovered bound methods.
+        inspect(value)
+        if isinstance(value, dict):
+            queue.extend((item, depth + 1) for pair in value.items() for item in pair)
+        elif isinstance(value, (tuple, list, set, frozenset)):
+            queue.extend((item, depth + 1) for item in value)
+        elif isinstance(value, (str, bytes, bytearray, int, float, bool, type(None))):
+            continue
+        elif isinstance(value, (types.MethodType, types.BuiltinMethodType, types.MethodWrapperType)):
+            queue.append((value.__self__, depth + 1))
+            if hasattr(value, "__func__"):
+                queue.append((value.__func__, depth + 1))
+        elif isinstance(value, types.FunctionType):
+            inspect(value.__globals__)  # Whole mapping must format safely; do not walk process memory/env.
+            queue.extend((item, depth + 1) for item in (value.__defaults__, value.__kwdefaults__))
+            queue.extend((cell.cell_contents, depth + 1) for cell in value.__closure__ or ())
+        elif isinstance(value, type):
+            queue.extend((item.fget if isinstance(item, property) else item, depth + 1)
+                         for item in vars(value).values() if isinstance(item, (property, types.FunctionType)))
+        else:
+            for name in dir(value):
+                if name != "__globals__":
+                    queue.append((getattr(value, name), depth + 1))
+            getter = getattr(value, "__getstate__", None)
+            if getter is not None:
+                queue.append((protocol_call(getter), depth + 1))
+    assert len(seen) > 100
+    assert probe.connections == []
+
+
+def test_actual_sdk_native_signer_lifecycle(actual):
+    probe = actual()
+    gc.collect()
+    baseline = len(safe._SIGNING_OPERATIONS)
+    for _ in range(128):
+        key = probe.sdk.PrivateKey.generate_ed25519()
+        reference = weakref.ref(key)
+        signer = safe._Signer(key)
+        del key
+        alive = reference() is not None
+        assert alive, "Native operation lost ownership"
+        signature = signer(b"native-lifecycle")
+        signer.public_key.verify(signature, b"native-lifecycle")
+        del signer
+        gc.collect()
+        released = reference() is None
+        assert released, "Native operation was not released"
+    assert len(safe._SIGNING_OPERATIONS) == baseline
+
+
+def test_actual_sdk_saved_capsule_is_invalidated(actual):
+    probe = actual()
+    key = probe.sdk.PrivateKey.generate_ed25519()
+    reference = weakref.ref(key)
+    signer = safe._Signer(key)
+    capsule = safe._SIGNING_OPERATIONS[id(signer)]
+    del key
+    signer.__del__()
+    signer.__del__()
+    tombstoned = safe._native_signer_api().pointer(capsule, None) == 1
+    assert tombstoned, "Saved capsule must be invalidated before any stale invocation"
+    safe._release_capsule(capsule)
+    released = reference() is None
+    assert released, "Repeated close retained the operation"
+    with pytest.raises(safe.HederaError, match="closed"):
+        signer(b"closed")
+    with pytest.raises(safe.HederaError, match="closed"):
+        safe._invoke_capsule(capsule, b"closed")
+
+
+def test_actual_sdk_closed_capsule_never_dereferences(actual, monkeypatch):
+    probe = actual()
+    signer = probe.client.operator.signer
+    capsule = safe._SIGNING_OPERATIONS[id(signer)]
+    signer.__del__()
+    cast = Mock(side_effect=AssertionError("Closed native pointer must never be dereferenced"))
+    monkeypatch.setattr(safe.ctypes, "cast", cast)
+    with pytest.raises(safe.HederaError, match="closed"):
+        safe._invoke_capsule(capsule, b"closed")
+    cast.assert_not_called()
+
+
+def test_actual_sdk_double_release_never_unpins_tombstone(actual, monkeypatch):
+    signer = actual().client.operator.signer
+    capsule = safe._SIGNING_OPERATIONS[id(signer)]
+    signer.__del__()
+    unpin = Mock(side_effect=AssertionError("Closed native pointer must never be decreferenced"))
+    monkeypatch.setattr(safe._native_signer_api(), "unpin", unpin)
+    safe._release_capsule(capsule)
+    unpin.assert_not_called()
+
+
+@pytest.mark.parametrize("failure", ["allocation", "store"])
+def test_actual_sdk_native_initialization_rollback(actual, monkeypatch, failure):
+    probe = actual()
+    key = probe.sdk.PrivateKey.generate_ed25519()
+    reference = weakref.ref(key)
+
+    def refuse(*args):
+        raise MemoryError("Synthetic initialization refusal")
+
+    class RejectStore(dict):
+        __setitem__ = refuse
+
+    with monkeypatch.context() as patch:
+        if failure == "allocation":
+            patch.setattr(safe._native_signer_api(), "new", refuse)
+        else:
+            patch.setattr(safe, "_SIGNING_OPERATIONS", RejectStore())
+        with pytest.raises(MemoryError):
+            safe._Signer(key)
+    del key
+    gc.collect()
+    released = reference() is None
+    assert released, "Failed initialization retained native ownership"
+
+
+@pytest.mark.parametrize("unsupported", ["runtime", "api"])
+def test_actual_sdk_native_support_fails_closed(actual, monkeypatch, unsupported):
+    probe = actual()
+    with monkeypatch.context() as patch:
+        patch.setattr(safe, "_NATIVE_SIGNER_API", None)
+        if unsupported == "runtime":
+            patch.setattr(safe.sys, "implementation", SimpleNamespace(name="unsupported"))
+        else:
+            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+        with pytest.raises(safe.HederaError, match="CPython capsule"):
+            safe._Signer(probe.sdk.PrivateKey.generate_ed25519())
+
+
+def test_actual_sdk_native_concurrent_close(actual):
+    probe = actual()
+    entered, release = threading.Event(), threading.Event()
+    results = []
+
+    def construct():
+        key = probe.sdk.PrivateKey.generate_ed25519()
+        operation = key.sign
+
+        def blocked(payload):
+            entered.set()
+            if not release.wait(5):
+                raise RuntimeError("Synthetic synchronization timeout")
+            return operation(payload)
+
+        key.sign = blocked
+        return safe._Signer(key), weakref.ref(key)
+
+    signer, reference = construct()
+    capsule, public_key = safe._SIGNING_OPERATIONS[id(signer)], signer.public_key
+
+    def work():
+        signature = safe._invoke_capsule(capsule, b"concurrent-close")
+        public_key.verify(signature, b"concurrent-close")
+        results.append(True)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    try:
+        assert entered.wait(5)
+        signer.__del__()
+        alive = reference() is not None
+        assert alive, "Concurrent close freed an active operation"
+    finally:
+        release.set()
+        worker.join(5)
+    assert not worker.is_alive() and results == [True]
+    del signer
+    gc.collect()
+    released = reference() is None
+    assert released, "Completed operation retained ownership"
+
+
+def test_actual_sdk_native_atexit_cleanup(actual):
+    # Runtime-generated keys stay inside the child process; only booleans leave.
+    program = '''
+import atexit, gc, json, weakref
+references = []
+def observe():
+    gc.collect()
+    print(json.dumps({"released": all(ref() is None for ref in references),
+                      "remaining": len(safe._SIGNING_OPERATIONS)}))
+atexit.register(observe)
+import hiero_sdk_python as sdk
+from rpp.adapters import hedera_safe as safe
+signers = []
+for index in range(32):
+    key = sdk.PrivateKey.generate_ed25519()
+    references.append(weakref.ref(key))
+    signers.append(safe._Signer(key))
+    del key
+'''
+    environment = {name: value for name, value in safe.os.environ.items()
+                   if name not in {"HEDERA_OPERATOR_KEY", "HEDERA_OPERATOR_ID"}}
+    result = subprocess.run([sys.executable, "-X", "faulthandler", "-c", program],
+                            env=environment, capture_output=True, text=True, timeout=20, check=False)
+    succeeded = result.returncode == 0 and not result.stderr
+    assert succeeded, "Native signer interpreter cleanup failed"
+    outcome = json.loads(result.stdout)
+    assert outcome == {"released": True, "remaining": 0}
