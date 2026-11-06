@@ -1,0 +1,44 @@
+{
+  "task": "HEDERA-DAY1-FIX-4",
+  "date": "2026-11-06",
+  "finding_closed": "N3",
+  "source_head": "679e14d0f22161e882f249481835221614c51a8d",
+  "previous_head": "2e0020c0eef4349480658add57f47bfa2427a70e",
+  "review_head": "4b602c7affe0a18bb332d94acd03c4b04bc1b6fa",
+  "inbox_head": "0e52bca069b619f2ebc849d58f86d6b4547d1452",
+  "source_sha256": {
+    "rpp/adapters/hedera_safe.py": "2cd4a146045008c730e7404a6c6dd827e000eebc65023af16c44306f96473ea5",
+    "rpp/adapters/_hedera_signer_native.c": "003867bc50e54072cb2051d442b6343c2b01feb17997c1bec3a00d5a090b1afd",
+    "tests/hedera_initializer_sigint_probe.py": "2a21ac628b4459b6f87cd68ce45cbb505fa02db531d31b20629371d6f492e9b6",
+    "tests/test_hedera_sdk_security.py": "27278d18552671f1a75eac52d873f2796454cfae5f58f483691d18d11c311970",
+    "scripts/hedera_python_mutations.py": "d921fc15e8b95904a9c8dca5d114a6b2d76c08d944f8f28c668188a062ed9233",
+    "docs/codex/hedera-day1/python/README.md": "8ea4539e9460d49dfebad3f1e0bc22dc716a9278f4dc24a673d230d00819527d"
+  },
+  "tests": {
+    "focused_passed": 251,
+    "full_passed": 1507,
+    "skipped": 0,
+    "named_mutants_killed": 48,
+    "actual_sigint_cases": 486,
+    "direct_initializer_lines_each": 20,
+    "escaped_key_leaks": 0,
+    "live_local_key_leaks": 0,
+    "open_escaped_handles": 0
+  },
+  "rulings": {
+    "testnet_only": true,
+    "custom_fees_refused": true,
+    "live_testnet": "UNPROVED"
+  },
+  "native_requirement": "Rebuild optional helper; GIL-enabled CPython main interpreter; tested CPython3.12.14/Linux; default pure wheel refuses local signing without helper",
+  "delivery": "one ordinary push of primary codex/HEDERA-DAY1 only; final response records report-inclusive remote head",
+  "evidence_sha256": {
+    "RUFF.txt": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "old-head-baseline.json": "109f89a8ff5bd2a2fd3d19bd7893f80a5bc4ca8d8e38a18c588303a28baf591c",
+    "FULL.txt": "8bba945e42bdf4b77a0a04df09edfe5bceab4ad28c16a4098934c3c90e83fe2c",
+    "MUTATIONS.txt": "bad477c7316bf34e314f30be668519e86aca9a544690acaf1a97e201f9ab59e1",
+    "FOCUSED.txt": "dc90a59d4ae3f418fe694d37a1095b11072211ab7c9fd9d2b5e5e9f1efb3f8e2",
+    "packaging.json": "2b4c51cdeddb1b89b3261f9bb8fe63cdfb27ae936ac8eea39d4504ea1d056e30",
+    "sigint.json": "6a0376eaecbb3d41ad97a0bbb480af3b3c4a9f4049b18297607ec9f870b8c887"
+  }
+}

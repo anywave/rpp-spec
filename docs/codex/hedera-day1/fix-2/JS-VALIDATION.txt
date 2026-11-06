@@ -1,0 +1,13 @@
+HEDERA-DAY1-FIX-2 JavaScript validation
+Branch: codex/HEDERA-DAY1-js; reviewed predecessor a297f018be71cb3ce467b0fbfe2b48cbe67a1a33
+npm test PASS 39/39, zero skips: 15 policy/fake +3 offline SDK +17 existing fixes +4 paired key-state regressions
+npm run test:mutations PASS 45/45 behavioral mutations; syntax/import errors and timeouts do not count; new controls require the named assertion failure
+F4-R actual SDK create wire has absent admin and operator typed submit key in every prepared node alternative
+Same SDK-derived key states feed JSON mirror evidence through the shared create policy: explicit null admin plus exact typed submit accepted; all 70 admin/submit combinations exercised, 69 invalid combinations refused
+ED25519 and ECDSA public-fixture positive cases pass; no private signing key is used
+Expected key metadata is frozen before async preparation and checked against the actual SDK builder request
+Independent reviewer reports 28 paired actual-SDK/mirror cases passed and four independent admin/submit/type/bytes removal controls failed named assertions
+All existing testnet-only routing, concrete send guards, zero custom-fee, receipt, retry-budget and byte-readback controls remain passing
+Dependency versions and lock unchanged; no reinstall performed
+No real RPC, ledger writes, account creation, money, operator credentials or private test key material used
+Full logs: /workspace/work/hedera-js-fix-2-tests.log and /workspace/work/hedera-js-fix-2-mutations.log

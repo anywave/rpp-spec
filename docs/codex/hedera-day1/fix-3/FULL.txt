@@ -1,0 +1,64 @@
+/workspace/work/hedera-python-venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:300: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the "fixture" caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to "function" scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: /workspace/rpp-spec
+configfile: pyproject.toml
+testpaths: tests
+plugins: asyncio-1.4.1.post1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 1500 items
+
+tests/test_adapters.py .................................                 [  2%]
+tests/test_address.py .................................................. [  5%]
+...........                                                              [  6%]
+tests/test_address_canonical.py ........................................ [  8%]
+......................                                                   [ 10%]
+tests/test_biofield.py ..........................................        [ 13%]
+tests/test_ccqpsg.py ................................................... [ 16%]
+...........................                                              [ 18%]
+tests/test_cli.py ..................................                     [ 20%]
+tests/test_coherence.py ........................................         [ 23%]
+tests/test_consent.py ..............................                     [ 25%]
+tests/test_consent_header.py .....................................       [ 27%]
+tests/test_continuity.py ............................................... [ 30%]
+.............                                                            [ 31%]
+tests/test_extended.py ...............................                   [ 33%]
+tests/test_geometry.py ................................................. [ 37%]
+.........                                                                [ 37%]
+tests/test_golden_vectors_mobius32.py .....                              [ 38%]
+tests/test_hedera_safe.py ..........................................     [ 40%]
+tests/test_hedera_sdk_security.py ...................................... [ 43%]
+........................................................................ [ 48%]
+........................................................................ [ 53%]
+....................                                                     [ 54%]
+tests/test_hnc.py .........................                              [ 56%]
+tests/test_hrda.py .........................                             [ 57%]
+tests/test_memory_bridge.py ............................................ [ 60%]
+.................                                                        [ 61%]
+tests/test_mesh.py ...........................................           [ 64%]
+tests/test_network.py .................................................. [ 67%]
+.................                                                        [ 69%]
+tests/test_packet.py ......................                              [ 70%]
+tests/test_pma.py .............................                          [ 72%]
+tests/test_ra_constants.py .......................................       [ 75%]
+tests/test_resolver.py .............................                     [ 77%]
+tests/test_rpp_address.py .............................................. [ 80%]
+..............                                                           [ 81%]
+tests/test_rpp_extended_spec.py ........................................ [ 83%]
+........................................................................ [ 88%]
+..............................................                           [ 91%]
+tests/test_rpp_mesh.py .........................................         [ 94%]
+tests/test_sector_router.py ............................................ [ 97%]
+........                                                                 [ 97%]
+tests/test_transitions.py ..................................             [100%]
+
+=============================== warnings summary ===============================
+tests/test_rpp_address.py:23
+  /workspace/rpp-spec/tests/test_rpp_address.py:23: DeprecationWarning: reference/python/rpp_address.py implements legacy 28-bit format. Use rpp.address_canonical for Ra-Canonical v2.0.
+    from rpp_address import encode, decode, from_components, from_raw, degrees_to_theta, latitude_to_phi
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 1500 passed, 1 warning in 23.04s =======================

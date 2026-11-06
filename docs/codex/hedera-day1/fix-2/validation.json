@@ -1,0 +1,85 @@
+{
+  "task": "HEDERA-DAY1-FIX-2",
+  "date": "2026-11-06",
+  "review_head": "b17a13ca048f5cfe472d132186a8bda4fb130756",
+  "inbox_head": "209752c5f7f5226d486bf836a566eacdb624c714",
+  "source_heads": {
+    "rpp-spec": "4d8a65d09e561f804116a50f6e3c79873ca79f04",
+    "mobius": "2d8d036792aa97548b51d04491ee9b2afe337d83",
+    "digigami-stack": "2904d82907eb8dae1bf8fcb0663ec2370ce11b9c"
+  },
+  "ready_unchanged_heads": {
+    "hedera-auction-integrity": "c06f501d9d3b25dcd14461f8f042e4916f682fa6",
+    "digigami-audit": "82184a31f14b8bac97f31d46f49ea931de400208"
+  },
+  "untouched_closed_duplicate": {
+    "branch": "codex/HEDERA-DAY1-python",
+    "remote_head": "ce24da0d0be4fcedb6b988a9d8a5d44155b60a2b",
+    "pr": 47
+  },
+  "finding_commits": {
+    "F3-R": [
+      "f86360fc865817b7b3ff5e6f0ee6cc0415bcef7e",
+      "4d8a65d09e561f804116a50f6e3c79873ca79f04"
+    ],
+    "F4-R": [
+      "2904d82907eb8dae1bf8fcb0663ec2370ce11b9c",
+      "2d8d036792aa97548b51d04491ee9b2afe337d83"
+    ],
+    "N1": [
+      "2d8d036792aa97548b51d04491ee9b2afe337d83"
+    ]
+  },
+  "python": {
+    "focused_passed": 212,
+    "full_passed": 1468,
+    "skipped": 0,
+    "named_mutants_killed": 49,
+    "independent_diagnostics_passed": 88,
+    "source_sha256": "42d855c179f8c4747d1344e6ce5ed1518f9d094d1ea3046060bbc56e480182ac",
+    "ruff": "passed"
+  },
+  "javascript": {
+    "tests_passed": 39,
+    "skipped": 0,
+    "named_mutants_killed": 45,
+    "independent_paired_cases": 28,
+    "independent_removal_controls": 4
+  },
+  "rust": {
+    "regular_tests_passed": 27,
+    "core_included": 15,
+    "compile_fail_doctests_passed": 1,
+    "ignored": 0,
+    "named_mutants_killed": 50,
+    "independent_paired_cases": 24,
+    "independent_removal_controls": 4
+  },
+  "rules": {
+    "testnet_only": true,
+    "runtime_network_rechecked": true,
+    "mainnet_activation_path": false,
+    "custom_fees_refused": true,
+    "every_submit_zero_hbar_custom_allowance": true
+  },
+  "live_testnet": "UNPROVED: no runtime throwaway credentials; previous Hedera endpoint access 403; not retried with credentials",
+  "delivery": "one push each of the three affected primary branches; containing rpp report commit preserves reviewed source; final remote SHAs in delivery response",
+  "evidence_sha256": {
+    "CAPSULE-API.md": "14da499cdf2d6f4d47f517671f9e79bb2cea522afdfa85e39de7fbf86e56bc1a",
+    "CAPSULE-REVIEW.md": "6f33d416f48514d006cac55c8ffc7e7eec9386790e6f071aed46ad55e84bcfaa",
+    "F3-REVIEW.md": "3c42cf03a78921ae655998ef1f72751c0a2191eea219bbb27a2e9934f08c34ad",
+    "INDEPENDENT-REVIEW.md": "5359cf85adc9137176dccc71de3720f61e3f3bf0668fac348fe940355060d9d4",
+    "JS-MUTATIONS.txt": "10a6826d1be3c2536aad41618f645df86abca12b509310b2b2135e78847ffd48",
+    "JS-VALIDATION.txt": "a549882cf8cf178634ade2e8f622e0867394e875968e96edf6ee4a02283d3a1b",
+    "PR-DESCRIPTIONS.md": "ca8dabaf1418e91776e44439c61b5f4577e4c9fe5928dabe04c5d901377a83b5",
+    "PYTHON-FOCUSED.txt": "df355ce8c530583044970a0a660bb9551ecf932df8489e8f44ae310c1d63213b",
+    "PYTHON-FULL-SUITE.txt": "327d194d42602fef11ee55b88280c74e64d37744b2e44955b6035cd63cdf0380",
+    "PYTHON-MUTATIONS.txt": "3eda1bd932f7610866c3df1c290481b1b721b8a4d50140793a68242598d53ffc",
+    "PYTHON-RUFF.txt": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "RUST-MUTATIONS.txt": "caf95e26b4160336bdd53daeec991a2cac0cf9f0fb7d437a51f51181b93dfe23",
+    "RUST-TESTS.txt": "691f1984b0af24551416e3aac5bac3a98d9b154d2c23a807426df7295c4c0287",
+    "diagnostics.json": "7ce1ab62e8b183c916d6b77ff8492bbfe81582fb2b22fba61dcf4c5b606168bb",
+    "lifecycle.json": "e186d4d0abef704ffe8c81013af64f57e2743a5a113851831424ddfdc55fd3eb",
+    "public-state.json": "b9062ec5f4a6d3d67ed0a0665647d3d9731bf5a7fcc485cc2eae5311611dafe6"
+  }
+}

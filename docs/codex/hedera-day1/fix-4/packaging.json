@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "pure",
+    "wheel": "rpp_protocol-2.1.0-py3-none-any.whl",
+    "sha256": "d52c498fc045919b854ff2d9fc14bd0ff4cb6ec58cac1d4a2a1382862af02fad",
+    "native_binaries": 0,
+    "isolated_check": "PASS"
+  },
+  {
+    "mode": "native",
+    "wheel": "rpp_protocol-2.1.0-cp312-cp312-linux_x86_64.whl",
+    "sha256": "4af3f5ee1c189189c9b88795480d2e3c9c10effabdb805c6606efc7cc80eab26",
+    "native_binaries": 1,
+    "isolated_check": "PASS"
+  }
+]

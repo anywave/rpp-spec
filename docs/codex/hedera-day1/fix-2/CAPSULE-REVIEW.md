@@ -1,0 +1,26 @@
+This native-ownership audit predates the final diagnostic cleanup. Its capsule binding/refcount design is retained. Final source `4d8a65d09e561f804116a50f6e3c79873ca79f04` was separately rechecked for public state, lifecycle and rich diagnostics; see [F3-REVIEW.md](F3-REVIEW.md) and [INDEPENDENT-REVIEW.md](INDEPENDENT-REVIEW.md).
+
+# HEDERA-DAY1 FIX-2: independent CPython signer capsule audit
+
+**No blocking native ownership or stale-handle issue found in the reviewed implementation.** This finding covers the capsule lifecycle and ordinary repr/state boundary; the parent review separately checks the actual pinned SDK signature path and product tests.
+
+Reviewed `/workspace/rpp-spec/rpp/adapters/hedera_safe.py`, SHA-256 `83c7fa95ae11e13de657f20e0d193cfc87d4b056835215eaffc865543b10eb27`, on CPython 3.12.14. Implementation source was not edited. Independent probes used harmless callback receivers, not credentials, private SDK keys or ledger calls. Twenty-one boolean lifecycle observations passed; no callback/private data was printed or saved.
+
+The final design uses **unnamed capsules with a non-null tombstone pointer `1`**, rather than a borrowed C-string name. This avoids name-buffer lifetime entirely. Capsules have no C destructor and no `CFUNCTYPE` trampoline, so no native callback can outlive a Python destructor wrapper.
+
+The bindings match CPython's API: `PyDLL` preserves the GIL and raises pending Python errors; `PyCapsule_New` receives `(void*, char*, destructor)` and returns `py_object`; `GetPointer` returns `c_void_p`; `SetPointer` receives a non-null `c_void_p`; `Py_IncRef` and `Py_DecRef` receive raw `c_void_p` and return void. CPython ctypes' special result conversion correctly transfers a new `PyCapsule_New` reference to the Python result. `ctypes.cast(pointer, ctypes.py_object).value` creates the strong local callback reference needed to survive concurrent close.
+
+Ownership is balanced across the examined paths:
+
+- Initialization creates the original SDK signing callback once, pins it once, then stores only its capsule in the id registry. `_Signer` slots retain only the public key. Reinitialization is refused.
+- Capsule creation failure unpins the callback. Registry insertion failure releases the new capsule's manually held callback reference through the same release helper.
+- Pointer acquisition and release use the same `RLock`. Release changes the pointer to `1` **before** decrementing the callback, and a repeated release sees the tombstone. `__del__` removes the registry entry before release. These orders prevent reentrant double release.
+- Invocation obtains a strong local callback reference while locked, then signs outside the lock. Concurrent close can release the native pin while the in-flight operation remains alive. No helper returns the callback itself.
+- Saved capsule references refuse invocation after closure, before any cast/dereference. The capsule's own repr exposes its address/name only, not the stored callback. Native dereferencing is explicitly outside the ordinary formatting boundary.
+- Normal `atexit` cleanup releases remaining active entries. Late-cleared-global guards avoid reinitializing or invoking absent API state during `__del__`; no finalizer is expected to run after a fatal process exit.
+
+Independent probes passed for balanced capsule refs, callback retention/release, double close, saved-handle refusal, 1,000 create/destroy receiver releases, injected `MemoryError` in capsule allocation and registry insertion, and concurrent close during a paused invocation. A fresh `python -X faulthandler` subprocess with active signers exited normally with empty stderr; a verifier running after cleanup observed the receiver released, registry empty and saved capsule tombstoned. These are lifecycle tests, not cryptographic or ledger evidence.
+
+Authoritative references and detailed boolean-probe results are recorded in `/workspace/work/hedera-fix2-capsule-api.md`. The primary sources are official CPython `v3.12.14`: [capsule API](https://github.com/python/cpython/blob/v3.12.14/Doc/c-api/capsule.rst), [capsule implementation](https://github.com/python/cpython/blob/v3.12.14/Objects/capsule.c), [ctypes result ownership](https://github.com/python/cpython/blob/v3.12.14/Modules/_ctypes/callproc.c#L978-L1004), [py_object strong-reference conversion](https://github.com/python/cpython/blob/v3.12.14/Modules/_ctypes/cfield.c#L1054-L1076), and [PyDLL semantics](https://github.com/python/cpython/blob/v3.12.14/Doc/library/ctypes.rst#L1428-L1438).
+
+Limits remain explicit: free-threaded CPython, subinterpreters and other operating systems were not validated by these probes. Unsupported implementations or unavailable C API symbols fail closed. Normal process teardown was tested; `_exit`, fatal signals, interpreter corruption, deliberate native pointer access, private-global tampering, debugger access and direct process-environment reads are outside this boundary. This design does not provide an isolation sandbox or guaranteed memory zeroization. `backend.close()` currently closes the SDK client but may retain its signer until object destruction; immediate release on that method must not be claimed without a separate explicit release path.

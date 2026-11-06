@@ -1,0 +1,28 @@
+# HEDERA-DAY1 independent review
+
+**The added HCS foundations pass the scoped code/safety review. Live testnet proof and complete product operability remain blocked.** Reviewed immutable source commits:
+
+| Repository / language | Reviewed source commit | Validation evidence |
+| --- | --- | --- |
+| digigami-stack / JavaScript | `8d00000650f058b0dae9be636d252a0bc8c3f341` | 18 tests: 15 fake/policy + 3 official-SDK offline; **18/18** compilable behavioral mutations killed. `/workspace/work/hedera-js-validation.log`. |
+| rpp-spec / Python | `111ad886c8ab93d687fe692a63e9dd39de80bbd1` | **38** guard/offline published-SDK tests, no skips; **15/15** compilable named mutations killed; Ruff passed. Owner also ran the complete existing suite: **1294 passed**. `/workspace/work/hedera-python-evidence/{guards,mutations,ruff}.txt`. |
+| mobius / Rust | `acb81ed8e5444852d9eb7a3624eedf127a44dc64` | **15** tests: 12 fake/policy + 3 official-SDK tests; **20/20** compilable named mutations killed. Final restored-source tests passed. `/workspace/work/hedera-rust-tests.log`, `/workspace/work/hedera-rust-mutants.log`. |
+
+JavaScript and Rust working trees were clean at review. Rust's mutation runner edits then restores source; review used the committed SHA after restoration and explicitly confirmed the real SDK fee macro and runtime checks were present. Python source review is pinned to its code commit; later outbox-only changes do not change that pin. The reviewer inspected source, tests, published SDK source/API contracts, mutation classifiers and saved validation results; the implementation agents executed the reported suites. No implementation files were edited by the reviewer.
+
+The concrete findings addressed during review were:
+
+- **Network selection:** the initial JavaScript `network in networks` accepted inherited property names (`constructor`, `toString`, `__proto__`), which could select the mainnet factory. Configuration now uses an own-property allowlist and the SDK factory uses an explicit switch; regression tests reject all those names before factory access.
+- **Signed bytes:** JavaScript originally serialized mutable input twice across async signing. It now snapshots the signed content before awaiting the signer, so the emitted envelope contains the same content that was signed.
+- **Write identity and confirmation:** transactions are prepared once and retain their identity through retries. JavaScript's explicit transaction ID locks the SDK ID list; it also disables automatic regeneration. Rust disables regeneration and keeps SDK retries at one so the shared retry budget controls resends. Ambiguous delivery reconciles the original receipt; only SUCCESS plus matching mirror evidence produces confirmation. Topic metadata pins ID/memo/submit key; messages pin topic/sequence/payer/every byte. Python additionally reads back the creation transaction's identity, result, type and topic.
+- **Runtime controls:** all three cap transaction fees at one HBAR maximum, default to testnet, require the exact RADIX mainnet flag, and recheck it before subsequent writes. Rust checks again at each send/retry. Smoke commands are testnet-only even when that flag exists and require explicit disposable-account attestation before client construction. Mirror redirects are refused and mirror lag has a bounded independent polling budget.
+- **Credentials and diagnostics:** real adapters load operator credentials from runtime environment only. Fake/offline tests contain public identifiers and fake signers, with no private operator-key fixture. Runtime-key requirements are covered by deterministic missing-key assertions and mutations. Caught SDK diagnostic objects do not escape public error boundaries; Python/JavaScript SDK loggers are silent, Rust backend has no Debug/Serialize implementation, and Rust wraps input key text in Zeroizing.
+
+Mutation results are assertion evidence, not generic nonzero exits. JavaScript requires parse success, failed-test output and `ERR_ASSERTION`, rejecting syntax/import errors and timeouts. Python compiles mutants and requires pytest exit 1 plus the named FAILED test. Rust requires the named failed test and failed-test summary and rejects compilation failure. Some Rust source-boundary checks deliberately supplement behavioral tests for the runtime-only input path and guard call sites; published-SDK assertions separately check fee, retry and ID policy.
+
+Remaining limits are material:
+
+1. **No testnet topic/message/mirror proof was obtained.** Runtime credentials were absent and the enforced network policy does not grant Hedera consensus or mirror hosts. Smoke failures are recorded as blocked; fake and offline checks are not ledger proof. No mainnet writes, accounts, real money, emails, merge or force push occurred in this review.
+2. **Python is not an official-supported Hedera SDK language.** `hiero-sdk-python==0.3.0` is the Hiero-hosted community project and declares Pre-Alpha. Its adapter requires an explicit experimental opt-in; shipping official-SDK-only Python callers need a JS/Rust boundary.
+3. **Rust consumer toolchain upgrade is unresolved.** The standalone crate's resolved dependencies require Rust 1.95; the existing Mobi desktop pins 1.77.2. The shared crate is not wired into the Tauri product, and this review does not imply that integration or packaging compiles.
+4. This review covers the added shared **HCS** code and smoke foundations. It does not establish complete LatticeWorks/Mobi/Digigami wiring, wallet approval flows, Guardian operation, HTS/NFT/scheduled-transaction/contract behavior, or resolved transitive distribution licensing. Those product gates remain explicit in the outbox/job packs.

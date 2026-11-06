@@ -1,0 +1,49 @@
+
+> @digigami/hedera-day1@0.1.0 test:mutations
+> node scripts/mutations.mjs
+
+KILLED: testnet default
+KILLED: alpha testnet-only config
+KILLED: runtime network before prepare
+KILLED: fee ceiling
+KILLED: fee forwarding
+KILLED: bounded retries
+KILLED: same transaction retry
+KILLED: receipt check
+KILLED: topic mirror readback
+KILLED: topic submit key pin
+KILLED: payer pin
+KILLED: byte equality
+KILLED: message mirror readback
+KILLED: signature verification
+KILLED: runtime-only operator credentials
+KILLED: SDK fee cap
+KILLED: SDK fixed transaction ID
+KILLED: SDK topic submit key
+KILLED: F1 preflight read
+KILLED: F1 nonzero fee refusal
+KILLED: F1 unknown fee schema
+KILLED: F1 payer wire allowance
+KILLED: F1 wire payer binding
+KILLED: F1 zero wire amount
+KILLED: F1 no HTS denomination
+KILLED: F2 after-prepare authorization
+KILLED: F2 SDK request boundary
+KILLED: F2 concrete gRPC authorization
+KILLED: F2 one SDK attempt
+KILLED: F2 one client attempt
+KILLED: F2 no gRPC hidden retries
+KILLED: F1 malformed timestamp
+KILLED: alpha immutable SDK network
+KILLED: alpha final channel destination
+KILLED: alpha client network snapshot
+KILLED: alpha endpoint environment config
+KILLED: alpha endpoint environment at send
+KILLED: alpha guarded SDK helper clients
+KILLED: F4-R absent admin pin
+KILLED: F4-R key type comparison
+KILLED: F4-R key bytes comparison
+KILLED: F4-R malformed key object
+KILLED: F4-R request and wire agreement
+KILLED: F4-R SDK requested admin absence
+KILLED: F4-R immutable requested key state

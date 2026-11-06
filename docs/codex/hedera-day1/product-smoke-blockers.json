@@ -1,0 +1,48 @@
+[
+  {
+    "product": "latticeworks",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "product": "token-auditor",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "product": "mobi-connect",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "product": "digigami",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "product": "digigami-audit",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "product": "hedera-auction-integrity",
+    "exit": 1,
+    "code": "OPERATOR_ENV_REQUIRED",
+    "writes_attempted": 0
+  },
+  {
+    "repo": "digigami-audit",
+    "mainnet_smoke_rejected": true,
+    "writes_attempted": 0
+  },
+  {
+    "repo": "hedera-auction-integrity",
+    "mainnet_smoke_rejected": true,
+    "writes_attempted": 0
+  }
+]
