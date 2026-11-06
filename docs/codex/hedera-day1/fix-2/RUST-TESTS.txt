@@ -1,0 +1,109 @@
+   Compiling hiero-sdk-proto v0.22.0
+   Compiling hiero-sdk v0.45.0
+   Compiling anywave-hedera v0.1.0 (/workspace/mobius/crates/hedera-day1)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.53s
+     Running unittests src/lib.rs (crates/hedera-day1/target/debug/deps/anywave_hedera-fd369aa0e4da425b)
+
+running 12 tests
+
+running 1 test
+
+running 1 test
+
+running 1 test
+
+running 1 test
+test sdk::tests::all_non_testnet_networks_are_refused_before_sdk_creation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::actual_send_rejects_portable_prepared_handle_above_receiving_backend_cap ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::actual_send_rejects_portable_prepared_handle_above_receiving_backend_cap ... ok
+test sdk::tests::actual_direct_prepare_enforces_retained_configured_and_global_fee_caps ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::fee_preflight_accepts_only_empty_valid_schedules_for_the_requested_topic ... ok
+test sdk::tests::fee_preflight_refuses_every_configured_hbar_or_token_fee_including_zero ... ok
+test sdk::tests::fee_preflight_refuses_missing_null_malformed_or_unrecognized_fee_information ... ok
+test sdk::tests::missing_runtime_key_fails_before_any_network_or_signing ... ok
+test sdk::tests::actual_direct_prepare_enforces_retained_configured_and_global_fee_caps ... ok
+test sdk::tests::sdk_transaction_policy_is_applied_without_credentials ... ok
+test sdk::tests::sdk_message_getter_and_every_serialized_node_enforce_zero_hbar_only_for_payer ... ok
+test sdk::tests::unreadable_fee_read_never_approves_a_submission ... ok
+
+running 1 test
+test sdk::tests::all_non_testnet_networks_are_refused_before_sdk_creation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::actual_create_wire_and_mirror_parser_policy_require_absent_admin_and_expected_submit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s
+
+test sdk::tests::actual_create_wire_and_mirror_parser_policy_require_absent_admin_and_expected_submit ... ok
+
+running 1 test
+
+running 1 test
+test sdk::tests::all_non_testnet_networks_are_refused_before_sdk_creation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::all_non_testnet_networks_are_refused_before_sdk_creation ... ok
+test sdk::tests::shared_api_rejects_backend_cap_mismatch_before_preflight_or_prepare ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+test sdk::tests::shared_api_rejects_backend_cap_mismatch_before_preflight_or_prepare ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/smoke.rs (crates/hedera-day1/target/debug/deps/mobi_hedera_smoke-cc19335a481a2f8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/policy.rs (crates/hedera-day1/target/debug/deps/policy-cbfe3ed22593ff63)
+
+running 15 tests
+test custom_fee_preflight_refuses_known_and_unknown_fees_before_prepare_or_send ... ok
+test create_requires_matching_topic_memo_and_submit_key ... ok
+test config_never_reads_credentials_and_rejects_unsafe_bounds ... ok
+test failed_receipt_never_claims_success_or_reads_mirror ... ok
+test invalid_records_never_prepare_a_transaction ... ok
+test message_requires_exact_bytes_topic_payer_and_sequence ... ok
+test network_default_is_testnet_and_every_other_choice_is_refused ... ok
+test no_fee_schedule_allows_submit_after_preflight ... ok
+test adapter_credentials_are_environment_only_and_errors_are_categories ... ok
+
+running 1 test
+test network_changes_during_prepare_or_retry_are_refused_before_next_send ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+
+running 1 test
+test receipt_polling_never_resubmits_accepted_write_and_is_bounded ... ok
+test send_retries_are_bounded_and_permanent_errors_are_not_retried ... ok
+test success_requires_receipt_and_mirror_for_both_writes ... ok
+test network_changes_during_prepare_or_retry_are_refused_before_next_send ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+test network_changes_during_prepare_or_retry_are_refused_before_next_send ... ok
+test mirror_is_eventually_consistent_bounded_and_never_resubmits ... ok
+test uncertain_delivery_reuses_one_prepared_signed_transaction ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests anywave_hedera
+
+running 1 test
+test src/sdk.rs - sdk::Prepared (line 28) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
