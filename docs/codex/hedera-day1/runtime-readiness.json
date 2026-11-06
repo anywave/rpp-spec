@@ -1,0 +1,27 @@
+{
+  "credentials_present": {
+    "HEDERA_OPERATOR_ID": false,
+    "HEDERA_OPERATOR_KEY": false,
+    "HEDERA_ACCOUNT_ID": false,
+    "HEDERA_PRIVATE_KEY": false,
+    "OPERATOR_ID": false,
+    "OPERATOR_KEY": false,
+    "RADIX_HEDERA_MAINNET_ENABLED": false
+  },
+  "network_probes": [
+    {
+      "url": "https://testnet.mirrornode.hedera.com/api/v1/network/nodes?limit=1",
+      "exit": 56,
+      "http_status": "000",
+      "error": "curl: (56) CONNECT tunnel failed, response 403"
+    },
+    {
+      "url": "https://testnet.hashio.io/api",
+      "exit": 56,
+      "http_status": "000",
+      "error": "curl: (56) CONNECT tunnel failed, response 403"
+    }
+  ],
+  "writes_attempted": 0,
+  "mainnet_flag_present": false
+}

@@ -1,0 +1,106 @@
+# Hedera code reference appendix
+
+Baseline references supplement the semantic inventory. All numbers are matched source lines, including comments; a match does not establish executable integration. Archive members use `archive.zip!member`. Inline Rust unit-test mentions may be included. New shared layers are described in the final change report, not this pre-change index.
+
+- `digigami-stack/demo/witness-conscience-demo.html`: 636, 637, 705, 1006, 1008, 1009
+- `digigami-stack/extension/core/spiral-sync.js`: 251, 253
+- `digigami-stack/extension/options.html`: 434, 438
+- `digigami-stack/extension/options.js`: 15, 28, 77
+- `hedera-auction-integrity/hedera-auction-integrity.zip!hedera-auction-integrity/src/haip.py`: 31
+- `mobius/extensions/codex-tools/models/tarot_arcana.py`: 46
+- `mobius/extensions/document-rag/python/migrations/008_defender.sql`: 24
+- `mobius/extensions/document-rag/python/mobi_skills/defender/internal/verify_binary.py`: 18
+- `mobius/src-tauri/Cargo.toml`: 94, 95
+- `mobius/src-tauri/src/core/anchor/ceremony_genesis.rs`: 7, 11, 29, 39, 63, 102, 173, 202, 230, 232, 237
+- `mobius/src-tauri/src/core/anchor/ceremony_kin.rs`: 11, 13, 34, 44, 186, 262
+- `mobius/src-tauri/src/core/anchor/ceremony_update.rs`: 8, 17, 51, 60, 189, 201, 233, 236, 256, 306, 310, 311, 567, 573
+- `mobius/src-tauri/src/core/anchor/doctor.rs`: 229, 235, 240, 241, 243, 263, 268, 271, 276, 277, 501, 534, 536, 538, 539, 540, 709, 712, 718, 721, 727, 730, 735, 736
+- `mobius/src-tauri/src/core/anchor/hedera.rs`: 1, 3, 4, 10, 32, 34, 39, 40, 45, 48, 52, 56, 58, 102, 104, 106, 107, 110, 111, 123, 124, 125, 133
+- `mobius/src-tauri/src/core/anchor/mod.rs`: 15, 47, 48
+- `mobius/src-tauri/src/core/anchor/persistence.rs`: 151
+- `mobius/src-tauri/src/core/anchor/registry.rs`: 16, 28, 98
+- `mobius/src-tauri/src/core/anchor/verify.rs`: 35, 71, 75, 89, 94
+- `mobius/src-tauri/src/core/anchor_commands.rs`: 2, 10, 20, 68, 79, 101, 109, 120, 126, 170, 301, 308, 309, 310, 311, 366, 372, 373, 473, 549, 578, 640, 706, 708, 736, 774, 869, 902, 903, 913, 974, 975, 1004, 1063, 1067, 1069, 1070, 1074, 1076, 1079, 1084, 1087, 1091, 1093, 1094, 1102, 1105, 1106, 1110, 1115, 1124, 1125, 1128, 1132, 1133, 1141, 1144, 1146, 1148, 1152, 1158, 1159, 1161, 1173, 1178, 1183, 1185, 1194, 1196, 1199, 1204, 1206, 1209, 1215, 1220, 1228, 1250, 1251, 1255, 1267, 1273, 1287, 1294, 1306, 1311, 1326, 1334, 1342, 1343, 1358, 1387, 1414, 1434, 1468, 1622, 1695, 1837, 1838, 2039, 2111, 2113, 2121, 2125, 2126, 2136, 2150, 2152, 2166, 2174, 2187, 2189, 2204, 2206, 2218, 2219, 2227, 2228, 2231, 2242, 2244, 2348, 2402, 2403, 2700, 2701
+- `mobius/src-tauri/src/core/defender/monitor.rs`: 4, 112, 146, 300, 334
+- `mobius/src-tauri/src/core/defender/skills.rs`: 27
+- `mobius/src-tauri/src/core/hedera_tonic/client.rs`: 1, 12, 28, 29, 31, 36, 38, 43, 48, 58, 62, 63, 72, 74, 75, 76, 97, 112
+- `mobius/src-tauri/src/core/hedera_tonic/mod.rs`: 1, 8, 10, 11, 15, 18, 19, 23, 29, 45, 46, 47
+- `mobius/src-tauri/src/core/hedera_tonic/signing.rs`: 1, 5, 10, 17, 25, 37, 43, 52, 55, 57, 59, 70, 73
+- `mobius/src-tauri/src/core/hedera_tonic/types.rs`: 1, 4, 5, 20, 46, 57, 60, 65
+- `mobius/src-tauri/src/core/inversion/tier_classifier.rs`: 356, 841, 1061, 1062, 1195, 1196
+- `mobius/src-tauri/src/core/remote_mechanic/registry_gate.rs`: 49
+- `mobius/src-tauri/src/core/remote_mechanic/server.rs`: 143
+- `mobius/src-tauri/src/lib.rs`: 679, 680, 681, 1463, 1464, 1465
+- `mobius/web-app/src/anchor/anchor-bridge.ts`: 22, 35, 55, 66, 75, 99, 177, 256, 259, 265, 266, 267, 270, 271, 272, 274, 277, 278, 279, 313, 315, 317
+- `mobius/web-app/src/anchor/index.ts`: 13, 14, 15, 25, 30
+- `mobius/web-app/src/anchor/useAnchor.ts`: 22
+- `mobius/web-app/src/components/TarotOperator.tsx`: 11
+- `mobius/web-app/src/components/anchor/CreateDongleCeremony.tsx`: 392, 395, 397
+- `mobius/web-app/src/components/anchor/GenesisCeremony.tsx`: 452, 455, 457
+- `mobius/web-app/src/components/anchor/HederaSettings.tsx`: 2, 5, 9, 10, 11, 13, 18, 19, 20, 25, 26, 27, 28, 93, 104, 129, 150, 155, 164, 171, 174
+- `mobius/web-app/src/components/anchor/RegistryVerify.tsx`: 76, 207, 256, 273, 304, 323, 338, 412
+- `mobius/web-app/src/components/anchor/UpdateCeremony.tsx`: 296, 299, 301
+- `mobius/web-app/src/network/TailnetSettings.tsx`: 5
+- `rpp-spec/examples/analogies_demo.py`: 472
+- `rpp-spec/examples/consent_revocation.py`: 439
+- `rpp-spec/examples/multi_substrate.py`: 6, 150, 152, 168, 186, 353, 386, 397, 418, 437, 460, 472
+- `rpp-spec/rpp/adapters/__init__.py`: 23, 31
+- `rpp-spec/rpp/adapters/hedera.py`: 2, 4, 9, 38, 40, 43, 49, 52, 69, 74, 83, 86, 91, 110, 112, 137, 161, 178, 181, 226, 228, 229, 235, 237, 238, 246, 254, 255, 262, 264, 274, 295, 316, 325
+- `rpp-spec/rpp/continuity.py`: 69, 195, 196, 197
+- `rpp-spec/rpp/network.py`: 54, 195, 213, 425, 426, 451, 452, 454, 458, 459, 505
+- `rpp-spec/rust/rpp-core/src/resolver.rs`: 22, 39
+- `silver-pancake/app.py`: 52, 120, 165, 293, 294, 295, 296
+- `silver-pancake/avachatter_debugger.py`: 13, 470, 471, 473, 476, 478
+- `silver-pancake/config.py`: 64, 65, 66, 67, 68, 69, 70, 105, 106, 107, 108, 109, 110, 125, 126, 127
+- `silver-pancake/core/coherence/cymatic_resonance.py`: 35
+- `silver-pancake/core/coherence/cymatic_ritual_engine.py`: 10, 30, 844, 867, 868, 1017, 1306
+- `silver-pancake/core/coherence/playlist_integration.py`: 73, 795, 796
+- `silver-pancake/database/models_marketplace.py`: 133, 349
+- `silver-pancake/docs/DOCUMENTATION_STANDARD.py`: 171, 194
+- `silver-pancake/guardian/consent_capture.py`: 5, 258, 496
+- `silver-pancake/guardian/reward_engine.py`: 233, 234, 238, 239, 240, 313, 314, 316, 318
+- `silver-pancake/hedera/__init__.py`: 1, 4, 5, 6, 11, 12, 13, 14, 18, 19, 21, 22, 35, 36, 39, 61, 62, 63, 65
+- `silver-pancake/hedera/avt_token.py`: 2, 10, 34, 35, 58, 60, 72, 73, 99
+- `silver-pancake/hedera/client.py`: 2, 5, 9, 25, 29, 30, 33, 40, 44, 46, 47, 52, 69, 71, 78, 84, 92, 93, 96, 97, 98, 99, 101, 168, 228, 504, 548, 551, 552, 555, 566, 567
+- `silver-pancake/hedera/config.py`: 2, 5, 9, 10, 11, 14, 15, 16, 27, 28, 35, 37, 41, 54, 56, 58, 60, 64, 65, 66, 67, 68, 79, 80, 81, 83, 93, 95, 100, 103, 104, 107
+- `silver-pancake/hedera/consent_mirror.py`: 2, 5, 30, 31, 60, 62, 71, 72, 99, 155
+- `silver-pancake/hedera/fix_avt_token.py`: 2, 4, 28, 136, 154, 185, 237, 268, 271
+- `silver-pancake/hedera/proxy_integration.py`: 2, 5, 15, 17, 20, 21, 50, 52, 54, 55, 57, 60, 61, 68, 69, 71, 72, 75, 76, 79, 80, 85, 87, 90, 100, 102, 106, 108, 114, 120, 126, 134, 136, 142, 144, 147, 183, 190, 206, 209, 214, 216, 218, 225, 238, 244, 250, 251, 252, 261, 293, 318, 341, 342, 344, 349, 374, 379, 390, 392
+- `silver-pancake/hedera/routes.py`: 2, 5, 21, 22, 23, 28, 31, 32, 33, 35, 43, 45, 50, 53, 63, 76, 101, 113, 122, 131, 135, 141, 149, 170, 185, 206, 227, 235, 247, 256, 268, 283, 309, 317, 329, 332, 354, 355, 356, 357
+- `silver-pancake/hedera/soul_token.py`: 2, 5, 28, 101, 105, 132, 145, 163, 212, 246, 294, 330
+- `silver-pancake/hedera/spiral_integration.py`: 2, 5, 19, 25, 128, 328, 331, 333, 364, 395, 436, 443, 506, 526, 529, 530, 531, 532, 533, 534, 535, 538, 539, 540, 547, 548
+- `silver-pancake/hedera/vizor_nft.py`: 2, 34, 35, 85, 95, 96, 121
+- `silver-pancake/kernel/codex_trust_schemas.py`: 66
+- `silver-pancake/migrations/versions/08a29412deae_initial_schema_33_tables.py`: 712
+- `silver-pancake/platform_features/commerce_models.py`: 361
+- `silver-pancake/proxy_config.py`: 10, 19, 154, 157, 159, 164, 166, 171, 173, 178, 180, 186, 193, 357, 622, 649, 740, 741
+- `silver-pancake/routes_character_marketplace.py`: 101, 390
+- `silver-pancake/routes_embed.py`: 36
+- `silver-pancake/routes_guardian.py`: 531, 558
+- `silver-pancake/routes_studio.py`: 26, 27, 29, 30, 32, 35, 738, 745, 746, 747, 750, 758, 759, 762
+- `silver-pancake/routes_tokenomics.py`: 21, 22, 38, 39, 41, 43, 131, 132, 133, 135, 136, 141, 149, 194, 195, 196, 198, 199, 451, 469, 470, 471
+- `silver-pancake/routes_vizor.py`: 17
+- `silver-pancake/rpp/intent_utils.py`: 6, 8, 33, 285
+- `silver-pancake/rpp/rpp_encoder_v09.py`: 11, 59, 60, 61, 62, 138, 140, 160, 522, 535, 564, 592, 616, 617, 634, 663
+- `silver-pancake/rpp/rpp_validator.py`: 401
+- `silver-pancake/rpp/spiral_token_emitter.py`: 16
+- `silver-pancake/services/credit_service.py`: 7, 13, 40, 127, 140, 214, 220, 223, 424, 428, 440, 444, 449
+- `silver-pancake/services/hedera_license_service.py`: 2, 5, 6, 22, 32, 74, 93, 95, 101, 103, 106, 110, 143, 147, 380, 509, 511, 645, 649, 654, 660, 662, 663, 668, 669
+- `silver-pancake/services/marketplace_service.py`: 486, 487
+- `silver-pancake/services/soul_glow.py`: 54, 283, 287, 395
+- `silver-pancake/simulation/__init__.py`: 7
+- `silver-pancake/simulation/contracts_shadow.py`: 252, 256, 258, 260
+- `silver-pancake/simulation/isolation_guard.py`: 10, 74, 75, 76, 77, 78, 100
+- `silver-pancake/simulation/rpp_core.py`: 39, 391, 392, 393, 421, 422, 423
+- `silver-pancake/simulation/runner.py`: 12, 40, 56, 81, 105, 124, 142, 175, 176, 197, 198, 199, 357, 362, 366, 378, 385, 391, 395, 399, 400, 404, 430, 460, 462, 469, 483, 484, 492, 528, 529, 532
+- `silver-pancake/simulation/verify_isolation.py`: 34, 55, 60, 61, 62, 64
+- `silver-pancake/soul_service_config.py`: 68, 134
+- `silver-pancake/static/cymatic-ritual.html`: 805
+- `silver-pancake/static/hedera-dashboard.html`: 6, 127, 263
+- `silver-pancake/static/js/tokenomics_flow.js`: 748, 750, 753, 772, 773, 774
+- `silver-pancake/templates/marketplace/pack_detail.html`: 192, 193
+- `silver-pancake/templates/studio/soul.html`: 392
+- `silver-pancake/websocket_unity.py`: 211, 213, 221, 223
+- `trellis-channel/artifacts/fp/guardian-step3/build/check.mjs`: 30, 31, 32, 33, 35, 36, 38, 84
+- `trellis-channel/artifacts/fp/guardian-step3/build/gen.mjs`: 2, 3, 49, 58, 59, 70, 76, 88, 95, 145
+- `trellis-channel/artifacts/pl-research/integration-program/anchor-app/index.html`: 57
