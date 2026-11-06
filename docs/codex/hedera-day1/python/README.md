@@ -34,6 +34,17 @@ dir/member discovery, bound method self/defaults/closures, JSON, all pickle
 protocols, copy/deepcopy, logging and direct formatting of function globals are
 checked on actual SDK objects. Constructor credentials remain rejected.
 
+Error diagnostics are covered too: raw SDK method/key locals are cleared on every
+exit, and encoded environment credentials are never bound to a backend local.
+Sanitized failures are raised after their handlers finish, without retaining the
+SDK exception/context graph. Failed backend construction releases any partially
+installed native signer while the returned error is still alive. Ordinary rich
+traceback logging (`TracebackException(capture_locals=True)`), public diagnostic
+JSON and explicit context/cause inspection are tested. KeyboardInterrupt,
+GeneratorExit and asyncio cancellation keep their control-flow types; SystemExit
+keeps integer/None codes and discards other arguments. Actual interrupted SDK
+signing and synthetic SDK failure/cancellation paths run for Ed25519 and ECDSA.
+
 Local experimental signing requires CPython with the checked capsule C API;
 unsupported runtimes/API availability fail closed. No native build or SDK
 replacement is introduced. Manual native references are balanced under a lock;

@@ -16,6 +16,7 @@ import socket
 import subprocess
 import sys
 import threading
+import traceback
 import types
 import weakref
 from types import SimpleNamespace
@@ -55,12 +56,12 @@ def actual(monkeypatch):
     monkeypatch.setattr(socket.socket, "connect", forbid_connect)
     monkeypatch.setattr(safe.time, "sleep", lambda _: None)
 
-    def build():
+    def build(algorithm="ed25519"):
         client = sdk.Client.for_network({"offline.invalid:50212": sdk.AccountId.from_string("0.0.3"),
                                          "second-offline.invalid:50212": sdk.AccountId.from_string("0.0.4")},
                                         network_name="testnet")
         monkeypatch.setattr(sdk.Client, "for_testnet", lambda: client)
-        generated = sdk.PrivateKey.generate_ed25519()
+        generated = sdk.PrivateKey.generate(algorithm)
         raw, der, raw_bytes = generated.to_string_raw(), generated.to_string_der(), generated.to_bytes_raw()
         monkeypatch.setenv("HEDERA_OPERATOR_ID", "0.0.456")
         monkeypatch.setenv("HEDERA_OPERATOR_KEY", der)
@@ -626,3 +627,239 @@ for index in range(32):
     assert succeeded, "Native signer interpreter cleanup failed"
     outcome = json.loads(result.stdout)
     assert outcome == {"released": True, "remaining": 0}
+
+
+def _capture_public_error(action):
+    # Catch before returning to test frames containing input credentials/oracles.
+    try:
+        action()
+    except BaseException as error:  # noqa: BLE001 - rich diagnostics include cancellation paths.
+        diagnostic = traceback.TracebackException.from_exception(error, capture_locals=True)
+        return error, diagnostic
+    raise AssertionError("Expected a public diagnostic refusal")
+
+
+def _assert_public_error_safe(probe, error, diagnostic):
+    def state(value):
+        if isinstance(value, traceback.FrameSummary):
+            return {"filename": value.filename, "name": value.name, "locals": value.locals}
+        if isinstance(value, type):
+            return value.__name__
+        return vars(value)
+
+    pending, seen = [diagnostic], set()
+    while pending:
+        current = pending.pop()
+        if current is None or id(current) in seen:
+            continue
+        seen.add(id(current))
+        forms = ["".join(current.format()), json.dumps(vars(current), default=state)]
+        for frame in current.stack:
+            forms.append(json.dumps(frame.locals))
+        for rendered in forms:
+            leaked = probe.contains_secret(rendered)
+            assert not leaked, "Public rich exception diagnostics disclosed synthetic key material"
+        pending.extend((current.__context__, current.__cause__))
+        pending.extend(current.exceptions or ())
+    for rendered in (str(error), repr(error), repr(error.args), json.dumps(vars(error), default=str)):
+        leaked = probe.contains_secret(rendered)
+        assert not leaked, "Public exception fields disclosed synthetic key material"
+    unlinked = error.__context__ is None and error.__cause__ is None
+    assert unlinked, "Sanitized failures must not retain underlying SDK contexts"
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("boundary", ["signer", "record"])
+@pytest.mark.parametrize("payload", [None, "invalid", object()])
+def test_actual_sdk_invalid_payload_rich_diagnostics(actual, algorithm, boundary, payload):
+    probe = actual(algorithm)
+    operation = probe.client.operator.signer if boundary == "signer" else probe.backend.signed_record
+    error, diagnostic = _capture_public_error(lambda: operation(payload))
+    category_ok = isinstance(error, safe.HederaError)
+    assert category_ok, "Unexpected sanitized failure category"
+    _assert_public_error_safe(probe, error, diagnostic)
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("boundary", ["signer", "record"])
+@pytest.mark.parametrize("failure", ["ordinary", "keyboard", "system-int", "system-none", "system-secret", "generator", "cancel"])
+def test_actual_sdk_callback_failure_rich_diagnostics(actual, monkeypatch, algorithm, boundary, failure):
+    sdk = pytest.importorskip("hiero_sdk_python")
+
+    def refuse(key, payload):
+        if failure == "ordinary":
+            raise ValueError(key.to_string_raw())
+        if failure == "keyboard":
+            raise KeyboardInterrupt(key.to_string_raw())
+        if failure == "system-int":
+            raise SystemExit(7)
+        if failure == "system-none":
+            raise SystemExit(None)
+        if failure == "system-secret":
+            raise SystemExit(key.to_string_raw())
+        if failure == "generator":
+            raise GeneratorExit(key.to_string_raw())
+        raise safe.CancelledError(key.to_string_raw())
+
+    monkeypatch.setattr(sdk.PrivateKey, "sign", refuse)
+    probe = actual(algorithm)
+    operation = probe.client.operator.signer if boundary == "signer" else probe.backend.signed_record
+    error, diagnostic = _capture_public_error(lambda: operation(b"valid-sdk-input"))
+    expected = {"ordinary": safe.HederaError, "keyboard": KeyboardInterrupt,
+                "system-int": SystemExit, "system-none": SystemExit, "system-secret": SystemExit,
+                "generator": GeneratorExit, "cancel": safe.CancelledError}[failure]
+    category_ok = isinstance(error, expected)
+    assert category_ok, "Unexpected sanitized failure category"
+    if isinstance(error, SystemExit):
+        exit_code_ok = error.code == (7 if failure == "system-int" else None)
+        assert exit_code_ok, "Control flow retained an unsafe or changed exit code"
+    _assert_public_error_safe(probe, error, diagnostic)
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("failure", ["missing-id", "bad-key", "bad-account", "api", "allocation", "store", "post-operator"])
+def test_actual_sdk_backend_init_rich_diagnostics(actual, monkeypatch, algorithm, failure):
+    probe = actual(algorithm)
+    client = probe.sdk.Client.for_network({"offline-init.invalid:50212": probe.sdk.AccountId.from_string("0.0.3")},
+                                         network_name="testnet")
+    monkeypatch.setattr(probe.sdk.Client, "for_testnet", lambda: client)
+    gc.collect()
+    baseline = len(safe._SIGNING_OPERATIONS)
+
+    def refuse(*args):
+        raise MemoryError("Synthetic initialization failure")
+
+    class RejectStore(dict):
+        __setitem__ = refuse
+
+    with monkeypatch.context() as patch:
+        if failure == "missing-id":
+            patch.delenv("HEDERA_OPERATOR_ID")
+        elif failure == "bad-key":
+            patch.setenv("HEDERA_OPERATOR_KEY", safe.os.environ["HEDERA_OPERATOR_KEY"] + "invalid")
+        elif failure == "bad-account":
+            patch.setenv("HEDERA_OPERATOR_ID", "invalid")
+        elif failure == "api":
+            patch.setattr(safe, "_NATIVE_SIGNER_API", None)
+            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+        elif failure == "allocation":
+            patch.setattr(safe._native_signer_api(), "new", refuse)
+        elif failure == "store":
+            patch.setattr(safe, "_SIGNING_OPERATIONS", RejectStore())
+        else:
+            patch.setattr(safe, "_TestnetRoute", refuse)
+        error, diagnostic = _capture_public_error(lambda: safe.ExperimentalHieroBackend(safe.Config()))
+    category_ok = isinstance(error, safe.HederaError)
+    assert category_ok, "Unexpected sanitized failure category"
+    _assert_public_error_safe(probe, error, diagnostic)
+    assert len(safe._SIGNING_OPERATIONS) == baseline  # Keep the error and its frames alive while checking release.
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("failure", ["api", "allocation", "store", "reinit"])
+def test_actual_sdk_direct_init_rich_diagnostics(actual, monkeypatch, algorithm, failure):
+    probe = actual(algorithm)
+
+    def refuse(*args):
+        raise MemoryError("Synthetic initialization failure")
+
+    class RejectStore(dict):
+        __setitem__ = refuse
+
+    with monkeypatch.context() as patch:
+        operation = lambda: safe._Signer(probe.sdk.PrivateKey.from_string(safe.os.environ["HEDERA_OPERATOR_KEY"]))
+        if failure == "api":
+            patch.setattr(safe, "_NATIVE_SIGNER_API", None)
+            patch.setattr(safe.ctypes, "PyDLL", lambda _: SimpleNamespace())
+        elif failure == "allocation":
+            patch.setattr(safe._native_signer_api(), "new", refuse)
+        elif failure == "store":
+            patch.setattr(safe, "_SIGNING_OPERATIONS", RejectStore())
+        else:
+            signer = probe.client.operator.signer
+            operation = lambda: signer.__init__(probe.sdk.PrivateKey.from_string(safe.os.environ["HEDERA_OPERATOR_KEY"]))
+        error, diagnostic = _capture_public_error(operation)
+    expected = safe.HederaError if failure == "api" else TypeError if failure == "reinit" else MemoryError
+    category_ok = isinstance(error, expected)
+    assert category_ok, "Unexpected sanitized failure category"
+    _assert_public_error_safe(probe, error, diagnostic)
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+@pytest.mark.parametrize("boundary", ["signer", "backend"])
+@pytest.mark.parametrize("failure", ["ordinary", "keyboard", "system-int", "system-none", "system-secret", "generator", "cancel"])
+def test_actual_sdk_key_derivation_failure_rich_diagnostics(actual, monkeypatch, algorithm, boundary, failure):
+    probe = actual(algorithm)
+
+    def refuse(key):
+        if failure == "ordinary":
+            raise ValueError(key.to_string_raw())
+        if failure == "keyboard":
+            raise KeyboardInterrupt(key.to_string_raw())
+        if failure == "system-int":
+            raise SystemExit(7)
+        if failure == "system-none":
+            raise SystemExit(None)
+        if failure == "system-secret":
+            raise SystemExit(key.to_string_raw())
+        if failure == "generator":
+            raise GeneratorExit(key.to_string_raw())
+        raise safe.CancelledError(key.to_string_raw())
+
+    monkeypatch.setattr(probe.sdk.PrivateKey, "public_key", refuse)
+    operation = (lambda: safe._Signer(probe.sdk.PrivateKey.from_string(safe.os.environ["HEDERA_OPERATOR_KEY"])))
+    if boundary == "backend":
+        operation = lambda: safe.ExperimentalHieroBackend(safe.Config())
+    error, diagnostic = _capture_public_error(operation)
+    expected = {"ordinary": safe.HederaError, "keyboard": KeyboardInterrupt,
+                "system-int": SystemExit, "system-none": SystemExit, "system-secret": SystemExit,
+                "generator": GeneratorExit, "cancel": safe.CancelledError}[failure]
+    category_ok = isinstance(error, expected)
+    assert category_ok, "Unexpected sanitized failure category"
+    if isinstance(error, SystemExit):
+        exit_code_ok = error.code == (7 if failure == "system-int" else None)
+        assert exit_code_ok, "Control flow retained an unsafe or changed exit code"
+    _assert_public_error_safe(probe, error, diagnostic)
+
+
+@pytest.mark.parametrize("algorithm", ["ed25519", "ecdsa"])
+def test_actual_sdk_real_interrupt_rich_diagnostics(actual, algorithm):
+    program = '''
+import json, resource, signal, socket, traceback
+resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+import hiero_sdk_python as sdk
+from rpp.adapters import hedera_safe as safe
+def forbidden(*args): raise RuntimeError("No network permitted")
+socket.socket.connect = forbidden
+key = sdk.PrivateKey.generate(ALGORITHM)
+markers = (key.to_string_raw(), key.to_string_der())
+signer = safe._Signer(key)
+def interrupt(signum, frame): raise KeyboardInterrupt()
+def capture():
+    previous = signal.signal(signal.SIGALRM, interrupt)
+    try:
+        signal.setitimer(signal.ITIMER_REAL, 0.0001)
+        try: signer(b"A" * 1048576)
+        except BaseException as error:  # noqa: BLE001 - rich diagnostics include cancellation paths.
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            return type(error).__name__, traceback.TracebackException.from_exception(error, capture_locals=True)
+        raise AssertionError("Signing was not interrupted")
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+kind, diagnostic = capture()
+leaked = any(marker in "".join(diagnostic.format()) for marker in markers)
+current = diagnostic
+while current is not None:
+    leaked = leaked or any(marker in value for frame in current.stack
+        for value in (frame.locals or {}).values() for marker in markers)
+    current = current.__context__
+print(json.dumps({"kind": kind, "leaked": leaked, "context": diagnostic.__context__ is not None}))
+'''.replace("ALGORITHM", repr(algorithm))
+    environment = {name: value for name, value in safe.os.environ.items()
+                   if name not in {"HEDERA_OPERATOR_KEY", "HEDERA_OPERATOR_ID"}}
+    result = subprocess.run([sys.executable, "-X", "faulthandler", "-c", program], env=environment,
+                            capture_output=True, text=True, timeout=20, check=False)
+    succeeded = result.returncode == 0 and not result.stderr
+    assert succeeded, "Interrupted signing diagnostic probe failed"
+    assert json.loads(result.stdout) == {"kind": "KeyboardInterrupt", "leaked": False, "context": False}

@@ -16,6 +16,7 @@ import re
 import sys
 import threading
 import time
+from asyncio import CancelledError
 from dataclasses import dataclass
 from types import SimpleNamespace
 from urllib.error import HTTPError, URLError
@@ -35,6 +36,22 @@ class MirrorPending(Exception):
 _SIGNING_OPERATIONS = {}
 _SIGNER_LOCK = threading.RLock()
 _NATIVE_SIGNER_API = None
+
+
+def _control_token(error):
+    if isinstance(error, SystemExit):
+        code = error.code if type(error.code) is int or error.code is None else None
+        return SystemExit, code
+    for kind in (KeyboardInterrupt, GeneratorExit, CancelledError):
+        if isinstance(error, kind):
+            return kind, None
+    return None, None
+
+
+def _raise_control(kind, code):
+    if kind is SystemExit:
+        raise SystemExit(code) from None
+    raise kind() from None
 
 
 def _native_signer_api():
@@ -73,13 +90,27 @@ def _release_capsule(capsule):
 
 
 def _invoke_capsule(capsule, payload):
-    api = _native_signer_api()
-    with _SIGNER_LOCK:
-        pointer = api.pointer(capsule, None)
-        if pointer == 1:
-            raise HederaError("Hedera signer is closed")
-        operation = ctypes.cast(pointer, ctypes.py_object).value
-    return operation(payload)  # Local strong reference survives concurrent close; never return the operation.
+    operation, failed, closed, control, code = None, False, False, None, None
+    try:
+        api = _native_signer_api()
+        with _SIGNER_LOCK:
+            pointer = api.pointer(capsule, None)
+            if pointer == 1:
+                closed = True
+                raise HederaError("Hedera signer is closed")
+            operation = ctypes.cast(pointer, ctypes.py_object).value
+        result = operation(payload)
+    except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
+        control, code = _control_token(error)
+        failed = True
+    finally:
+        operation = None  # Rich traceback logging must never retain a raw SDK bound method.
+    if failed:
+        if control is not None:
+            _raise_control(control, code)
+        # Raise after leaving the handler: no retained SDK exception or context.
+        raise HederaError("Hedera signer is closed" if closed else "Hedera signing failed") from None
+    return result
 
 
 def _close_signers():
@@ -101,23 +132,34 @@ class _Signer:
     __slots__ = ("_public_key",)
 
     def __init__(self, key):
-        api = _native_signer_api()
-        with _SIGNER_LOCK:
-            if id(self) in _SIGNING_OPERATIONS:
-                raise TypeError("Hedera signer cannot be reinitialized")
-            self._public_key = key.public_key()
-            operation = key.sign
-            api.pin(id(operation))
-            try:
-                capsule = api.new(id(operation), None, None)
-            except BaseException:
-                api.unpin(id(operation))
-                raise
-            try:
-                _SIGNING_OPERATIONS[id(self)] = capsule
-            except BaseException:
-                _release_capsule(capsule)
-                raise
+        operation, failure, control, code = None, None, None, None
+        try:
+            api = _native_signer_api()
+            with _SIGNER_LOCK:
+                if id(self) in _SIGNING_OPERATIONS:
+                    raise TypeError("Hedera signer cannot be reinitialized")
+                self._public_key = key.public_key()
+                operation = key.sign
+                api.pin(id(operation))
+                try:
+                    capsule = api.new(id(operation), None, None)
+                except BaseException:
+                    api.unpin(id(operation))
+                    raise
+                try:
+                    _SIGNING_OPERATIONS[id(self)] = capsule
+                except BaseException:
+                    _release_capsule(capsule)
+                    raise
+        except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
+            control, code = _control_token(error)
+            failure = MemoryError if isinstance(error, MemoryError) else TypeError if isinstance(error, TypeError) else HederaError
+        finally:
+            key = operation = None  # Clear even unsupported-API, allocation and reinitialization tracebacks.
+        if control is not None:
+            _raise_control(control, code)
+        if failure is not None:
+            raise failure("CPython capsule signer initialization failed") from None
 
     @property
     def public_key(self):
@@ -388,9 +430,9 @@ class ExperimentalHieroBackend:
         if os.environ.get("HEDERA_EXPERIMENTAL_PYTHON_ENABLED") != "true":
             raise HederaError("Python SDK is community Pre-Alpha; experimental opt-in required")
         account = os.environ.get("HEDERA_OPERATOR_ID")
-        secret = os.environ.get("HEDERA_OPERATOR_KEY")
-        if not account or not secret:
+        if not account or not os.environ.get("HEDERA_OPERATOR_KEY"):
             raise HederaError("Runtime HEDERA_OPERATOR_ID and HEDERA_OPERATOR_KEY are required")
+        signer, failed, control, code = None, False, None, None
         try:
             import hiero_sdk_python as sdk
             self.sdk = sdk
@@ -403,15 +445,22 @@ class ExperimentalHieroBackend:
             self.client.set_request_timeout(config.timeout_seconds)
             _disable_native_retries(self.client)
             self.client.set_default_max_query_payment(sdk.Hbar.from_tinybars(config.fee_tinybars))
-            signer = _Signer(sdk.PrivateKey.from_string(secret))
+            signer = _Signer(sdk.PrivateKey.from_string(os.environ["HEDERA_OPERATOR_KEY"]))
             self.client.set_operator_with(sdk.AccountId.from_string(account), signer.public_key, signer)
             self._route = _TestnetRoute(self.client)
             self.operator_id = str(self.client.operator.account_id)
             self.public_key = self.client.operator_public_key.to_string_raw()
-        except Exception:  # noqa: BLE001 - SDK errors may contain secrets; sanitize boundary
-            raise HederaError("Experimental Python SDK initialization failed") from None
+        except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
+            control, code = _control_token(error)
+            failed = True
         finally:
-            secret = None
+            if failed and signer is not None:
+                signer.__del__()
+            signer = None
+        if failed:
+            if control is not None:
+                _raise_control(control, code)
+            raise HederaError("Experimental Python SDK initialization failed") from None
 
     def _execute(self, transaction, config):
         config.validate()
@@ -460,6 +509,7 @@ class ExperimentalHieroBackend:
         return self._execute(tx, config)
 
     def signed_record(self, payload):
+        failed, control, code = False, None, None
         try:
             operator = self.client.operator
             signature = operator.signer(payload)
@@ -468,7 +518,12 @@ class ExperimentalHieroBackend:
                       "public_key_der": operator.public_key.to_string_der(),
                       "signature_base64": base64.b64encode(signature).decode()}
             return json.dumps(record, sort_keys=True, separators=(",", ":")).encode()
-        except Exception:  # noqa: BLE001 - SDK errors may contain secrets; sanitize boundary
+        except BaseException as error:  # noqa: BLE001 - discard SDK state and preserve fresh control flow.
+            control, code = _control_token(error)
+            failed = True
+        if failed:
+            if control is not None:
+                _raise_control(control, code)
             raise HederaError("Record signing failed") from None
 
     def close(self):
