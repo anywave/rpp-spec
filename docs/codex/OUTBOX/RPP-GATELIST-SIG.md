@@ -83,7 +83,7 @@ workspace's localhost-only socket tests. Rust commands used the installed
 | `ruff check --no-cache tools/gatelist_scaffold/mutation_check.py` | exit 0 |
 | `ruff check --no-cache rpp tests --ignore E501` | exit 1, 8 pre-existing errors; identical on archived base master |
 | `git diff --check` | exit 0 |
-| `python -m tools.drift check --base e213efb144275d87523856c728d8da2af9efbfe2 --head HEAD --output-dir /tmp/rpp-gatelist-drift` | See final verification below. |
+| `python -m tools.drift check --base e213efb144275d87523856c728d8da2af9efbfe2 --head $(git rev-parse HEAD) --output-dir /tmp/rpp-gatelist-drift` | exit 0; 0 HIGH / 0 MEDIUM / 0 LOW; 239 open baselines unchanged |
 
 Ruff baseline: E402 in `tests/hedera_initializer_sigint_probe.py:15,17`; E731
 in `tests/test_hedera_sdk_security.py:809,842,912,922,952,954`. These files are
@@ -151,6 +151,8 @@ cargo +1.85.1 run --manifest-path rust/rpp-gatelist/Cargo.toml --offline --locke
 python tools/gatelist_scaffold/mutation_check.py --output "$env:TEMP/rpp-gatelist-mutations.json"
 python -m pytest tests -q -o addopts=
 python tests/test_golden_vectors_mobius32.py
+ruff check --no-cache tools/gatelist_scaffold/mutation_check.py
+python -m tools.drift check --base e213efb144275d87523856c728d8da2af9efbfe2 --head $(git rev-parse HEAD) --output-dir "$env:TEMP/rpp-gatelist-drift"
 ```
 
 No native Windows or hosted CI result is claimed. The standalone crate has
