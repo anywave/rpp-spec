@@ -4,6 +4,10 @@
 The name is provisional and publishing is disabled; PL/FP may rename it. The
 workspace pins Rust **1.85.1** and commits its lockfile.
 
+[`rpp-gatelist`](rpp-gatelist/README.md) is a separately locked experimental
+Ed25519 gate-list verifier and explicit enforce/log-only dispatch boundary.
+Its own offline gates are required; the existing workspace CI does not run it.
+
 CX-008 adds the unpublished `rpp-control` fixed-frame codec and `rpp-link`
 adapter interface crates to this workspace. [ESP32 adapter guidance](ESP32.md)
 describes their features, host simulation, provisional frame and board gaps.

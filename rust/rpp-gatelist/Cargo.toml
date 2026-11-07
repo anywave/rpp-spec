@@ -1,0 +1,19 @@
+[package]
+name = "rpp-gatelist"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85.1"
+license = "Apache-2.0"
+publish = false
+description = "Experimental pinned Ed25519 gate lists and explicit application admission"
+
+# Independent, like rpp-steer-udp: existing offline workspace CI has no
+# cryptography cache provision. Explicit locked gates are documented here.
+[workspace]
+
+[dependencies]
+ed25519-dalek = { version = "=2.2.0", default-features = false }
+rpp-core = { path = "../rpp-core", default-features = false }
+
+[dev-dependencies]
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
