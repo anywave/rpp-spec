@@ -1,0 +1,140 @@
+{
+  "classifier_controls": 6,
+  "killed": 22,
+  "mutations": [
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "signature_removed",
+      "test": "bad_signature_is_refused_without_replacing_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "pin_removed",
+      "test": "unknown_key_is_refused_without_replacing_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "sequence_removed",
+      "test": "equal_lower_and_zero_sequences_preserve_the_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "equal_sequence_allowed",
+      "test": "equal_lower_and_zero_sequences_preserve_the_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "update_expiry_removed",
+      "test": "expired_update_and_expiry_boundary_preserve_the_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "expiry_boundary_inclusive",
+      "test": "expired_update_and_expiry_boundary_preserve_the_last_good"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "audience_removed",
+      "test": "malformed_domain_length_and_wrong_audience_are_refused"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "domain_removed",
+      "test": "malformed_domain_length_and_wrong_audience_are_refused"
+    },
+    {
+      "clean_control": "valid_update_replaces_all_grants_and_dispatches",
+      "killed": true,
+      "mutation": "weak_pin_allowed",
+      "test": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "floor_ignored",
+      "test": "restart_floor_and_max_sequence_cannot_be_rolled_back"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "update_rollback_allowed",
+      "test": "invalid_future_update_cannot_poison_clock_and_rollback_is_refused"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "admission_rollback_allowed",
+      "test": "invalid_future_update_cannot_poison_clock_and_rollback_is_refused"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "admission_expiry_removed",
+      "test": "enforce_never_calls_the_operation_on_missing_stale_or_denied_list"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "sector_guard_removed",
+      "test": "enforce_never_calls_the_operation_on_missing_stale_or_denied_list"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "missing_list_allowed",
+      "test": "enforce_never_calls_the_operation_on_missing_stale_or_denied_list"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "enforce_bypassed",
+      "test": "enforce_never_calls_the_operation_on_missing_stale_or_denied_list"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "request_update_failure_hidden",
+      "test": "enforce_refuses_each_bad_update_at_the_operation_boundary"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "consent_bypassed_in_log_only",
+      "test": "neither_mode_bypasses_current_consent"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "audit_failure_ignored",
+      "test": "unavailable_audit_refuses_dispatch_in_both_modes"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "last_good_not_replaced",
+      "test": "valid_update_replaces_all_grants_and_dispatches"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "log_only_mode_hidden",
+      "test": "log_only_is_explicit_visible_and_does_not_accept_bad_updates"
+    },
+    {
+      "clean_control": "weak_pin_is_rejected_and_modes_have_distinct_visible_labels",
+      "killed": true,
+      "mutation": "phi_as_consent_axis",
+      "test": "only_theta_selects_grants_including_both_bitmap_edges"
+    }
+  ],
+  "source_sha256": "9b029208dd9968e0b15b982136ed83b26eae74a0c7724d6b644a58fe795083ab",
+  "survived": 0
+}
